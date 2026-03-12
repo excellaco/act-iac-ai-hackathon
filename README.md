@@ -20,9 +20,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+## Testing
+
+Tests are written in [Jest](https://jestjs.io/) using [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+
+Run the tests:
+```bash
+npm test
+```
+
+Tests are located in the `__tests__/` directory.
+
 ## CI/CD Pipeline
 
-The pipeline triggers on every push to `main` and builds and deploys the app to Cloud Run.
+The pipeline triggers on every push to `main` and runs two jobs:
+
+### quality job
+Runs first and must pass before deployment:
+1. Install dependencies
+2. TypeScript type check (`tsc --noEmit`)
+3. Lint (`eslint`)
+4. Tests (`jest`)
+
+### deploy job
+Runs after `quality` passes:
+1. Install dependencies
+2. Build the Next.js app
+3. Authenticate to GCP
+4. Build and push Docker image to Artifact Registry
+5. Deploy to Cloud Run
 
 ### GitHub Secrets Required
 
@@ -66,13 +92,3 @@ gcloud iam service-accounts keys create key.json \
 ```
 
 Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
-
-### Next.js Configuration
-
-Add `output: 'standalone'` to `next.config.ts`:
-```ts
-const nextConfig = {
-  output: 'standalone',
-};
-export default nextConfig;
-```
