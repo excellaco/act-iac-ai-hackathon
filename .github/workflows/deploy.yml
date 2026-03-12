@@ -22,6 +22,8 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm test
+
   deploy:
     needs: quality
     runs-on: ubuntu-latest
