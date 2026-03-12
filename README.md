@@ -5,6 +5,15 @@ The repo for our ACT-IAC AI hackathon efforts.
 - Next.js + TypeScript
 - Deployed to Google Cloud Run via GitHub Actions
 
+## Running Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
 ## CI/CD Pipeline
 
 The pipeline triggers on every push to `main` and builds and deploys the app to Cloud Run.
