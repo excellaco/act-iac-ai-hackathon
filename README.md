@@ -1,6 +1,12 @@
 # act-iac-ai-hackathon
 The repo for our ACT-IAC AI hackathon efforts.
 
+## Use Case: AI-Powered Housing Regulatory & Development Feasibility Intelligence
+
+This project tackles the challenge of navigating complex housing regulations and assessing development feasibility using AI. The goal is to provide an intelligent platform that helps users understand regulatory requirements and evaluate the feasibility of housing development projects.
+
+[View the full use case description](https://custom.cvent.com/65595313E1D64207A6EA78F583793509/files/937ae00ec3ab46c6aebdb78bfbf7552c.docx)
+
 ## Stack
 - Next.js + TypeScript
 - Deployed to Google Cloud Run via GitHub Actions
