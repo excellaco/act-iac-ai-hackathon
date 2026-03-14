@@ -10,6 +10,7 @@
 
 | ID | Epic | Description |
 |----|------|-------------|
+| E0 | Ingestion & Extraction Pipeline | End-to-end batch pipeline orchestrating document fetch, chunking, LLM extraction, validation, and DB write |
 | E1 | Data Ingestion | Ingest and process zoning documents and public datasets |
 | E2 | LLM Extraction | Extract structured regulatory fields from unstructured zoning text |
 | E3 | RIS Scoring Engine | Compute Regulatory Impact Score and sub-scores |
@@ -23,6 +24,19 @@
 ---
 
 ## Sprint 1 (Days 1–5): Data, Extraction & Scoring Core
+
+### E0 — Ingestion & Extraction Pipeline
+
+| ID | Story | Acceptance Criteria | Priority | Points |
+|----|-------|---------------------|----------|--------|
+| E0-1 | As a developer, I need a pipeline runner that executes the full ingestion-to-extraction sequence for a given jurisdiction so that I can process all 3 demo jurisdictions in a single batch run | Pipeline accepts a jurisdiction ID; runs fetch → parse → chunk → extract → validate → store in sequence; logs pass/fail per stage | P0 | 3 |
+| E0-2 | As a developer, I need zoning PDF text chunked into processable segments so that LLM prompts receive relevant context without exceeding token limits | Text split into overlapping chunks of ≤4000 tokens; chunk boundaries respect section headers where possible | P0 | 2 |
+| E0-3 | As a developer, I need the pipeline to handle LLM extraction failures gracefully so that a single bad field doesn't block the whole run | Failed extraction for a field logs the error, sets confidence tier to Low, and continues; pipeline completes with partial results | P0 | 2 |
+| E0-4 | As a developer, I need extraction outputs validated before they are written to the database so that bad data doesn't silently corrupt scores | Validation checks: field is present, value is within plausible range, confidence tier is set; failures logged and flagged | P0 | 2 |
+| E0-5 | As a developer, I need a pipeline run record stored per jurisdiction so that the UI can display when data was last processed | Run record stores: jurisdiction ID, run timestamp, fields extracted, fields failed, overall status; queryable by jurisdiction | P0 | 1 |
+| E0-6 | As a developer, I need the pipeline to be re-runnable for a jurisdiction so that I can refresh data or fix extraction errors before the demo | Re-run overwrites existing extracted fields and updates the run record; prior run record retained in history | P1 | 1 |
+
+---
 
 ### E1 — Data Ingestion
 
@@ -129,8 +143,7 @@
 | S-2 | Automated zoning document update monitoring |
 | S-3 | Expand to 10+ jurisdictions |
 | S-4 | User authentication and saved scenarios |
-| S-5 | Developer persona — national map as primary navigation, market-screening entry point |
-| S-6 | Natural language search ("most restrictive counties near DC") |
+| S-5 | Natural language search ("most restrictive counties near DC") |
 
 ---
 
