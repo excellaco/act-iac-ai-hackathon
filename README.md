@@ -61,6 +61,11 @@ Add these in **Settings → Secrets and variables → Actions**:
 
 ### One-Time GCP Setup
 
+**Enable required APIs:**
+```bash
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com
+```
+
 **Create the Artifact Registry repository:**
 ```bash
 gcloud artifacts repositories create excella-ai-hackathon \
