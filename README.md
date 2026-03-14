@@ -40,7 +40,10 @@ Runs first and must pass before deployment:
 1. Install dependencies
 2. TypeScript type check (`tsc --noEmit`)
 3. Lint (`eslint`)
-4. Tests (`jest`)
+4. Tests (`jest`) with coverage report
+5. Snyk dependency vulnerability scan (fails on high/critical)
+6. Snyk monitor (sends snapshot to Snyk dashboard for ongoing tracking)
+7. SonarCloud code quality analysis
 
 ### deploy job
 Runs after `quality` passes:
@@ -58,6 +61,8 @@ Add these in **Settings → Secrets and variables → Actions**:
 |--------|-------------|
 | `GCP_SA_KEY` | JSON content of the GCP service account key |
 | `GCP_PROJECT_ID` | Your GCP project ID |
+| `SNYK_TOKEN` | Snyk auth token (from Account Settings in Snyk dashboard) |
+| `SONAR_TOKEN` | SonarCloud token (from My Account → Security in SonarCloud) |
 
 ### One-Time GCP Setup
 
@@ -97,3 +102,17 @@ gcloud iam service-accounts keys create key.json \
 ```
 
 Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
+
+### One-Time Security Tools Setup
+
+**Snyk:**
+1. Sign up at [snyk.io](https://snyk.io) using your GitHub account
+2. Copy your auth token from **Account Settings → Auth Token**
+3. Add it as the `SNYK_TOKEN` GitHub secret
+
+**SonarCloud:**
+1. Sign up at [sonarcloud.io](https://sonarcloud.io) using your GitHub account
+2. Create a new project linked to this repo — note the project key and organization key
+3. Generate a token from **My Account → Security**
+4. Add it as the `SONAR_TOKEN` GitHub secret
+5. Disable **Automatic Analysis** under **Administration → Analysis Method** in your SonarCloud project
