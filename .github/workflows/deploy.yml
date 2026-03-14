@@ -2,7 +2,7 @@ name: Deploy to GCP
 
 on:
   push:
-    branches: [main, update-pipeline]
+    branches: [main]
 
 jobs:
   quality:
