@@ -211,5 +211,7 @@ Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
 | [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
 | [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema — all tables, columns, types, and relationships |
+| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | ADK LlmAgent prompt templates, output schema, and validation rules |
 | [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) | ADR: Google Cloud + Next.js/TypeScript |
 | [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) | ADR: Google ADK for pipeline and LLM extraction |
