@@ -207,6 +207,7 @@ Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
 
 | Document | Description |
 |----------|-------------|
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture diagram and layer descriptions |
 | [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
 | [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
