@@ -38,7 +38,7 @@ flowchart LR
 Public datasets manually downloaded and stored in `data/raw/` before the pipeline is run. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
 
 ### Ingestion & extraction pipeline (E0/E1/E2)
-A batch pre-processing pipeline built with Google ADK for TypeScript and deployed to Cloud Run. Runs once per jurisdiction before the demo. Implemented as a `SequentialAgent` (fetch → chunk → extract → validate → store) with a nested `ParallelAgent` for the five LLM field extractions. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md).
+A batch pre-processing pipeline built with Google ADK for TypeScript and deployed to Cloud Run. Runs once per jurisdiction before the demo. Implemented as a `SequentialAgent` (fetch → parse → chunk → extract → validate → store) with a nested `ParallelAgent` for the five LLM field extractions. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md).
 
 ### Scoring & feasibility engine (E3/E4/E9)
 Deterministic TypeScript calculations served via Next.js API routes, backed by Cloud SQL (PostgreSQL). Computes the composite Regulatory Impact Score (RIS) and feasibility outputs (unit yield, buildable area, cost per unit) from structured pipeline outputs.

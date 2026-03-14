@@ -26,10 +26,17 @@ act-iac-ai-hackathon/
 ├── app/                        # Next.js app router pages and layouts
 ├── __tests__/                  # Jest + React Testing Library test suite
 ├── public/                     # Static assets
+├── data/
+│   └── raw/                    # Manually downloaded source documents (see data/raw/README.md)
+│       └── zoning/             # Zoning ordinance PDFs (Fairfax, Arlington, Loudoun)
 ├── docs/                       # Project documentation
+│   ├── ARCHITECTURE.md         # System architecture diagram and layer descriptions
+│   ├── PERSONA.md              # Primary user persona — Valentina Reyes (Val)
 │   ├── USER_JOURNEY.md         # 4-step MVP user journey (policy maker persona)
 │   ├── BACKLOG.md              # Full sprint backlog with epics, stories, and points
 │   ├── DATA_SOURCES.md         # Public data sources, formats, and field mappings
+│   ├── DATABASE_SCHEMA.md      # Cloud SQL schema — all tables, columns, relationships
+│   ├── LLM_PROMPT_TEMPLATES.md # ADK LlmAgent prompt templates and validation rules
 │   └── adr/
 │       ├── 0001-platform-and-stack.md              # Google Cloud + Next.js/TypeScript decision
 │       └── 0002-google-adk-for-pipeline-orchestration.md  # ADK usage decision
