@@ -28,6 +28,9 @@
   - Cost Impact Estimates *(FMR + RSMeans regional inputs)*
   - Comparative Restrictiveness vs Peer Cities
 - Each accordion item is collapsed by default; user expands to see sub-scores and data sources
+- Each extracted field displays a confidence badge (High / Medium / Low) indicating LLM extraction reliability
+- Data source attribution shown per field (Municode, ACS, FMR, RSMeans)
+- An "About this score" link opens a modal with modeling assumptions and a disclaimer that the RIS is descriptive, not prescriptive
 - User can optionally zoom out to the national or state map to see how their jurisdiction compares in broader context
 - **User action:** Reviews scores, optionally adds a second jurisdiction to compare
 
@@ -59,21 +62,11 @@
 
 ---
 
-### Step 5 — Review Responsible AI Disclosures
-- A persistent footer or info panel surfaces:
-  - LLM extraction confidence tier for each data field (High / Medium / Low)
-  - Data source attribution (Municode, ACS, FMR, RSMeans)
-  - Modeling assumptions disclosure
-  - Note that RIS is descriptive, not prescriptive
-- **User action:** Reviews confidence indicators before sharing results with stakeholders
-
----
-
 ## Happy Path Summary
 
 ```
-Search for Jurisdiction → County RIS Panel →
-Add Comparators → What-If Simulation → Review AI Disclosures
+Search for Jurisdiction → County RIS Panel (with inline AI disclosures) →
+Add Comparators → What-If Simulation
 ```
 
 ---
@@ -85,3 +78,4 @@ Add Comparators → What-If Simulation → Review AI Disclosures
 - More than 3 simultaneous jurisdictions
 - Developer persona (evaluating municipalities for private development projects) — deferred to Phase 2
 - National map as primary navigation entry point — available as zoom-out context only
+- Responsible AI disclosures as a separate screen or step — surfaced inline on the score panel instead
