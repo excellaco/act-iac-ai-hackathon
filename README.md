@@ -1,17 +1,14 @@
-# act-iac-ai-hackathon
-The repo for our ACT-IAC AI hackathon efforts.
+# Parcela — Zoning Land Use Policy Impact Simulator
 
-## Use Case: AI-Powered Housing Regulatory & Development Feasibility Intelligence
+An AI-powered housing regulatory and development feasibility intelligence platform built for the ACT-IAC AI Hackathon.
 
-This project tackles the challenge of navigating complex housing regulations and assessing development feasibility using AI. The goal is to provide an intelligent platform that helps users understand regulatory requirements and evaluate the feasibility of housing development projects.
+Parcela transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
 
-[View the full use case description](https://custom.cvent.com/65595313E1D64207A6EA78F583793509/files/937ae00ec3ab46c6aebdb78bfbf7552c.docx)
+> **Hackathon scope:** MVP targets 2–3 contrasting Virginia jurisdictions (Fairfax, Arlington, Loudoun counties). See [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) for the full user flow.
 
-## Stack
-- Next.js + TypeScript
-- Deployed to Google Cloud Run via GitHub Actions
+---
 
-## Running Locally
+## Quick Start
 
 ```bash
 npm install
@@ -20,16 +17,101 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+---
+
+## Project Structure
+
+```
+act-iac-ai-hackathon/
+├── app/                        # Next.js app router pages and layouts
+├── __tests__/                  # Jest + React Testing Library test suite
+├── public/                     # Static assets
+├── docs/                       # Project documentation
+│   ├── USER_JOURNEY.md         # 4-step MVP user journey (policy maker persona)
+│   ├── BACKLOG.md              # Full sprint backlog with epics, stories, and points
+│   ├── DATA_SOURCES.md         # Public data sources, formats, and field mappings
+│   └── adr/
+│       ├── 0001-platform-and-stack.md              # Google Cloud + Next.js/TypeScript decision
+│       └── 0002-google-adk-for-pipeline-orchestration.md  # ADK usage decision
+├── Dockerfile                  # Container image for Cloud Run deployment
+└── .github/workflows/          # CI/CD pipeline (quality + deploy jobs)
+```
+
+---
+
+## Architecture Overview
+
+Parcela is a five-layer system:
+
+```
+Zoning PDFs + Public Datasets
+        ↓
+[ E0/E1 ] Ingestion & Extraction Pipeline  (Google ADK — SequentialAgent)
+        ↓
+[ E2    ] LLM Field Extraction             (Google ADK — ParallelAgent + LlmAgent)
+        ↓
+[ E3    ] RIS Scoring Engine               (TypeScript — deterministic calculation)
+        ↓
+[ E9    ] Backend API                      (Next.js API routes → Cloud SQL)
+        ↓
+[ E5–E8 ] Dashboard UI                     (Next.js / React — search, map, compare, simulate)
+```
+
+The ingestion pipeline runs as a **pre-processing batch job** before the demo. The live application is a data visualization layer on top of pre-computed scores. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) for the ADK decision rationale.
+
+---
+
+## User Journey (Summary)
+
+1. **Search** — policy maker types their county into a search bar; autocomplete returns matching jurisdictions
+2. **View RIS** — map zooms to selected county; accordion score panel shows Regulatory Impact Score and sub-scores with inline confidence badges and data source attribution
+3. **Compare** — add 1–2 more counties for side-by-side comparison with a summary ranking bar
+4. **Simulate** — toggle "What-If" mode; adjust regulatory constraint sliders; scores and feasibility outputs update in real time
+
+Full details: [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md)
+
+---
+
+## Regulatory Impact Score (RIS)
+
+The RIS is a composite 0–100 index measuring regulatory constraint. It is **descriptive, not prescriptive** — it quantifies regulatory complexity without making normative policy judgments.
+
+| Sub-score | Weight | What it measures |
+|-----------|--------|-----------------|
+| Density Constraint Index (DCI) | 30% | Lot size, height limits, density limits |
+| Development Cost Impact (DCOI) | 25% | Parking requirements, construction cost inputs |
+| Permitting Complexity Indicator (PCI) | 20% | Permit approval rates, discretionary review |
+| Comparative Restrictiveness Percentile (CRP) | 25% | Ranking within peer jurisdiction set |
+
+Higher score = more restrictive regulatory environment.
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend & API | Next.js 16 + TypeScript |
+| AI Pipeline | Google ADK for TypeScript |
+| LLM | Gemini (via Vertex AI) |
+| Database | Cloud SQL (PostgreSQL) |
+| Deployment | Google Cloud Run |
+| CI/CD | GitHub Actions |
+| Code Quality | ESLint, SonarCloud, Snyk |
+
+See [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) for the full rationale.
+
+---
+
 ## Testing
 
-Tests are written in [Jest](https://jestjs.io/) using [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/).
+Tests use [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/). Tests live in `__tests__/`.
 
-Run the tests:
 ```bash
 npm test
 ```
 
-Tests are located in the `__tests__/` directory.
+---
 
 ## CI/CD Pipeline
 
@@ -55,8 +137,6 @@ Runs after `quality` passes:
 
 ### GitHub Secrets Required
 
-Add these in **Settings → Secrets and variables → Actions**:
-
 | Secret | Description |
 |--------|-------------|
 | `GCP_SA_KEY` | JSON content of the GCP service account key |
@@ -64,7 +144,9 @@ Add these in **Settings → Secrets and variables → Actions**:
 | `SNYK_TOKEN` | Snyk auth token (from Account Settings in Snyk dashboard) |
 | `SONAR_TOKEN` | SonarCloud token (from My Account → Security in SonarCloud) |
 
-### One-Time GCP Setup
+---
+
+## One-Time GCP Setup
 
 **Enable required APIs:**
 ```bash
@@ -103,7 +185,9 @@ gcloud iam service-accounts keys create key.json \
 
 Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
 
-### One-Time Security Tools Setup
+---
+
+## One-Time Security Tools Setup
 
 **Snyk:**
 1. Sign up at [snyk.io](https://snyk.io) using your GitHub account
@@ -116,3 +200,15 @@ Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
 3. Generate a token from **My Account → Security**
 4. Add it as the `SONAR_TOKEN` GitHub secret
 5. Disable **Automatic Analysis** under **Administration → Analysis Method** in your SonarCloud project
+
+---
+
+## Documentation Index
+
+| Document | Description |
+|----------|-------------|
+| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
+| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
+| [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) | ADR: Google Cloud + Next.js/TypeScript |
+| [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) | ADR: Google ADK for pipeline and LLM extraction |
