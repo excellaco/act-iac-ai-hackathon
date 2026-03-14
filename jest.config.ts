@@ -9,6 +9,8 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)sx?$': '@swc/jest',
   },
+  collectCoverage: true,
+  coverageReporters: ['lcov'],
 };
 
 export default config;

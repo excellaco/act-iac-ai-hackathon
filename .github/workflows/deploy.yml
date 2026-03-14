@@ -2,7 +2,7 @@ name: Deploy to GCP
 
 on:
   push:
-    branches: [main]
+    branches: [main, update-pipeline]
 
 jobs:
   quality:
@@ -23,6 +23,14 @@ jobs:
       - run: npm run lint
 
       - run: npm test
+
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=excellaco_act-iac-ai-hackathon
+            -Dsonar.organization=excellaco
 
   deploy:
     needs: quality
