@@ -24,15 +24,40 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 
 **What it is:** The primary source for all regulatory constraint data. Zoning codes define minimum lot sizes, height limits, density limits, parking minimums, setback requirements, and permitting processes for each jurisdiction.
 
-**Where to find it:**
+### Acquisition approach (MVP)
 
-| Jurisdiction | Source | Direct URL |
-|---|---|---|
-| Fairfax County, VA | Municode | https://library.municode.com/va/fairfax_county |
-| Arlington County, VA | Arlington County Code | https://library.municode.com/va/arlington_county |
-| Loudoun County, VA | Municode | https://library.municode.com/va/loudoun_county |
+For the MVP demo, zoning ordinance documents are **manually downloaded and committed to the repo** rather than fetched programmatically. This avoids pipeline complexity and web scraping brittleness within the two-week timeline.
 
-**Format:** HTML (web-browsable) and PDF (downloadable per chapter). The LLM extraction pipeline should work from PDF text extracted via a PDF parser (E1-1).
+Downloaded files live in `data/raw/zoning/` — see [`data/raw/README.md`](../data/raw/README.md) for the folder structure and file naming convention.
+
+Each jurisdiction has a different source and access pattern:
+
+| Jurisdiction | Platform | Access pattern | Local path |
+|---|---|---|---|
+| Fairfax County, VA | Encode (county-hosted) | Chapter-by-chapter HTML/PDF export | `data/raw/zoning/fairfax/` |
+| Arlington County, VA | County website (direct PDF) | Single full ordinance PDF download | `data/raw/zoning/arlington/` |
+| Loudoun County, VA | Encode (county-hosted) | Chapter-by-chapter HTML/PDF export | `data/raw/zoning/loudoun/` |
+
+### Source URLs
+
+**Fairfax County**
+- Zoning Ordinance (Encode platform): https://www.fairfaxcounty.gov/planning-development/zoning-ordinance
+- Ordinance text is hosted on Encode — navigate to relevant residential chapters and export as PDF
+- Focus chapters: Article 2 (Residential Districts), Article 4 (Use Regulations), Article 5 (Development Standards)
+
+**Arlington County**
+- Zoning Ordinance (direct PDF — full document): https://www.arlingtonva.us/files/sharedassets/public/v/2/building/documents/codes-and-ordinances/aczo_effective_06.10.2023.pdf
+- This is the cleanest acquisition: one PDF download covers the full ordinance
+- Save as: `data/raw/zoning/arlington/aczo_2023.pdf`
+
+**Loudoun County**
+- Zoning Ordinance (adopted December 13, 2023): https://www.loudoun.gov/1755/Zoning-Ordinance
+- Hosted on county platform — navigate to residential district chapters and export as PDF
+- Focus chapters: Chapter 3 (Zoning Districts), Chapter 4 (Use Standards), Chapter 5 (Development Standards)
+
+### Format
+
+All downloaded documents should be saved as PDF. The pipeline (E1-1) extracts raw text from these PDFs using a PDF parser before passing to the LLM extraction stage.
 
 **Fields to extract (E2-1 through E2-5):**
 
@@ -46,8 +71,8 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 
 **Notes:**
 - Zoning codes are organized by district (R-1, R-2, MF, etc.). Focus extraction on residential multifamily districts for MVP — these are most relevant to housing development feasibility.
-- Some jurisdictions publish zoning codes directly on their own websites rather than Municode. Check both.
 - Confidence tier assignment: if the LLM extracts a value directly from explicit regulatory text, assign High. If it must infer from context or examples, assign Medium. If no relevant text is found, assign Low.
+- Do not commit large PDFs directly to Git without Git LFS configured. See `data/raw/README.md` for guidance.
 
 ---
 
