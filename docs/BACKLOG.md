@@ -82,8 +82,8 @@
 
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
-| E4-1 | As a policy maker, I need to see maximum theoretical unit yield per acre so that I understand density impact | Yield computed from lot size + height + density limits; displayed in score panel | P0 | 3 |
-| E4-2 | As a policy maker, I need to see buildable area impacted by parking requirements so that I understand parking cost | Parking lot footprint estimated from spaces/unit × stall size; displayed as % of lot | P0 | 3 |
+| E4-1 | As a housing policy analyst, I need to see maximum theoretical unit yield per acre so that I understand density impact | Yield computed from lot size + height + density limits; displayed in score panel | P0 | 3 |
+| E4-2 | As a housing policy analyst, I need to see buildable area impacted by parking requirements so that I understand parking cost | Parking lot footprint estimated from spaces/unit × stall size; displayed as % of lot | P0 | 3 |
 | E4-3 | As a housing policy analyst, I need estimated cost per unit so that I understand financial feasibility | Cost = construction cost (BLS OES + BEA RPP regional multiplier applied to national baseline) + parking cost uplift; displayed in score panel | P1 | 3 |
 | E4-4 | As a housing policy analyst, I need to see whether local market rents can support the estimated construction cost so that I can make a defensible case for regulatory change | Rent feasibility indicator displayed alongside cost per unit: compares estimated monthly carrying cost (construction cost ÷ 240 months) to local HUD FMR 2BR; shows one of three labels — Feasible, Marginal, or Infeasible — with the underlying FMR and cost figures cited. **Rationale:** E4-3 answers "what does it cost to build?" (supply-side); E4-4 answers "can the market support that cost?" (demand-side). These are distinct policy questions that deserve separate stories. The rent comparison is the more powerful output for Val — it transforms a construction cost number into a policy argument. HUD FMR data is already ingested in E1-2, so the implementation cost is low. | P1 | 2 |
 
@@ -91,40 +91,40 @@
 
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
-| E5-1 | As a policy maker, I need a prominent search bar on the home screen so that I can find my jurisdiction directly without navigating a map | Search bar is the primary element on the home screen; labeled "Find your county or municipality" | P0 | 2 |
-| E5-2 | As a policy maker, I need autocomplete suggestions as I type so that I can quickly select my jurisdiction | Autocomplete returns matching counties/municipalities from the 3 demo jurisdictions; selection loads the RIS panel | P0 | 2 |
-| E5-3 | As a policy maker, I need a national choropleth heat map visible in the background so that I have geographic context while searching | US map rendered behind the search bar with state-level RIS shading; not interactive at this stage | P0 | 3 |
-| E5-4 | As a policy maker, I need a color legend on the map so that I understand what the shading means | Legend shows RIS scale (0–100) with low/medium/high labels; always visible | P0 | 1 |
-| E5-5 | As a policy maker, I need to be able to zoom out from my county to see the national or state map so that I can understand comparative context | Zoom-out control or button available from the county view; returns to national/state heat map | P1 | 2 |
+| E5-1 | As a housing policy analyst, I need a prominent search bar on the home screen so that I can find my jurisdiction directly without navigating a map | Search bar is the primary element on the home screen; labeled "Find your county or municipality" | P0 | 2 |
+| E5-2 | As a housing policy analyst, I need autocomplete suggestions as I type so that I can quickly select my jurisdiction | Autocomplete returns matching counties/municipalities from the 3 demo jurisdictions; selection loads the RIS panel | P0 | 2 |
+| E5-3 | As a housing policy analyst, I need a national choropleth heat map visible in the background so that I have geographic context while searching | US map rendered behind the search bar with state-level RIS shading; not interactive at this stage | P0 | 3 |
+| E5-4 | As a housing policy analyst, I need a color legend on the map so that I understand what the shading means | Legend shows RIS scale (0–100) with low/medium/high labels; always visible | P0 | 1 |
+| E5-5 | As a housing policy analyst, I need to be able to zoom out from my county to see the national or state map so that I can understand comparative context | Zoom-out control or button available from the county view; returns to national/state heat map | P1 | 2 |
 
 ### E6 — Score Panel UI
 
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
-| E6-1 | As a policy maker, I need the map to focus on my selected county so that I can see district-level RIS shading | After search selection, map zooms to county with zip code / district-level choropleth shading | P0 | 3 |
-| E6-2 | As a policy maker, I need an accordion score panel to open alongside the map so that I can explore sub-scores by category | Right-side panel slides open with Composite Score + 4 sub-score accordions; each expandable | P0 | 3 |
-| E6-3 | As a policy maker, I need confidence badges on each extracted field so that I know how reliable the data is | Each field shows High / Medium / Low badge; tooltip explains what each tier means | P0 | 2 |
-| E6-4 | As a policy maker, I need data source attribution on each sub-score so that I know where the data came from | Each accordion section cites its source (e.g., "Municode zoning code, extracted 2025-03") | P0 | 2 |
-| E6-5 | As a policy maker, I need an "About this score" link so that I can understand the methodology and assumptions | Link opens a modal explaining normalization, sub-score weights, and modeling limitations | P0 | 2 |
-| E6-6 | As a policy maker, I need a disclaimer stating the RIS is descriptive not prescriptive so that I can use it defensibly in policy discussions | Static text visible on the score panel: "This score measures regulatory constraint and does not recommend policy positions." | P0 | 1 |
+| E6-1 | As a housing policy analyst, I need the map to focus on my selected county so that I can see district-level RIS shading | After search selection, map zooms to county with zip code / district-level choropleth shading | P0 | 3 |
+| E6-2 | As a housing policy analyst, I need an accordion score panel to open alongside the map so that I can explore sub-scores by category | Right-side panel slides open with Composite Score + 4 sub-score accordions; each expandable | P0 | 3 |
+| E6-3 | As a housing policy analyst, I need confidence badges on each extracted field so that I know how reliable the data is | Each field shows High / Medium / Low badge; tooltip explains what each tier means | P0 | 2 |
+| E6-4 | As a housing policy analyst, I need data source attribution on each sub-score so that I know where the data came from | Each accordion section cites its source (e.g., "Municode zoning code, extracted 2025-03") | P0 | 2 |
+| E6-5 | As a housing policy analyst, I need an "About this score" link so that I can understand the methodology and assumptions | Link opens a modal explaining normalization, sub-score weights, and modeling limitations | P0 | 2 |
+| E6-6 | As a housing policy analyst, I need a disclaimer stating the RIS is descriptive not prescriptive so that I can use it defensibly in policy discussions | Static text visible on the score panel: "This score measures regulatory constraint and does not recommend policy positions." | P0 | 1 |
 
 ### E7 — Comparison View
 
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
-| E7-1 | As a policy maker, I need to add a second jurisdiction to compare so that I can benchmark my county | "Add jurisdiction to compare" search bar adds a second map + accordion panel side-by-side | P0 | 3 |
-| E7-2 | As a policy maker, I need to add a third jurisdiction so that I have a richer comparison set | Layout supports up to 3 panels; panels scroll horizontally if needed | P1 | 2 |
-| E7-3 | As a policy maker, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Summary bar above panels shows jurisdictions ranked by RIS with score delta indicators | P1 | 2 |
+| E7-1 | As a housing policy analyst, I need to add a second jurisdiction to compare so that I can benchmark my county | "Add jurisdiction to compare" search bar adds a second map + accordion panel side-by-side | P0 | 3 |
+| E7-2 | As a housing policy analyst, I need to add a third jurisdiction so that I have a richer comparison set | Layout supports up to 3 panels; panels scroll horizontally if needed | P1 | 2 |
+| E7-3 | As a housing policy analyst, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Summary bar above panels shows jurisdictions ranked by RIS with score delta indicators | P1 | 2 |
 
 ### E8 — What-If Simulation
 
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
-| E8-1 | As a policy maker, I need a "What-If" toggle so that I can switch into policy simulation mode | Toggle visible on the score panel; activates slider controls when enabled | P0 | 1 |
-| E8-2 | As a policy maker, I need sliders for each regulatory constraint so that I can model policy changes | Sliders for: min lot size, height limits, density limits, parking minimums, setbacks | P0 | 3 |
-| E8-3 | As a policy maker, I need the RIS to update when I move a slider so that I see the score impact in real time | Score and map shading update within 500ms of slider change | P0 | 3 |
-| E8-4 | As a policy maker, I need feasibility outputs to update with slider changes so that I see development impact | Unit yield, buildable area, and cost per unit update alongside RIS | P0 | 3 |
-| E8-5 | As a policy maker, I need to reset sliders to baseline so that I can return to actual regulatory values | Reset button restores all sliders to originally extracted regulatory values | P1 | 1 |
+| E8-1 | As a housing policy analyst, I need a "What-If" toggle so that I can switch into policy simulation mode | Toggle visible on the score panel; activates slider controls when enabled | P0 | 1 |
+| E8-2 | As a housing policy analyst, I need sliders for each regulatory constraint so that I can model policy changes | Sliders for: min lot size, height limits, density limits, parking minimums, setbacks | P0 | 3 |
+| E8-3 | As a housing policy analyst, I need the RIS to update when I move a slider so that I see the score impact in real time | Score and map shading update within 500ms of slider change | P0 | 3 |
+| E8-4 | As a housing policy analyst, I need feasibility outputs to update with slider changes so that I see development impact | Unit yield, buildable area, and cost per unit update alongside RIS | P0 | 3 |
+| E8-5 | As a housing policy analyst, I need to reset sliders to baseline so that I can return to actual regulatory values | Reset button restores all sliders to originally extracted regulatory values | P1 | 1 |
 
 ---
 

@@ -18,7 +18,7 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 
 | Source | Used By | Format | Update Frequency |
 |--------|---------|--------|-----------------|
-| Municipal Zoning Codes (Municode) | E1-1, E2-1 through E2-5 | PDF / HTML | Varies by jurisdiction |
+| Municipal Zoning Codes | E1-1, E2-1 through E2-5 | PDF | Varies by jurisdiction |
 | HUD Fair Market Rents (FMR) | E1-2, E4-3 | CSV | Annual |
 | American Community Survey (ACS) | E1-3 | CSV / API | Annual (5-year estimates) |
 | Census Building Permits | E1-4, E3-3 | CSV | Annual |
