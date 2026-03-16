@@ -14,7 +14,8 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 | HUD Fair Market Rents (FMR) | E1-2, E4-3 | CSV | Annual |
 | American Community Survey (ACS) | E1-3 | CSV / API | Annual (5-year estimates) |
 | Census Building Permits | E1-4, E3-3 | CSV | Annual |
-| RSMeans Construction Cost Data | E4-3 | Reference table (public indices) | Annual |
+| BLS Occupational Employment and Wage Statistics (OES) | E3-2, E4-3 | CSV / API | Annual |
+| BEA Regional Price Parities (RPP) | E3-2, E4-3 | CSV / API | Annual |
 
 ---
 
@@ -177,38 +178,83 @@ Requires a free Census API key: https://api.census.gov/data/key_signup.html
 
 ---
 
-## 5. RSMeans Construction Cost Data
+## 5. BLS Occupational Employment and Wage Statistics (OES)
 
-**Used by:** E4-3 (estimated cost per unit)
+**Used by:** E3-2 (DCOI calculation), E4-3 (estimated cost per unit)
 
-**What it is:** RSMeans publishes regional construction cost indices that adjust national average costs for local labor and material markets. Used to estimate per-unit construction cost in the feasibility model.
+**What it is:** The Bureau of Labor Statistics publishes annual mean and median wages for all occupations by state and metropolitan area. Construction labor typically comprises 50–60% of residential construction costs, making local wage data the primary driver of regional cost variation. Used to construct the labor component of the regional construction cost multiplier.
 
 **Where to find it:**
-- RSMeans City Cost Index (public reference): https://www.rsmeans.com/landing/2019-rsmeans-city-cost-indexes.aspx
-- Gordian (RSMeans parent) publishes free annual location factor summaries. Search for "RSMeans city cost index [year] PDF".
-- Alternative public source: the ENR Construction Cost Index published by Engineering News-Record: https://www.enr.com/economics
+- BLS OES homepage: https://www.bls.gov/oes/
+- State and metro area data: https://www.bls.gov/oes/current/oessrcma.htm
+- Bulk data download: https://www.bls.gov/oes/tables.htm
 
-**Format:** Reference table (PDF or HTML). Key figure is the **location cost factor** — a multiplier applied to a national baseline cost.
+**Key occupation codes for a residential construction labor basket:**
 
-**Fields to use:**
-
-| Field | Description | Example |
+| SOC Code | Occupation | Role in basket |
 |---|---|---|
-| Location cost factor | Multiplier vs national average (1.00 = average) | Fairfax County, VA: ~1.08 |
-| National baseline cost (multifamily) | $/sq ft for mid-rise multifamily construction | ~$175–$225/sq ft (2024) |
+| 47-2031 | Carpenters | High weight (~25%) |
+| 47-2111 | Electricians | High weight (~20%) |
+| 47-2152 | Plumbers, Pipefitters | Medium weight (~15%) |
+| 47-2061 | Construction Laborers | Medium weight (~20%) |
+| 47-2073 | Operating Engineers | Lower weight (~20%) |
+
+**How to compute the labor cost index:**
+```
+Labor_Index = weighted_mean_wage_local / weighted_mean_wage_national
+```
+
+Where the weighted mean wage is a basket average across the 5 occupation codes above, using national employment shares as weights.
+
+**Format:** CSV bulk download or BLS public API (no key required for standard queries).
+
+**Target geographies:** Washington-Arlington-Alexandria, DC-VA-MD-WV MSA covers all three demo jurisdictions.
+
+**Notes:**
+- Use the most recent May survey release (currently May 2024, released April 2025).
+- If a specific metro area lacks data for an occupation, fall back to the state-level figure.
+
+---
+
+## 6. BEA Regional Price Parities (RPP)
+
+**Used by:** E3-2 (DCOI calculation), E4-3 (estimated cost per unit)
+
+**What it is:** The Bureau of Economic Analysis publishes annual Regional Price Parities measuring the price level of each state and metropolitan area relative to the national average (100 = national average). The **Goods component** captures regional variation in material and goods prices, used as the materials component of the regional construction cost multiplier.
+
+**Where to find it:**
+- BEA RPP interactive tables: https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area
+- BEA API: https://apps.bea.gov/api/data/?UserID=YOUR_KEY&method=GetData&datasetname=Regional&TableName=SARPP
+
+A free BEA API key is available at: https://apps.bea.gov/API/signup/
+
+**How to compute the materials cost index:**
+```
+Materials_Index = RPP_Goods_local / 100
+```
+
+**Combined regional construction cost multiplier:**
+```
+Regional_Multiplier = (0.55 × Labor_Index) + (0.45 × Materials_Index)
+```
 
 **Calculation for MVP:**
 ```
-Estimated cost per unit = (unit_size_sqft × national_baseline_cost × location_factor) + parking_cost_uplift
+Estimated cost per unit = (unit_size_sqft × national_baseline_cost × Regional_Multiplier) + parking_cost_uplift
 
 parking_cost_uplift = parking_spaces_required × cost_per_space
 cost_per_space = $25,000 (surface) or $50,000 (structured) — use surface for MVP
+
+national_baseline_cost = ~$175–$200/sq ft (mid-rise multifamily, 2024, from Census SOC)
 ```
 
+**Format:** CSV download or BEA API. State and metro area granularity.
+
 **Notes:**
-- RSMeans full datasets are proprietary. For the MVP, use the publicly available city cost index multipliers and a fixed national baseline derived from published industry sources.
+- Most recent data: 2023 RPPs released February 2025.
+- The Washington-Arlington-Alexandria MSA RPP covers all three demo jurisdictions.
+- Document the specific BEA release year used — this feeds the data source attribution displayed in the UI (E6-4).
 - The parking cost uplift figure ($25,000/space surface) is drawn from published research cited in the RIS methodology document.
-- Document the specific source and date of any baseline cost figures used — these feed the data source attribution displayed in the UI (E6-4).
 
 ---
 
