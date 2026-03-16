@@ -180,8 +180,33 @@ Requires a free Census API key: https://api.census.gov/data/key_signup.html
 
 **Notes:**
 - Focus on the `5_units_or_more` column — this is most relevant to multifamily housing development feasibility.
-- Permit volume alone does not measure complexity. The PCI combines permit volume with discretionary review flags extracted from the zoning code (E2 stories).
 - Historical data (2018–2023) is available at the same URL for trend context.
+
+### PCI Extraction Contract
+
+PCI combines two inputs: Census permit volume (this source) and the discretionary review flag extracted from zoning text (E2-7).
+
+**Discretionary review flag — extraction contract:**
+
+| Extracted value | Field name | Description |
+|---|---|---|
+| `by_right` | `discretionary_review` | Multifamily housing is permitted as-of-right in the relevant residential district |
+| `conditional_use_permit` | `discretionary_review` | Multifamily requires a conditional use permit (CUP) — administrative review, typically lower bar |
+| `special_use_permit` | `discretionary_review` | Multifamily requires a special use permit (SUP) — quasi-judicial review, higher bar, more discretionary |
+
+**PCI score calculation:**
+```
+Discretionary_Score = { by_right: 0, conditional_use_permit: 50, special_use_permit: 100 }
+
+Permit_Volume_Score = 100 - normalize(5_units_or_more, peer_set_min, peer_set_max)
+# Inverted: higher permit volume = lower complexity score
+
+PCI = (0.60 × Discretionary_Score) + (0.40 × Permit_Volume_Score)
+```
+
+**Rationale for 60/40 split:** The discretionary review requirement is a harder regulatory barrier than permit volume — it reflects a structural feature of the zoning code that applies to every development, regardless of market conditions. Permit volume is partly a function of demand rather than regulatory complexity (a permissive jurisdiction in a slow market may show low volume). Weighting discretionary review higher (60%) better isolates the regulatory signal. **Rationale for inversion of permit volume:** Higher permit volume indicates the regulatory environment is not suppressing development activity — fewer permits relative to peers suggests more friction. Inversion converts this to a complexity score consistent with the other sub-scores (higher = more restrictive).
+
+**Confidence tier:** Inherited from E2-7 extraction confidence. If E2-7 returns Low confidence, the PCI discretionary component is flagged accordingly in the UI.
 
 ---
 
