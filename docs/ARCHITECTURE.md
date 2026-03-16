@@ -4,11 +4,10 @@
 
 ```mermaid
 flowchart LR
-  Z["Zoning PDFs"]
+  GCS["GCS · parcela-raw-data\nZoning PDFs"]
   F["HUD FMR"]
   A["ACS"]
   B["Bldg permits"]
-  R["RSMeans"]
 
   subgraph PIPE["Ingestion & extraction · Google ADK · Cloud Run"]
     P1["Fetch + parse · E0/E1"] --> P2["Chunk · E0-2"] --> P3["Extract via Gemini · E2"] --> P4["Validate + store · E0-4/5"]
@@ -22,11 +21,10 @@ flowchart LR
     S1["RIS engine · E3"] --- S2["Feasibility · E4"] --- S3["API + Cloud SQL · E9"]
   end
 
-  Z --> PIPE
+  GCS --> PIPE
   F --> PIPE
   A --> PIPE
   B --> PIPE
-  R --> PIPE
 
   PIPE --> SCORE
   SCORE --> UI
@@ -35,7 +33,7 @@ flowchart LR
 ## Layer Descriptions
 
 ### Data sources
-Public datasets manually downloaded and stored in `data/raw/` before the pipeline is run. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
+Zoning ordinance PDFs are stored in GCS (`gs://parcela-raw-data`) and fetched by the pipeline at runtime. Other public datasets (FMR, ACS, permits) are small CSVs downloaded via API. Infrastructure is managed with Terraform in `infra/`. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
 
 ### Ingestion & extraction pipeline (E0/E1/E2)
 A batch pre-processing pipeline built with Google ADK for TypeScript and deployed to Cloud Run. Runs once per jurisdiction before the demo. Implemented as a `SequentialAgent` (fetch → parse → chunk → extract → validate → store) with a nested `ParallelAgent` for the five LLM field extractions. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md).
@@ -66,3 +64,5 @@ Next.js / React frontend deployed to Cloud Run. Four functional areas: search + 
 | Pipeline orchestration | Google ADK for TypeScript | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | LLM | Gemini via Vertex AI | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | Pipeline execution | Batch pre-processing (not real-time) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
+| Raw PDF storage | GCS (`parcela-raw-data`) — files are ~90MB, too large for Git | `infra/` |
+| Infrastructure as code | Terraform (`infra/`) — GCS bucket and IAM; Cloud Run deployed via CI/CD | `infra/` |

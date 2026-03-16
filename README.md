@@ -26,9 +26,11 @@ act-iac-ai-hackathon/
 ├── app/                        # Next.js app router pages and layouts
 ├── __tests__/                  # Jest + React Testing Library test suite
 ├── public/                     # Static assets
+├── scripts/                    # Utility scripts (e.g. GCS preflight check)
+├── infra/                      # Terraform — GCS bucket and IAM (see infra/README.md)
 ├── data/
-│   └── raw/                    # Manually downloaded source documents (see data/raw/README.md)
-│       └── zoning/             # Zoning ordinance PDFs (Fairfax, Arlington, Loudoun)
+│   └── raw/                    # Local dev fallback for source documents (see data/raw/README.md)
+│       └── zoning/             # Zoning ordinance PDFs — primary storage is GCS (gitignored)
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # System architecture diagram and layer descriptions
 │   ├── PERSONA.md              # Primary user persona — Valentina Reyes (Val)
@@ -102,7 +104,9 @@ Higher score = more restrictive regulatory environment.
 | AI Pipeline | Google ADK for TypeScript |
 | LLM | Gemini (via Vertex AI) |
 | Database | Cloud SQL (PostgreSQL) |
+| Raw PDF Storage | Google Cloud Storage (`parcela-raw-data`) |
 | Deployment | Google Cloud Run |
+| Infrastructure as Code | Terraform (`infra/`) |
 | CI/CD | GitHub Actions |
 | Code Quality | ESLint, SonarCloud, Snyk |
 
