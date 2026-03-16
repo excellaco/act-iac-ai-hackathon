@@ -40,5 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# data pipeline — processed outputs (raw source files are committed via Git LFS)
+# data pipeline — processed outputs (raw source files are stored in GCS)
 data/processed/
+data/raw/zoning/**/*.pdf
+
+# terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
