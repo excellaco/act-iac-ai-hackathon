@@ -8,7 +8,7 @@ All prompts follow the same structure and output schema. The five field extracti
 
 ## Output Schema
 
-Every extraction agent returns a JSON object conforming to this schema. The pipeline validates this output before writing to the database (E0-4).
+Every extraction agent returns a JSON object (or array — see E2-5) conforming to this schema. The pipeline validates this output before writing to the database (E0-4).
 
 ```typescript
 interface ExtractionResult {
@@ -22,6 +22,10 @@ interface ExtractionResult {
   reasoning: string;           // brief explanation of how value was extracted
 }
 ```
+
+**E2-1 through E2-4** return a single `ExtractionResult`.
+
+**E2-5 (setbacks)** returns `ExtractionResult[]` — an array of exactly 3 objects, one per setback direction (`setback_front_ft`, `setback_side_ft`, `setback_rear_ft`). The LLM makes a single call since setbacks are co-located in the zoning text, but the output is structured identically to all other extractions so the pipeline can write all three rows through the same code path without special-casing. See the E0 flattening note below.
 
 **Confidence tier assignment rules:**
 
@@ -164,43 +168,51 @@ Text chunk:
 
 ## E2-5 — Setback Requirements
 
-**Field:** `setback_front_ft`, `setback_side_ft`, `setback_rear_ft`
+**Fields:** `setback_front_ft`, `setback_side_ft`, `setback_rear_ft`
 **Unit:** `ft`
 
-Note: this agent returns three fields in a single extraction since setbacks are typically defined together in the same section.
+Note: this agent returns an **array of 3 `ExtractionResult` objects** — one per setback direction — in a single LLM call. Setbacks are co-located in zoning text so one call is efficient, and the array format keeps the pipeline write path identical to all other extractors (iterate and insert, no special cases).
+
+**E0 flattening note:** The pipeline runner (E0-1) must handle E2-5 returning `ExtractionResult[]`. For all other agents it expects a single `ExtractionResult`. The distinction is signaled by `field_name === "setbacks"` on the first element, or by the ADK agent configuration marking E2-5 as a multi-result extractor.
 
 ```
 Extract the minimum setback requirements for residential multifamily development from the following zoning ordinance text.
 
-Setbacks are the minimum distances a building must be set back from property lines. Extract the front, side, and rear setback values separately. All values should be in feet. If a range is given (e.g. "10 to 20 feet"), use the minimum value. If only one setback is mentioned, return null for the others.
+Setbacks are the minimum distances a building must be set back from property lines. Extract the front, side, and rear setback values separately. All values should be in feet. If a range is given (e.g. "10 to 20 feet"), use the minimum value. If a setback direction is not mentioned, return null for field_value with confidence "low".
 
-Return a JSON object with this exact structure:
-{
-  "field_name": "setbacks",
-  "fields": {
-    "setback_front_ft": {
-      "field_value": <number in feet or null>,
-      "field_value_text": "<exact quote>",
-      "unit": "ft",
-      "confidence": "high" | "medium" | "low"
-    },
-    "setback_side_ft": {
-      "field_value": <number in feet or null>,
-      "field_value_text": "<exact quote>",
-      "unit": "ft",
-      "confidence": "high" | "medium" | "low"
-    },
-    "setback_rear_ft": {
-      "field_value": <number in feet or null>,
-      "field_value_text": "<exact quote>",
-      "unit": "ft",
-      "confidence": "high" | "medium" | "low"
-    }
+Return a JSON array containing exactly 3 objects, one per setback direction, each with this exact structure:
+[
+  {
+    "field_name": "setback_front_ft",
+    "field_value": <number in feet or null>,
+    "field_value_text": "<exact quote from text>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
   },
-  "source_section": "<section or article reference>",
-  "district_context": "<zoning district this applies to>",
-  "reasoning": "<one sentence explaining your extraction>"
-}
+  {
+    "field_name": "setback_side_ft",
+    "field_value": <number in feet or null>,
+    "field_value_text": "<exact quote from text>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
+  },
+  {
+    "field_name": "setback_rear_ft",
+    "field_value": <number in feet or null>,
+    "field_value_text": "<exact quote from text>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
+  }
+]
 
 Text chunk:
 {text_chunk}
