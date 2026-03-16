@@ -131,9 +131,10 @@ CREATE TABLE feasibility_outputs (
   jurisdiction_id             UUID NOT NULL REFERENCES jurisdictions(id) UNIQUE,
   max_units_per_acre          NUMERIC(8,2),     -- theoretical unit yield
   parking_footprint_pct       NUMERIC(5,2),     -- % of lot consumed by parking
-  estimated_cost_per_unit     NUMERIC(10,2),    -- USD, construction + parking uplift
-  location_cost_factor        NUMERIC(4,3),     -- RSMeans multiplier applied
-  fmr_2br                     NUMERIC(8,2),     -- HUD 2BR FMR used in calculation
+  cost_per_sqft               NUMERIC(8,2),     -- USD/sqft: national_baseline × regional_cost_multiplier
+  estimated_cost_per_unit     NUMERIC(10,2),    -- USD: cost_per_sqft × unit_size_sqft + parking_cost_uplift
+  regional_cost_multiplier    NUMERIC(4,3),     -- (0.55 × BLS OES labor index) + (0.45 × BEA RPP goods index)
+  fmr_2br                     NUMERIC(8,2),     -- HUD 2BR FMR used in calculation (monthly, USD)
   scored_at                   TIMESTAMPTZ NOT NULL DEFAULT now(),
   pipeline_run_id             UUID REFERENCES pipeline_runs(id)
 );
@@ -164,4 +165,7 @@ pipeline_runs
 - The `extracted_fields` table uses `UNIQUE (jurisdiction_id, field_name)` — pipeline re-runs upsert rather than insert to avoid duplicates.
 - The `ris_scores` and `feasibility_outputs` tables use `UNIQUE (jurisdiction_id)` for the same reason.
 - `peer_set` on `ris_scores` stores the array of jurisdiction IDs used for min-max normalization — important for reproducing scores and explaining the CRP sub-score to users.
+- `regional_cost_multiplier` on `feasibility_outputs` is derived from BLS OES (labor, 55% weight) and BEA RPP Goods component (materials, 45% weight) — not RSMeans. See `docs/DATA_SOURCES.md` sections 5 and 6 for the full formula.
+- `cost_per_sqft` is stored as an intermediate value (`national_baseline_cost × regional_cost_multiplier`) to support UI display and debugging independently of unit size assumptions.
+- **Storage model: latest-state only.** `extracted_fields`, `ris_scores`, and `feasibility_outputs` store one current row per jurisdiction, upserted on each pipeline run. `pipeline_runs` provides the audit trail. Historical per-run snapshots are out of scope for MVP.
 - No soft deletes — the MVP does not need audit history beyond what `pipeline_runs` provides.
