@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# check-gcs-bucket.sh
+#
+# Verifies that the raw data GCS bucket is accessible before the pipeline runs.
+# Exits 0 if accessible, 1 if not (with a clear error pointing to the fix).
+#
+# Usage:
+#   ./scripts/check-gcs-bucket.sh
+#
+# Environment variables:
+#   RAW_DATA_BUCKET — GCS bucket name (default: parcela-raw-data)
+#                     Set to empty string to skip check (local dev without GCS)
+
+set -euo pipefail
+
+BUCKET="${RAW_DATA_BUCKET:-parcela-raw-data}"
+
+if [[ -z "$BUCKET" ]]; then
+  echo "RAW_DATA_BUCKET is empty — skipping GCS check (local dev mode)"
+  exit 0
+fi
+
+echo "Checking GCS bucket: gs://${BUCKET}"
+
+if gcloud storage buckets describe "gs://${BUCKET}" --format="value(name)" &>/dev/null; then
+  echo "OK — bucket gs://${BUCKET} is accessible"
+  exit 0
+else
+  echo ""
+  echo "ERROR: GCS bucket 'gs://${BUCKET}' is not accessible."
+  echo ""
+  echo "The pipeline requires this bucket to fetch zoning ordinance PDFs."
+  echo "To create it, run Terraform from the infra/ directory:"
+  echo ""
+  echo "  cd infra"
+  echo "  terraform init"
+  echo "  terraform apply"
+  echo ""
+  echo "See infra/README.md for full setup instructions."
+  exit 1
+fi

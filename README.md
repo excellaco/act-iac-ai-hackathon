@@ -139,8 +139,14 @@ Runs after `quality` passes:
 1. Install dependencies
 2. Build the Next.js app
 3. Authenticate to GCP
-4. Build and push Docker image to Artifact Registry
-5. Deploy to Cloud Run
+4. Check GCS raw data bucket is accessible (fails with instructions if not)
+5. Build and push Docker image to Artifact Registry
+6. Deploy to Cloud Run
+
+### infra workflow
+Triggered on PRs touching `infra/` or manually via **Actions → Infrastructure → Run workflow**:
+- **On PR:** runs `terraform init`, `terraform validate`, `terraform plan` — plan output visible in the PR
+- **On manual dispatch:** choose `plan` (default) or `apply` to provision/update infrastructure
 
 ### GitHub Secrets Required
 
