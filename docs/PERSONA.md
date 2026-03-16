@@ -12,6 +12,8 @@ Valentina (Val) is a mid-career housing policy analyst at a large suburban count
 
 Her day-to-day work involves researching housing policy options, preparing briefings for elected officials, and analyzing the regulatory environment to support grant applications and policy proposals. She regularly needs to make the case for zoning reform to colleagues, department leadership, and county supervisors who may be skeptical or politically cautious.
 
+Val operates in a multi-stakeholder environment. Zoning changes in jurisdictions like Fairfax and Arlington have required years of public process — community meetings, board votes, and press coverage. The outputs she produces with Parcela may end up in a council presentation, a grant application, a memo to the Board of Supervisors, a public-facing FAQ, or a quote to a reporter. The tool needs to produce results she can hand off with confidence — not just to fellow planners, but to audiences without technical training.
+
 ---
 
 ## Goals
@@ -43,7 +45,9 @@ Specifically she wants to:
 
 Val opens Parcela before a departmental meeting on parking reform. She searches for Fairfax County, reviews the RIS score, and sees that parking minimums are the single largest contributor to the Development Cost Impact sub-score. She adds Arlington and Loudoun for comparison and sees that Fairfax is significantly more restrictive on parking than both. She runs a what-if simulation reducing parking minimums from 2 spaces/unit to 1 space/unit and sees the estimated cost per unit drop by $18,000 and the RIS score fall from 74 to 61.
 
-She exports nothing — taking a screenshot, noting the data sources cited on the panel, and walking into the meeting with a clear, specific, defensible number. When someone asks "where does that figure come from?" she can point to the HUD FMR data and RSMeans cost index cited in the score panel and explain exactly how the estimate was derived.
+She exports nothing — taking a screenshot, noting the data sources cited on the panel, and walking into the meeting with a clear, specific, defensible number. When someone asks "where does that figure come from?" she can point to the HUD FMR data and BLS/BEA construction cost inputs cited in the score panel and explain exactly how the estimate was derived.
+
+A week later she pastes the same screenshot into a Board of Supervisors briefing deck. A supervisor without a planning background asks what the score means. Val can answer in one sentence because the UI surfaces the plain-language explanation alongside the number.
 
 ---
 
@@ -71,10 +75,27 @@ She exports nothing — taking a screenshot, noting the data sources cited on th
 
 ---
 
+## Secondary Audience
+
+Val's direct audience is her colleagues and department leadership. But her outputs reach further:
+
+| Audience | Context | Plain-language need |
+|----------|---------|-------------------|
+| Board of Supervisors / elected officials | Council briefings, policy votes | High — political staff, not technical specialists |
+| Press / reporters | Coverage of zoning reform debates | High — writing for general readers |
+| Developers and housing advocates | Public comment periods, community meetings | Medium — familiar with cost concepts, not scoring methodology |
+| Other county planning staff | Internal review and grant writing | Low — planning-literate, can handle some technical detail |
+
+Parcela's output will be read by people who were not in the room when Val ran the simulation. The UI must make the "what does this mean?" question answerable without Val present to explain it.
+
+---
+
 ## Implications for Design
 
 - **Search-first entry:** Val knows her jurisdiction. She should never have to navigate a national map to find Fairfax County.
 - **Confidence transparency is non-negotiable:** Every figure she might cite needs a clear confidence indicator and source attribution. Low-confidence extractions should be visibly flagged, not hidden.
 - **Descriptive, not prescriptive:** The RIS must never appear to recommend a policy direction. Val works in a politically sensitive environment and needs a tool that measures without advocating.
 - **What-if is the core value:** The comparison view gets her attention; the what-if simulation is what makes the tool useful in a meeting. This feature should be fast, intuitive, and produce outputs she can quote verbally.
-- **No jargon she didn't bring:** Terms like DCI, DCOI, and CRP should be explained in plain language in the UI. Val knows planning terminology but not the internal scoring framework.
+- **Plain language for a non-specialist audience:** Terms like DCI, DCOI, and CRP must be explained in plain language in the UI — not just defined, but explained in terms of what they mean for housing development. Val's supervisor and the Board member who sees her slide deck should be able to read the score panel and understand what they're looking at without a planning degree.
+- **Outputs that travel:** Screenshots, copy-paste to PowerPoint, and council memos are how Parcela's outputs reach decision-makers. Every number in the UI should be self-contained — source, confidence, and plain-language explanation visible in the same view, not buried in a modal.
+- **Cause and effect must be visible:** The what-if simulation must make it obvious that changing the independent variable (e.g., parking minimum) changed the dependent variable (cost per unit, RIS score). The delta should be prominent and stated in plain terms.
