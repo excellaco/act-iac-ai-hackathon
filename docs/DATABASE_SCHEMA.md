@@ -46,9 +46,11 @@ CREATE TABLE extracted_fields (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   jurisdiction_id     UUID NOT NULL REFERENCES jurisdictions(id),
   field_name          TEXT NOT NULL,            -- e.g. "min_lot_size_sqft"
-  field_value         NUMERIC,                  -- extracted numeric value
-  field_value_text    TEXT,                     -- raw extracted text (for display)
-  unit                TEXT,                     -- e.g. "sqft", "ft", "units_per_acre"
+  raw_value           NUMERIC,                  -- value as extracted from text (no unit conversion)
+  raw_unit            TEXT,                     -- unit as written in the ordinance (e.g. "stories", "acres")
+  field_value         NUMERIC,                  -- normalized value after post-extraction conversion
+  field_value_text    TEXT,                     -- verbatim quote from the ordinance
+  unit                TEXT,                     -- canonical unit (e.g. "sqft", "ft", "units_per_acre")
   confidence          confidence_tier NOT NULL,
   source_document     TEXT,                     -- e.g. "aczo_2023.pdf"
   source_section      TEXT,                     -- e.g. "Article 2, Section 2.1.4"
