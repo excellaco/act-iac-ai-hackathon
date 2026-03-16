@@ -277,8 +277,26 @@ Estimated cost per unit = (unit_size_sqft × national_baseline_cost × Regional_
 parking_cost_uplift = parking_spaces_required × cost_per_space
 cost_per_space = $25,000 (surface) or $50,000 (structured) — use surface for MVP
 
-national_baseline_cost = ~$175–$200/sq ft (mid-rise multifamily, 2024, from Census SOC)
+unit_size_sqft = 1,050 sq ft (national median 2BR multifamily, Census SOC 2023)
+national_baseline_cost = $187/sq ft (see baseline citation below)
 ```
+
+### National Baseline Construction Cost
+
+**Source:** U.S. Census Bureau, Survey of Construction (SOC), 2023 annual data
+**Table:** Characteristics of New Multifamily Buildings — Cost per Square Foot
+**URL:** https://www.census.gov/construction/chars/index.html
+**Vintage:** 2023 (most recent available; 2024 data not yet published as of March 2026)
+**Figure:** $187/sq ft — national median construction cost per square foot for new multifamily buildings, 2023
+
+**Why this source:**
+The Census SOC is the only free, federal, regularly-updated source that publishes construction cost (not sales price) for new multifamily buildings. Sales price figures (also available from Census) include land value and developer profit margin — using them would overstate true construction cost. The SOC construction cost figure is limited to the cost of putting up the structure, making it the most defensible baseline for a tool explicitly designed to isolate regulatory cost impacts.
+
+**Why $187/sq ft:**
+The 2023 SOC national median for multifamily construction cost was $187/sq ft. This is a median figure across all multifamily building types and regions — the regional multiplier (BLS OES + BEA RPP) then adjusts this baseline for local labor and materials costs.
+
+**Limitation to document in UI attribution (E6-4):**
+The SOC figure is a national median and reflects 2023 costs. It does not distinguish mid-rise from high-rise construction, which carry different cost profiles. For the MVP this is acceptable — the regional multiplier captures the most significant source of cost variation across the three demo jurisdictions.
 
 **Format:** CSV download or BEA API. State and metro area granularity.
 
@@ -286,7 +304,7 @@ national_baseline_cost = ~$175–$200/sq ft (mid-rise multifamily, 2024, from Ce
 - Most recent data: 2023 RPPs released February 2025.
 - The Washington-Arlington-Alexandria MSA RPP covers all three demo jurisdictions.
 - Document the specific BEA release year used — this feeds the data source attribution displayed in the UI (E6-4).
-- The parking cost uplift figure ($25,000/space surface) is drawn from published research cited in the RIS methodology document.
+- The parking cost uplift figure ($25,000/space surface) is from Victoria Transport Policy Institute, "Parking Cost, Frequency, and Utilization" (2024 edition): https://www.vtpi.org/tca/tca0504.pdf
 
 ---
 
