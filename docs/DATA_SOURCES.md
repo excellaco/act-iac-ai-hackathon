@@ -35,9 +35,9 @@ Each jurisdiction has a different source and access pattern:
 
 | Jurisdiction | Platform | Access pattern | Local path |
 |---|---|---|---|
-| Fairfax County, VA | Encode (county-hosted) | Chapter-by-chapter HTML/PDF export | `data/raw/zoning/fairfax/` |
-| Arlington County, VA | County website (direct PDF) | Single full ordinance PDF download | `data/raw/zoning/arlington/` |
-| Loudoun County, VA | Encode (county-hosted) | Chapter-by-chapter HTML/PDF export | `data/raw/zoning/loudoun/` |
+| Fairfax County, VA | Municode (county-hosted) | Chapter-by-chapter HTML/PDF export | `data/raw/zoning/fairfax/` |
+| Arlington County, VA | Arlington County website (direct PDF) | Single full ordinance PDF download | `data/raw/zoning/arlington/` |
+| Loudoun County, VA | enCodePlus (JS-rendered) | Manual PDF download — cannot be crawled programmatically | `data/raw/zoning/loudoun/` |
 
 ### Source URLs
 
@@ -47,13 +47,13 @@ Each jurisdiction has a different source and access pattern:
 - Focus chapters: Article 2 (Residential Districts), Article 4 (Use Regulations), Article 5 (Development Standards)
 
 **Arlington County**
-- Zoning Ordinance (direct PDF — full document): https://www.arlingtonva.us/files/sharedassets/public/v/2/building/documents/codes-and-ordinances/aczo_effective_06.10.2023.pdf
+- Zoning Ordinance (direct PDF — full document): https://www.arlingtonva.us/files/sharedassets/public/v/1/building/documents/codes-and-ordinances/aczo_effective_1.24.2026.pdf
 - This is the cleanest acquisition: one PDF download covers the full ordinance
-- Save as: `data/raw/zoning/arlington/aczo_2023.pdf`
+- Save as: `data/raw/zoning/arlington/aczo_2026.pdf`
 
 **Loudoun County**
-- Zoning Ordinance (adopted December 13, 2023): https://www.loudoun.gov/1755/Zoning-Ordinance
-- Hosted on county platform — navigate to residential district chapters and export as PDF
+- Zoning Ordinance (enCodePlus platform): https://online.encodeplus.com/regs/loudouncounty-va-crosswalk/doc-viewer.aspx#secid-1770
+- Note: the enCodePlus viewer requires JavaScript and cannot be crawled programmatically. Download the PDF manually from the platform.
 - Focus chapters: Chapter 3 (Zoning Districts), Chapter 4 (Use Standards), Chapter 5 (Development Standards)
 
 ### Format
@@ -157,8 +157,7 @@ Requires a free Census API key: https://api.census.gov/data/key_signup.html
 
 **Where to find it:**
 - Building permits data: https://www.census.gov/construction/bps/
-- County-level annual data: https://www.census.gov/construction/bps/county.html
-- Direct download (2023): https://www.census.gov/construction/bps/xls/co2023a.xls
+- County-level annual data: https://www2.census.gov/econ/bps/County/
 
 **Format:** XLS/CSV. One row per county. Columns cover permit counts by unit type (1-unit, 2-unit, 3–4 unit, 5+ unit).
 
