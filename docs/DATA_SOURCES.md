@@ -4,6 +4,14 @@ This document lists every public data source used by the Parcela platform, cover
 
 All data must be publicly accessible. No proprietary MLS or private transaction data is used.
 
+## MVP Scope Assumptions
+
+| Dimension | MVP decision | Rationale |
+|-----------|-------------|-----------|
+| Jurisdictions | Fairfax, Arlington, Loudoun counties, VA (3 real) + ~7 synthetic seed records for peer comparison | 3 real jurisdictions are processable within the two-week timeline; synthetic records give CRP a meaningful peer set for the demo |
+| Unit type | 2-bedroom multifamily | 2BR is the HUD FMR benchmark and standard unit of analysis in housing affordability policy; multifamily is where zoning constraints on supply are most direct and policy-relevant |
+| Data vintage | 2024 where available; 2023 fallback for ACS and BEA RPP | See Data Vintage table below for per-source details |
+
 ---
 
 ## Summary Table
