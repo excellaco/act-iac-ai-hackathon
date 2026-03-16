@@ -13,12 +13,13 @@
 
 set -euo pipefail
 
-BUCKET="${RAW_DATA_BUCKET:-parcela-raw-data}"
-
-if [[ -z "$BUCKET" ]]; then
+# Distinguish between "not set" (use default) and "explicitly set to empty" (skip check).
+if [[ "${RAW_DATA_BUCKET+x}" == "x" && -z "${RAW_DATA_BUCKET}" ]]; then
   echo "RAW_DATA_BUCKET is empty — skipping GCS check (local dev mode)"
   exit 0
 fi
+
+BUCKET="${RAW_DATA_BUCKET:-parcela-raw-data}"
 
 echo "Checking GCS bucket: gs://${BUCKET}"
 
