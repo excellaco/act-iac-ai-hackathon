@@ -1,6 +1,6 @@
 # data/raw — Raw Source Files
 
-This directory holds raw source documents used by the ingestion pipeline (E1) before processing. Files here are inputs to the pipeline — not outputs.
+This directory holds raw source documents consumed by the ingestion pipeline (Epic E0/E1) before processing. Files here are inputs to the pipeline — not outputs.
 
 ---
 
@@ -17,6 +17,10 @@ data/raw/
 ---
 
 ## Zoning Ordinance PDFs
+
+The only files needed immediately are the zoning ordinance PDFs for the three demo jurisdictions. Download them manually and place them in the jurisdiction folders above before running the pipeline.
+
+See `docs/DATA_SOURCES.md` for exact source URLs, which chapters to download, and file naming conventions.
 
 ### File Naming Convention
 
@@ -49,9 +53,9 @@ The download date for each PDF becomes the zoning ordinance vintage in the pipel
 
 Zoning ordinance PDFs can be large (10–100MB). If a file exceeds 50MB, commit it using [Git LFS](https://git-lfs.github.com/) rather than directly to the repository.
 
-Check if Git LFS is configured:
+Set up Git LFS:
 ```bash
-git lfs version
+git lfs install
 ```
 
 Track PDF files with LFS:
@@ -64,8 +68,15 @@ Then add and commit the PDF normally — Git LFS handles the rest.
 
 ---
 
+## Other Data Sources (FMR, ACS, permits)
+
+These are typically small CSVs downloaded via API or direct URL. Add them here when you pick up the relevant E1 stories. See `docs/DATA_SOURCES.md` for download instructions.
+
+---
+
 ## What Does NOT Belong Here
 
-- Processed or extracted data (those go in `data/processed/` — TBD)
+- `data/processed/` — pipeline outputs (gitignored)
+- Structured extraction results — these go in the database
 - Pipeline outputs or scores
 - Any file that can be fetched programmatically at runtime (those should be fetched by the pipeline, not committed)

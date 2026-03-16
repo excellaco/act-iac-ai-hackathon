@@ -1,0 +1,295 @@
+# Parcela — LLM Extraction Prompt Templates
+
+This document defines the prompt templates used by the ADK `LlmAgent` instances in the extraction pipeline (Epic E2). Each agent extracts one regulatory field from a zoning ordinance text chunk and returns a structured JSON response including a confidence tier.
+
+All prompts follow the same structure and output schema. The five field extractions run in parallel via ADK `ParallelAgent` (see ADR-0002).
+
+---
+
+## Output Schema
+
+Every extraction agent returns a JSON object (or array — see E2-5) conforming to this schema. The pipeline validates this output before writing to the database (E0-4).
+
+```typescript
+interface ExtractionResult {
+  field_name: string;          // snake_case field identifier
+  raw_value: number | null;    // value exactly as found in the text (no conversion)
+  raw_unit: string;            // unit exactly as found in the text (e.g. "stories", "acres", "per bedroom")
+  field_value: number | null;  // normalized value after post-extraction conversion (see Normalization section)
+  field_value_text: string;    // exact verbatim quote from the ordinance text
+  unit: string;                // normalized unit (e.g. "ft", "sqft", "units_per_acre", "spaces_per_unit")
+  confidence: 'high' | 'medium' | 'low';
+  source_section: string;      // section/article reference if identifiable
+  district_context: string;    // zoning district the value applies to
+  reasoning: string;           // brief explanation of how value was extracted
+}
+```
+
+The LLM populates `raw_value` and `raw_unit` from the text as-found. The **post-extraction normalization step** (deterministic code, see below) converts raw values to canonical units and writes the result to `field_value` and `unit`. This separation keeps conversion logic testable and makes the "About this score" methodology disclosure accurate — the UI can show both what the ordinance said and how it was normalized.
+
+**E2-1 through E2-4** return a single `ExtractionResult`.
+
+**E2-5 (setbacks)** returns `ExtractionResult[]` — an array of exactly 3 objects, one per setback direction (`setback_front_ft`, `setback_side_ft`, `setback_rear_ft`). The LLM makes a single call since setbacks are co-located in the zoning text, but the output is structured identically to all other extractions so the pipeline can write all three rows through the same code path without special-casing. See the E0 flattening note below.
+
+**Confidence tier assignment rules:**
+
+| Tier | Criteria |
+|------|----------|
+| `high` | Value extracted verbatim from explicit regulatory text with a clear numeric figure and unit |
+| `medium` | Value inferred from context, examples, or a range (e.g. "between 10 and 20 feet") — midpoint used |
+| `low` | No relevant text found, or text is ambiguous and extraction is a best guess |
+
+---
+
+## System Prompt (shared across all extraction agents)
+
+```
+You are a zoning code analyst extracting specific regulatory requirements from municipal zoning ordinance text.
+
+Your task is to find a specific regulatory field in the provided text chunk and return a structured JSON object. You must:
+
+1. Search only within the provided text — do not use external knowledge about this jurisdiction.
+2. Focus on residential multifamily zoning districts (look for districts labeled MF, RM, RA, R-M, multifamily, or similar).
+3. If multiple values exist for different sub-districts, return the value from the most permissive (least restrictive) multifamily district and note which district it applies to in district_context.
+4. Return the value exactly as written in the text in raw_value and raw_unit — do not convert units. Unit conversion is handled by the pipeline after extraction.
+5. Return null for raw_value if the information is genuinely not present in this text chunk.
+6. Never fabricate values. A null result with low confidence is correct — a fabricated value is not.
+7. field_value_text must be a verbatim quote from the ordinance — not a paraphrase.
+8. Return only valid JSON — no preamble, no markdown, no explanation outside the JSON object.
+```
+
+---
+
+## E2-1 — Minimum Lot Size
+
+**Field:** `min_lot_size_sqft`
+**Unit:** `sqft`
+
+```
+Extract the minimum lot size requirement for residential multifamily development from the following zoning ordinance text.
+
+The minimum lot size is the smallest area of land required for a residential lot or development parcel. Return the value exactly as written — do not convert units. The pipeline will normalize to square feet.
+
+Return a JSON object with this exact structure:
+{
+  "field_name": "min_lot_size_sqft",
+  "raw_value": <number exactly as in the text, or null>,
+  "raw_unit": "<unit as written, e.g. 'sq ft', 'acres', 'square feet'>",
+  "field_value": null,
+  "field_value_text": "<verbatim quote from the ordinance>",
+  "unit": "sqft",
+  "confidence": "high" | "medium" | "low",
+  "source_section": "<section or article reference>",
+  "district_context": "<zoning district this applies to>",
+  "reasoning": "<one sentence explaining your extraction>"
+}
+
+Leave field_value as null — it is populated by the normalization step after extraction.
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## E2-2 — Height Limit
+
+**Field:** `height_limit_ft`
+**Unit:** `ft`
+
+```
+Extract the maximum building height limit for residential multifamily development from the following zoning ordinance text.
+
+The height limit may be expressed in feet, stories, or meters. Return the value exactly as written — do not convert units. The pipeline will normalize to feet.
+
+Return a JSON object with this exact structure:
+{
+  "field_name": "height_limit_ft",
+  "raw_value": <number exactly as in the text, or null>,
+  "raw_unit": "<unit as written, e.g. 'feet', 'stories', 'ft', 'meters'>",
+  "field_value": null,
+  "field_value_text": "<verbatim quote from the ordinance>",
+  "unit": "ft",
+  "confidence": "high" | "medium" | "low",
+  "source_section": "<section or article reference>",
+  "district_context": "<zoning district this applies to>",
+  "reasoning": "<one sentence explaining your extraction>"
+}
+
+Leave field_value as null — it is populated by the normalization step after extraction.
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## E2-3 — Density Limit
+
+**Field:** `density_limit_units_per_acre`
+**Unit:** `units_per_acre`
+
+```
+Extract the maximum residential density limit from the following zoning ordinance text.
+
+The density limit is the maximum number of dwelling units permitted per acre of land. It may be expressed as units per acre, units per square foot, or as a floor area ratio (FAR). Return the value exactly as written — do not convert units. The pipeline will normalize to units per acre.
+
+Return a JSON object with this exact structure:
+{
+  "field_name": "density_limit_units_per_acre",
+  "raw_value": <number exactly as in the text, or null>,
+  "raw_unit": "<unit as written, e.g. 'units/acre', 'du/acre', 'FAR', 'units per sq ft'>",
+  "field_value": null,
+  "field_value_text": "<verbatim quote from the ordinance>",
+  "unit": "units_per_acre",
+  "confidence": "high" | "medium" | "low",
+  "source_section": "<section or article reference>",
+  "district_context": "<zoning district this applies to>",
+  "reasoning": "<one sentence explaining your extraction>"
+}
+
+Leave field_value as null — it is populated by the normalization step after extraction.
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## E2-4 — Parking Minimum
+
+**Field:** `parking_min_spaces_per_unit`
+**Unit:** `spaces_per_unit`
+
+```
+Extract the minimum off-street parking requirement for residential multifamily development from the following zoning ordinance text.
+
+The parking minimum is the number of parking spaces required per dwelling unit. It may be expressed per unit, per bedroom, or per square foot of floor area. Return the value exactly as written — do not convert units. The pipeline will normalize to spaces per unit.
+
+Return a JSON object with this exact structure:
+{
+  "field_name": "parking_min_spaces_per_unit",
+  "raw_value": <number exactly as in the text, or null>,
+  "raw_unit": "<unit as written, e.g. 'spaces/unit', 'per bedroom', 'spaces per sq ft'>",
+  "field_value": null,
+  "field_value_text": "<verbatim quote from the ordinance>",
+  "unit": "spaces_per_unit",
+  "confidence": "high" | "medium" | "low",
+  "source_section": "<section or article reference>",
+  "district_context": "<zoning district this applies to>",
+  "reasoning": "<one sentence explaining your extraction>"
+}
+
+Leave field_value as null — it is populated by the normalization step after extraction.
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## E2-5 — Setback Requirements
+
+**Fields:** `setback_front_ft`, `setback_side_ft`, `setback_rear_ft`
+**Unit:** `ft`
+
+Note: this agent returns an **array of 3 `ExtractionResult` objects** — one per setback direction — in a single LLM call. Setbacks are co-located in zoning text so one call is efficient, and the array format keeps the pipeline write path identical to all other extractors (iterate and insert, no special cases).
+
+**E0 flattening note:** The pipeline runner (E0-1) must handle E2-5 returning `ExtractionResult[]`. For all other agents it expects a single `ExtractionResult`. The distinction is signaled by `field_name === "setbacks"` on the first element, or by the ADK agent configuration marking E2-5 as a multi-result extractor.
+
+```
+Extract the minimum setback requirements for residential multifamily development from the following zoning ordinance text.
+
+Setbacks are the minimum distances a building must be set back from property lines. Extract the front, side, and rear setback values separately. All values should be in feet. If a range is given (e.g. "10 to 20 feet"), use the minimum value. If a setback direction is not mentioned, return null for field_value with confidence "low".
+
+Return the value exactly as written — do not convert units. Leave field_value as null — it is populated by the normalization step after extraction.
+
+Return a JSON array containing exactly 3 objects, one per setback direction, each with this exact structure:
+[
+  {
+    "field_name": "setback_front_ft",
+    "raw_value": <number exactly as in the text, or null>,
+    "raw_unit": "<unit as written, e.g. 'feet', 'ft', 'meters'>",
+    "field_value": null,
+    "field_value_text": "<verbatim quote from the ordinance>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
+  },
+  {
+    "field_name": "setback_side_ft",
+    "raw_value": <number exactly as in the text, or null>,
+    "raw_unit": "<unit as written>",
+    "field_value": null,
+    "field_value_text": "<verbatim quote from the ordinance>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
+  },
+  {
+    "field_name": "setback_rear_ft",
+    "raw_value": <number exactly as in the text, or null>,
+    "raw_unit": "<unit as written>",
+    "field_value": null,
+    "field_value_text": "<verbatim quote from the ordinance>",
+    "unit": "ft",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section or article reference>",
+    "district_context": "<zoning district this applies to>",
+    "reasoning": "<one sentence explaining your extraction>"
+  }
+]
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## Chunking Strategy
+
+Each prompt receives a single text chunk as `{text_chunk}`. Chunks are produced by E0-2 and should:
+
+- Be ≤ 4,000 tokens
+- Overlap by ~200 tokens with adjacent chunks to avoid splitting mid-sentence
+- Preserve section headers where possible so the model can identify `source_section`
+
+If a field is not found in a given chunk, the agent returns `field_value: null` with `confidence: "low"`. The pipeline runner (E0-1) aggregates results across all chunks and selects the highest-confidence result per field.
+
+---
+
+## Post-Extraction Normalization (E0 pipeline step)
+
+After each LLM extraction call, before validation (E0-4), a deterministic normalization step converts `raw_value` + `raw_unit` to a canonical `field_value` in the expected unit. This step is implemented in code — not in the LLM prompt — so it is testable, auditable, and explainable in the "About this score" modal (E6-5).
+
+| Field | Input units handled | Conversion |
+|-------|--------------------|-|
+| `min_lot_size_sqft` | sq ft, sqft, acres, square feet | acres × 43,560; sq ft as-is |
+| `height_limit_ft` | ft, feet, stories, meters | stories × 10; meters × 3.281; ft as-is |
+| `density_limit_units_per_acre` | units/acre, du/acre, FAR, units/sq ft | FAR: `(FAR × 43,560) / 1,050`; per sq ft × 43,560; units/acre as-is |
+| `parking_min_spaces_per_unit` | spaces/unit, per bedroom, per sq ft | per bedroom × 2; per sq ft × 900; spaces/unit as-is |
+| `setback_*_ft` | ft, feet, meters | meters × 3.281; ft as-is |
+
+If `raw_unit` does not match any known pattern, `field_value` remains null and `confidence` is downgraded to `low`.
+
+The `field_value_text` verbatim quote is preserved in the database regardless — the UI always has the source text to display alongside the normalized value.
+
+---
+
+## Validation Rules (E0-4)
+
+Before writing to the database, the pipeline validates each extraction result against these plausibility ranges. Values outside the range are flagged and set to `confidence: "low"` regardless of the model's reported confidence.
+
+| Field | Min | Max | Notes |
+|-------|-----|-----|-------|
+| `min_lot_size_sqft` | 500 | 200,000 | Typical range: 2,000–43,560 sqft |
+| `height_limit_ft` | 15 | 300 | Typical multifamily: 35–150 ft |
+| `density_limit_units_per_acre` | 1 | 500 | Typical multifamily: 10–100 |
+| `parking_min_spaces_per_unit` | 0 | 5 | Typical: 1–2.5 |
+| `setback_front_ft` | 0 | 100 | Typical: 10–30 ft |
+| `setback_side_ft` | 0 | 60 | Typical: 5–20 ft |
+| `setback_rear_ft` | 0 | 100 | Typical: 15–30 ft |
