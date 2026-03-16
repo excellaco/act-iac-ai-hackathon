@@ -257,6 +257,21 @@ national_baseline_cost = ~$175–$200/sq ft (mid-rise multifamily, 2024, from Ce
 
 ---
 
+## Data Vintage
+
+All data is pinned to the most recent available vintage as of 2024. Where 2024 data is not yet published, the most recent available vintage is used and documented explicitly.
+
+| Source | Vintage to use | Notes |
+|--------|---------------|-------|
+| HUD Fair Market Rents | FY2025 (effective Oct 2024) | Best available as of 2024 |
+| ACS housing/population data | 2019–2023 5-year estimates | 2024 ACS not yet published; 5-year estimates lag ~1 year |
+| Census Building Permits | 2023 annual | 2024 annual not yet published |
+| BLS OES wages | May 2024 (released April 2025) | |
+| BEA Regional Price Parities | 2023 (released February 2025) | 2024 data not available at time of writing |
+| Zoning ordinances | Current as of download date | No versioned annual snapshot available; document download date in pipeline run record |
+
+---
+
 ## Data Freshness and Attribution
 
 Each data source should be recorded in the pipeline run record (E0-5) with:
