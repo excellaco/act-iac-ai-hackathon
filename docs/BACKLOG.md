@@ -66,7 +66,7 @@
 | E3-2 | As a developer, I need the Development Cost Impact (DCOI) calculated so that it contributes to the RIS | DCOI uses parking space cost multiplier + regional cost multiplier derived from BLS OES labor wages and BEA Regional Price Parities (Goods component); returns 0–100 | P0 | 3 |
 | E3-3 | As a developer, I need the Permitting Complexity Indicator (PCI) calculated so that it contributes to the RIS | PCI uses permit approval rates and discretionary review flags; returns 0–100 | P1 | 3 |
 | E3-4 | As a developer, I need the Comparative Restrictiveness Percentile (CRP) calculated so that jurisdictions can be ranked | CRP places jurisdiction within peer comparison set percentile; returns 0–100 | P1 | 2 |
-| E3-5 | As a developer, I need the composite RIS computed as a weighted sum so that a single score is surfaced | RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP; returns 0–100 | P0 | 1 |
+| E3-5 | As a developer, I need the composite RIS computed as a weighted sum so that a single score is surfaced | RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP; returns 0–100. Weight rationale: DCI 30% — density constraints are the most direct regulatory barrier to housing supply; DCOI 25% — cost impacts directly affect financial feasibility; CRP 25% — comparative ranking provides peer context that makes the score actionable; PCI 20% — permitting complexity is partially reflected in CRP and harder to extract reliably, so weighted lower | P0 | 1 |
 | E3-6 | As a developer, I need scores stored per jurisdiction so that the API can serve them to the frontend | Scores + sub-scores + confidence tiers persisted to DB; queryable by jurisdiction ID | P0 | 2 |
 
 ---
