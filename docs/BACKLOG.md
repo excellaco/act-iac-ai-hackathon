@@ -63,7 +63,7 @@
 | ID | Story | Acceptance Criteria | Priority | Points |
 |----|-------|---------------------|----------|--------|
 | E3-1 | As a developer, I need the Density Constraint Index (DCI) calculated so that it contributes to the RIS | DCI computed using min-max normalization against peer set; returns 0–100 score | P0 | 3 |
-| E3-2 | As a developer, I need the Development Cost Impact (DCOI) calculated so that it contributes to the RIS | DCOI uses parking space cost multiplier + RSMeans regional factor; returns 0–100 | P0 | 3 |
+| E3-2 | As a developer, I need the Development Cost Impact (DCOI) calculated so that it contributes to the RIS | DCOI uses parking space cost multiplier + regional cost multiplier derived from BLS OES labor wages and BEA Regional Price Parities (Goods component); returns 0–100 | P0 | 3 |
 | E3-3 | As a developer, I need the Permitting Complexity Indicator (PCI) calculated so that it contributes to the RIS | PCI uses permit approval rates and discretionary review flags; returns 0–100 | P1 | 3 |
 | E3-4 | As a developer, I need the Comparative Restrictiveness Percentile (CRP) calculated so that jurisdictions can be ranked | CRP places jurisdiction within peer comparison set percentile; returns 0–100 | P1 | 2 |
 | E3-5 | As a developer, I need the composite RIS computed as a weighted sum so that a single score is surfaced | RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP; returns 0–100 | P0 | 1 |
@@ -79,7 +79,7 @@
 |----|-------|---------------------|----------|--------|
 | E4-1 | As a policy maker, I need to see maximum theoretical unit yield per acre so that I understand density impact | Yield computed from lot size + height + density limits; displayed in score panel | P0 | 3 |
 | E4-2 | As a policy maker, I need to see buildable area impacted by parking requirements so that I understand parking cost | Parking lot footprint estimated from spaces/unit × stall size; displayed as % of lot | P0 | 3 |
-| E4-3 | As a policy maker, I need estimated cost per unit so that I understand financial feasibility | Cost = construction cost (RSMeans) + parking cost uplift; displayed in score panel | P1 | 3 |
+| E4-3 | As a housing policy analyst, I need estimated cost per unit so that I understand financial feasibility | Cost = construction cost (BLS OES + BEA RPP regional multiplier applied to national baseline) + parking cost uplift; displayed in score panel | P1 | 3 |
 
 ### E5 — Search & Map UI
 
