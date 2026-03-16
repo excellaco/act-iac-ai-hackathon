@@ -31,6 +31,16 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 
 **Used by:** E1-1 (ingestion), E2-1 through E2-5 (LLM extraction)
 
+| Metadata field | Value |
+|----------------|-------|
+| Source name | Municipal Zoning Ordinances |
+| Publisher | Fairfax County / Arlington County / Loudoun County (jurisdiction-specific) |
+| Vintage | Current adopted ordinance as of download date |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | See per-jurisdiction table below |
+| Format | PDF |
+| Jurisdiction mapping key | `jurisdiction_id`: `fairfax_va`, `arlington_va`, `loudoun_va` |
+
 **What it is:** The primary source for all regulatory constraint data. Zoning codes define minimum lot sizes, height limits, density limits, parking minimums, setback requirements, and permitting processes for each jurisdiction.
 
 ### Acquisition approach (MVP)
@@ -89,6 +99,16 @@ All downloaded documents should be saved as PDF. The pipeline (E1-1) extracts ra
 
 **Used by:** E1-2 (ingestion), E4-3 (cost per unit calculation)
 
+| Metadata field | Value |
+|----------------|-------|
+| Source name | HUD Fair Market Rents (FMR) |
+| Publisher | U.S. Department of Housing and Urban Development |
+| Vintage | FY2025 (effective October 2024) |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | https://www.huduser.gov/portal/datasets/fmr.html |
+| Format | CSV / HUD API |
+| Jurisdiction mapping key | State FIPS + County FIPS (`51-059`, `51-013`, `51-107`) |
+
 **What it is:** HUD publishes annual Fair Market Rent estimates by bedroom size for every metropolitan area and non-metropolitan county in the US. FMR is used as a proxy for local housing market conditions in the cost per unit calculation.
 
 **Where to find it:**
@@ -130,6 +150,16 @@ Requires a free HUD API token: https://www.huduser.gov/portal/dataset/fmr-api.ht
 
 **Used by:** E1-3 (ingestion), E3-1 (DCI context)
 
+| Metadata field | Value |
+|----------------|-------|
+| Source name | American Community Survey (ACS) 5-Year Estimates |
+| Publisher | U.S. Census Bureau |
+| Vintage | 2019–2023 5-year estimates (most recent available; 2024 ACS not yet published) |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | https://api.census.gov/data/2023/acs/acs5 |
+| Format | CSV / Census API |
+| Jurisdiction mapping key | State FIPS + County FIPS (`51-059`, `51-013`, `51-107`) |
+
 **What it is:** The Census Bureau's ACS provides annual estimates of housing units, population, and housing characteristics by county. Used to provide density context for the Density Constraint Index.
 
 **Where to find it:**
@@ -160,6 +190,16 @@ Requires a free Census API key: https://api.census.gov/data/key_signup.html
 ## 4. Census Building Permits
 
 **Used by:** E1-4 (ingestion), E3-3 (Permitting Complexity Indicator)
+
+| Metadata field | Value |
+|----------------|-------|
+| Source name | Census Building Permits Survey (BPS) |
+| Publisher | U.S. Census Bureau |
+| Vintage | 2023 annual (2024 annual not yet published) |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | https://www2.census.gov/econ/bps/County/ |
+| Format | XLS / CSV |
+| Jurisdiction mapping key | County FIPS (`51-059`, `51-013`, `51-107`) |
 
 **What it is:** The Census Bureau's Building Permits Survey publishes annual counts of residential building permits issued by county. Used as a proxy for permitting activity and baseline for the Permitting Complexity Indicator (PCI).
 
@@ -214,6 +254,16 @@ PCI = (0.60 × Discretionary_Score) + (0.40 × Permit_Volume_Score)
 
 **Used by:** E3-2 (DCOI calculation), E4-3 (estimated cost per unit)
 
+| Metadata field | Value |
+|----------------|-------|
+| Source name | BLS Occupational Employment and Wage Statistics (OES) |
+| Publisher | U.S. Bureau of Labor Statistics |
+| Vintage | May 2024 survey (released April 2025) |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | https://www.bls.gov/oes/tables.htm |
+| Format | CSV / BLS public API (no key required) |
+| Jurisdiction mapping key | CBSA code `47900` (Washington-Arlington-Alexandria, DC-VA-MD-WV MSA) |
+
 **What it is:** The Bureau of Labor Statistics publishes annual mean and median wages for all occupations by state and metropolitan area. Construction labor typically comprises 50–60% of residential construction costs, making local wage data the primary driver of regional cost variation. Used to construct the labor component of the regional construction cost multiplier.
 
 **Where to find it:**
@@ -251,6 +301,16 @@ Where the weighted mean wage is a basket average across the 5 occupation codes a
 ## 6. BEA Regional Price Parities (RPP)
 
 **Used by:** E3-2 (DCOI calculation), E4-3 (estimated cost per unit)
+
+| Metadata field | Value |
+|----------------|-------|
+| Source name | BEA Regional Price Parities (RPP) — Goods component |
+| Publisher | U.S. Bureau of Economic Analysis |
+| Vintage | 2023 (released February 2025; 2024 data not yet available) |
+| Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
+| Primary URL | https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area |
+| Format | CSV / BEA API (free key required) |
+| Jurisdiction mapping key | MSA: Washington-Arlington-Alexandria, DC-VA-MD-WV (covers all three demo jurisdictions) |
 
 **What it is:** The Bureau of Economic Analysis publishes annual Regional Price Parities measuring the price level of each state and metropolitan area relative to the national average (100 = national average). The **Goods component** captures regional variation in material and goods prices, used as the materials component of the regional construction cost multiplier.
 
