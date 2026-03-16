@@ -18,53 +18,54 @@ data/raw/
 
 ## Zoning Ordinance PDFs
 
-The only files needed immediately are the zoning ordinance PDFs for the three demo jurisdictions. Download them manually and place them in the jurisdiction folders above before running the pipeline.
+### Primary storage: Google Cloud Storage
 
-See `docs/DATA_SOURCES.md` for exact source URLs, which chapters to download, and file naming conventions.
+Zoning ordinance PDFs are stored in GCS — **not committed to Git** — because files are ~90MB. The pipeline fetches them from GCS at runtime.
 
-### File Naming Convention
-
-Use lowercase, descriptive names with the jurisdiction abbreviation and year:
+**Bucket:** `gs://parcela-raw-data`
 
 ```
-{jurisdiction}_{document_description}_{year}.pdf
+gs://parcela-raw-data/
+└── zoning/
+    ├── fairfax/
+    ├── arlington/
+    └── loudoun/
+```
+
+See `infra/` for the Terraform config that provisions this bucket. See `infra/README.md` for upload instructions.
+
+### Local development fallback
+
+The `data/raw/zoning/` folder is retained as a local fallback for development without GCS access. Place PDFs here locally; the pipeline falls back to the local path when the `RAW_DATA_BUCKET` environment variable is not set. PDFs in this folder are gitignored.
+
+---
+
+## File Naming Convention
+
+Use lowercase, descriptive names with the jurisdiction abbreviation, year, and download date:
+
+```
+{jurisdiction}_{document_description}_{year}_downloaded_{YYYYMMDD}.pdf
 ```
 
 Examples:
-- `data/raw/zoning/fairfax/fairfax_zoning_ordinance_article2_2024.pdf`
-- `data/raw/zoning/arlington/arlington_aczo_2026.pdf`
-- `data/raw/zoning/loudoun/loudoun_zoning_ordinance_chapter3_2023.pdf`
+- `fairfax_zoning_ordinance_article2_2024_downloaded_20260316.pdf`
+- `arlington_aczo_2026_downloaded_20260316.pdf`
+- `loudoun_zoning_ordinance_2023_downloaded_20260316.pdf`
 
-### Download Instructions
+The download date becomes the zoning ordinance vintage in the pipeline run record (E0-5).
+
+---
+
+## Download Instructions
 
 | Jurisdiction | Source | Access | Focus Chapters |
 |---|---|---|---|
 | Fairfax County | https://www.fairfaxcounty.gov/planning-development/zoning-ordinance | Navigate to residential chapters and export as PDF | Article 2 (Residential Districts), Article 4 (Use Regulations), Article 5 (Development Standards) |
-| Arlington County | https://www.arlingtonva.us/files/sharedassets/public/v/1/building/documents/codes-and-ordinances/aczo_effective_1.24.2026.pdf | Direct PDF download — one file covers the full ordinance | Save as `arlington_aczo_2026.pdf` |
+| Arlington County | https://www.arlingtonva.us/files/sharedassets/public/v/1/building/documents/codes-and-ordinances/aczo_effective_1.24.2026.pdf | Direct PDF download — one file covers the full ordinance | Save as `arlington_aczo_2026_downloaded_{YYYYMMDD}.pdf` |
 | Loudoun County | https://online.encodeplus.com/regs/loudouncounty-va-crosswalk/doc-viewer.aspx#secid-1770 | Manual download only — platform requires JavaScript and cannot be crawled programmatically | Chapter 3 (Zoning Districts), Chapter 4 (Use Standards), Chapter 5 (Development Standards) |
 
-### Recording the Download Date
-
-The download date for each PDF becomes the zoning ordinance vintage in the pipeline run record (E0-5). After downloading, record the date in the pipeline run or in a manifest file — there is no versioned annual snapshot for zoning ordinances.
-
----
-
-## Git LFS
-
-Zoning ordinance PDFs can be large (10–100MB). If a file exceeds 50MB, commit it using [Git LFS](https://git-lfs.github.com/) rather than directly to the repository.
-
-Set up Git LFS:
-```bash
-git lfs install
-```
-
-Track PDF files with LFS:
-```bash
-git lfs track "*.pdf"
-git add .gitattributes
-```
-
-Then add and commit the PDF normally — Git LFS handles the rest.
+After downloading, upload to GCS per the instructions in `infra/README.md`.
 
 ---
 

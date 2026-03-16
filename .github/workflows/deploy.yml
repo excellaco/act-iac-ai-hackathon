@@ -67,6 +67,11 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - name: Check GCS raw data bucket is accessible
+        run: bash scripts/check-gcs-bucket.sh
+        env:
+          RAW_DATA_BUCKET: parcela-raw-data
+
       - run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
       - run: |
