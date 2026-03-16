@@ -10,7 +10,7 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 |-----------|-------------|-----------|
 | Jurisdictions | Fairfax, Arlington, Loudoun counties, VA (3 real) + ~7 synthetic seed records for peer comparison | 3 real jurisdictions are processable within the two-week timeline; synthetic records give CRP a meaningful peer set for the demo |
 | Unit type | 2-bedroom multifamily | 2BR is the HUD FMR benchmark and standard unit of analysis in housing affordability policy; multifamily is where zoning constraints on supply are most direct and policy-relevant |
-| Data vintage | 2024 where available; 2023 fallback for ACS and BEA RPP | See Data Vintage table below for per-source details |
+| Data vintage | 2024 where available; 2023 fallback for BEA RPP | See Data Vintage table below for per-source details |
 
 ---
 
@@ -154,9 +154,9 @@ Requires a free HUD API token: https://www.huduser.gov/portal/dataset/fmr-api.ht
 |----------------|-------|
 | Source name | American Community Survey (ACS) 5-Year Estimates |
 | Publisher | U.S. Census Bureau |
-| Vintage | 2019–2023 5-year estimates (most recent available; 2024 ACS not yet published) |
+| Vintage | 2020–2024 5-year estimates (released January 29, 2026) |
 | Retrieved date | Recorded at pipeline runtime in pipeline run record (E0-5) |
-| Primary URL | https://api.census.gov/data/2023/acs/acs5 |
+| Primary URL | https://api.census.gov/data/2024/acs/acs5 |
 | Format | CSV / Census API |
 | Jurisdiction mapping key | State FIPS + County FIPS (`51-059`, `51-013`, `51-107`) |
 
@@ -168,7 +168,7 @@ Requires a free HUD API token: https://www.huduser.gov/portal/dataset/fmr-api.ht
 
 **Recommended API call (5-year estimates, county level):**
 ```
-https://api.census.gov/data/2023/acs/acs5?get=B25001_001E,B25002_002E,B01003_001E&for=county:059,013,107&in=state:51
+https://api.census.gov/data/2024/acs/acs5?get=B25001_001E,B25002_002E,B01003_001E&for=county:059,013,107&in=state:51
 ```
 
 Requires a free Census API key: https://api.census.gov/data/key_signup.html
@@ -182,7 +182,7 @@ Requires a free Census API key: https://api.census.gov/data/key_signup.html
 | B01003 | `B01003_001E` | Total population | Population density calculation |
 
 **Notes:**
-- Use the most recent 5-year ACS estimates available (currently 2019–2023).
+- Use the 2020–2024 5-year ACS estimates (released January 29, 2026).
 - These figures provide context for normalizing density constraints across the peer comparison set (CRP sub-score).
 
 ---
@@ -375,7 +375,7 @@ All data is pinned to the most recent available vintage as of 2024. Where 2024 d
 | Source | Vintage to use | Notes |
 |--------|---------------|-------|
 | HUD Fair Market Rents | FY2025 (effective Oct 2024) | Best available as of 2024 |
-| ACS housing/population data | 2019–2023 5-year estimates | 2024 ACS not yet published; 5-year estimates lag ~1 year |
+| ACS housing/population data | 2020–2024 5-year estimates (released January 29, 2026) | |
 | Census Building Permits | 2023 annual | 2024 annual not yet published |
 | BLS OES wages | May 2024 (released April 2025) | |
 | BEA Regional Price Parities | 2023 (released February 2025) | 2024 data not available at time of writing |
