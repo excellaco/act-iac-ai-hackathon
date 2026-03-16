@@ -26,10 +26,17 @@ act-iac-ai-hackathon/
 ├── app/                        # Next.js app router pages and layouts
 ├── __tests__/                  # Jest + React Testing Library test suite
 ├── public/                     # Static assets
+├── data/
+│   └── raw/                    # Manually downloaded source documents (see data/raw/README.md)
+│       └── zoning/             # Zoning ordinance PDFs (Fairfax, Arlington, Loudoun)
 ├── docs/                       # Project documentation
+│   ├── ARCHITECTURE.md         # System architecture diagram and layer descriptions
+│   ├── PERSONA.md              # Primary user persona — Valentina Reyes (Val)
 │   ├── USER_JOURNEY.md         # 4-step MVP user journey (policy maker persona)
 │   ├── BACKLOG.md              # Full sprint backlog with epics, stories, and points
 │   ├── DATA_SOURCES.md         # Public data sources, formats, and field mappings
+│   ├── DATABASE_SCHEMA.md      # Cloud SQL schema — all tables, columns, relationships
+│   ├── LLM_PROMPT_TEMPLATES.md # ADK LlmAgent prompt templates and validation rules
 │   └── adr/
 │       ├── 0001-platform-and-stack.md              # Google Cloud + Next.js/TypeScript decision
 │       └── 0002-google-adk-for-pipeline-orchestration.md  # ADK usage decision
@@ -208,8 +215,11 @@ Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
 | Document | Description |
 |----------|-------------|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture diagram and layer descriptions |
+| [`docs/PERSONA.md`](docs/PERSONA.md) | Primary user persona — Valentina Reyes (Val), Housing Policy Analyst |
 | [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
 | [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
 | [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema — all tables, columns, types, and relationships |
+| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | ADK LlmAgent prompt templates, output schema, and validation rules |
 | [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) | ADR: Google Cloud + Next.js/TypeScript |
 | [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) | ADR: Google ADK for pipeline and LLM extraction |

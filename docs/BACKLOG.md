@@ -55,7 +55,7 @@
 | E2-2 | As a developer, I need an LLM prompt that extracts height limits so that DCI can be computed | Returns height limit in feet + confidence tier | P0 | 2 |
 | E2-3 | As a developer, I need an LLM prompt that extracts density limits (units/acre) so that DCI can be computed | Returns units/acre figure + confidence tier | P0 | 2 |
 | E2-4 | As a developer, I need an LLM prompt that extracts parking minimums so that DCOI can be computed | Returns spaces/unit figure + confidence tier | P0 | 2 |
-| E2-5 | As a developer, I need an LLM prompt that extracts setback requirements so that DCI can be computed | Returns front/side/rear setbacks + confidence tier | P1 | 2 |
+| E2-5 | As a developer, I need an LLM prompt that extracts setback requirements so that DCOI can be computed | Returns front/side/rear setbacks + confidence tier | P1 | 2 |
 | E2-6 | As a developer, I need extracted fields stored in a structured schema so that the scoring engine can consume them | JSON output per jurisdiction: all 5 fields + confidence tiers + source citation | P0 | 2 |
 
 ### E3 — RIS Scoring Engine
