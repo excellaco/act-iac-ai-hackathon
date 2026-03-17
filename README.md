@@ -124,6 +124,63 @@ npm test
 
 ---
 
+## Database
+
+Parcela uses PostgreSQL (Cloud SQL in production) managed via [Drizzle ORM](https://orm.drizzle.team/).
+
+### Local development
+
+```bash
+# Start the database
+docker compose up -d
+
+# Push the schema directly (no migration files needed during local dev)
+npm run db:push
+
+# Seed the three MVP jurisdictions
+npm run db:seed
+```
+
+### Migrations
+
+```bash
+# Generate a new migration file from schema changes
+npm run db:generate
+
+# Apply pending migrations (run against Cloud SQL in CI)
+npm run db:migrate
+```
+
+### Environment variable
+
+Set `DATABASE_URL` in `.env.local` for local dev (see `.env.example`):
+
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/parcela
+```
+
+For Cloud Run, use the Cloud SQL Unix socket form:
+
+```
+DATABASE_URL=postgresql://USER:PASSWORD@/parcela?host=/cloudsql/PROJECT:REGION:INSTANCE
+```
+
+### pgcrypto extension
+
+`gen_random_uuid()` (used by Drizzle's `.defaultRandom()`) requires the `pgcrypto` extension. Enable it once on Cloud SQL:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+```
+
+### GitHub Secret required
+
+| Secret | Description |
+|--------|-------------|
+| `DATABASE_URL` | Cloud SQL connection string for CI migrations |
+
+---
+
 ## CI/CD Pipeline
 
 The pipeline triggers on every push to `main` and runs two jobs:
@@ -160,6 +217,7 @@ Triggered on PRs touching `infra/` or manually via **Actions → Infrastructure 
 | `GCP_PROJECT_ID` | Your GCP project ID |
 | `SNYK_TOKEN` | Snyk auth token (from Account Settings in Snyk dashboard) |
 | `SONAR_TOKEN` | SonarCloud token (from My Account → Security in SonarCloud) |
+| `DATABASE_URL` | Cloud SQL connection string used by `npm run db:migrate` in CI |
 
 ---
 

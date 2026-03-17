@@ -1,0 +1,536 @@
+{
+  "id": "1f8318df-4a42-4bdf-a10a-a8879b705565",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.extracted_fields": {
+      "name": "extracted_fields",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "jurisdiction_id": {
+          "name": "jurisdiction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_name": {
+          "name": "field_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "raw_value": {
+          "name": "raw_value",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "raw_unit": {
+          "name": "raw_unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "field_value": {
+          "name": "field_value",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "field_value_text": {
+          "name": "field_value_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "confidence": {
+          "name": "confidence",
+          "type": "confidence_tier",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_document": {
+          "name": "source_document",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_section": {
+          "name": "source_section",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "district_context": {
+          "name": "district_context",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pipeline_run_id": {
+          "name": "pipeline_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "extracted_at": {
+          "name": "extracted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "extracted_fields_jurisdiction_id_jurisdictions_id_fk": {
+          "name": "extracted_fields_jurisdiction_id_jurisdictions_id_fk",
+          "tableFrom": "extracted_fields",
+          "tableTo": "jurisdictions",
+          "columnsFrom": [
+            "jurisdiction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "extracted_fields_pipeline_run_id_pipeline_runs_id_fk": {
+          "name": "extracted_fields_pipeline_run_id_pipeline_runs_id_fk",
+          "tableFrom": "extracted_fields",
+          "tableTo": "pipeline_runs",
+          "columnsFrom": [
+            "pipeline_run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.feasibility_outputs": {
+      "name": "feasibility_outputs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "jurisdiction_id": {
+          "name": "jurisdiction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_units_per_acre": {
+          "name": "max_units_per_acre",
+          "type": "numeric(8, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parking_footprint_pct": {
+          "name": "parking_footprint_pct",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost_per_sqft": {
+          "name": "cost_per_sqft",
+          "type": "numeric(8, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "estimated_cost_per_unit": {
+          "name": "estimated_cost_per_unit",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "regional_cost_multiplier": {
+          "name": "regional_cost_multiplier",
+          "type": "numeric(4, 3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fmr_2br": {
+          "name": "fmr_2br",
+          "type": "numeric(8, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rent_feasibility_ratio": {
+          "name": "rent_feasibility_ratio",
+          "type": "numeric(6, 3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scored_at": {
+          "name": "scored_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "pipeline_run_id": {
+          "name": "pipeline_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "feasibility_outputs_jurisdiction_id_jurisdictions_id_fk": {
+          "name": "feasibility_outputs_jurisdiction_id_jurisdictions_id_fk",
+          "tableFrom": "feasibility_outputs",
+          "tableTo": "jurisdictions",
+          "columnsFrom": [
+            "jurisdiction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "feasibility_outputs_pipeline_run_id_pipeline_runs_id_fk": {
+          "name": "feasibility_outputs_pipeline_run_id_pipeline_runs_id_fk",
+          "tableFrom": "feasibility_outputs",
+          "tableTo": "pipeline_runs",
+          "columnsFrom": [
+            "pipeline_run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "feasibility_outputs_jurisdiction_id_unique": {
+          "name": "feasibility_outputs_jurisdiction_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "jurisdiction_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.jurisdictions": {
+      "name": "jurisdictions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fips_state": {
+          "name": "fips_state",
+          "type": "char(2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fips_county": {
+          "name": "fips_county",
+          "type": "char(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pipeline_runs": {
+      "name": "pipeline_runs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "jurisdiction_id": {
+          "name": "jurisdiction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "pipeline_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'running'"
+        },
+        "fields_extracted": {
+          "name": "fields_extracted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "fields_failed": {
+          "name": "fields_failed",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "source_document": {
+          "name": "source_document",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "pipeline_runs_jurisdiction_id_jurisdictions_id_fk": {
+          "name": "pipeline_runs_jurisdiction_id_jurisdictions_id_fk",
+          "tableFrom": "pipeline_runs",
+          "tableTo": "jurisdictions",
+          "columnsFrom": [
+            "jurisdiction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.ris_scores": {
+      "name": "ris_scores",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "jurisdiction_id": {
+          "name": "jurisdiction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ris_composite": {
+          "name": "ris_composite",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dci": {
+          "name": "dci",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "dcoi": {
+          "name": "dcoi",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pci": {
+          "name": "pci",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "crp": {
+          "name": "crp",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "peer_set": {
+          "name": "peer_set",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scored_at": {
+          "name": "scored_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "pipeline_run_id": {
+          "name": "pipeline_run_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ris_scores_jurisdiction_id_jurisdictions_id_fk": {
+          "name": "ris_scores_jurisdiction_id_jurisdictions_id_fk",
+          "tableFrom": "ris_scores",
+          "tableTo": "jurisdictions",
+          "columnsFrom": [
+            "jurisdiction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ris_scores_pipeline_run_id_pipeline_runs_id_fk": {
+          "name": "ris_scores_pipeline_run_id_pipeline_runs_id_fk",
+          "tableFrom": "ris_scores",
+          "tableTo": "pipeline_runs",
+          "columnsFrom": [
+            "pipeline_run_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "ris_scores_jurisdiction_id_unique": {
+          "name": "ris_scores_jurisdiction_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "jurisdiction_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.confidence_tier": {
+      "name": "confidence_tier",
+      "schema": "public",
+      "values": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "public.pipeline_status": {
+      "name": "pipeline_status",
+      "schema": "public",
+      "values": [
+        "running",
+        "completed",
+        "failed",
+        "partial"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
