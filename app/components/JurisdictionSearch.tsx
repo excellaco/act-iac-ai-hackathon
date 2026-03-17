@@ -1,31 +1,40 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { JURISDICTIONS, type JurisdictionData } from '../../lib/mockData';
+import { fetchJurisdictions, type JurisdictionSummary } from '../../lib/apiClient';
 import styles from './JurisdictionSearch.module.css';
 
 interface Props {
-  onSelect: (jurisdiction: JurisdictionData) => void;
+  onSelect: (jurisdiction: JurisdictionSummary) => void;
 }
 
 export default function JurisdictionSearch({ onSelect }: Props) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [jurisdictions, setJurisdictions] = useState<JurisdictionSummary[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const matches = query.trim()
-    ? JURISDICTIONS.filter(j =>
-        `${j.name}, ${j.state}`.toLowerCase().includes(query.toLowerCase())
-      )
-    : JURISDICTIONS;
+  useEffect(() => {
+    fetchJurisdictions()
+      .then(setJurisdictions)
+      .catch(console.error)
+  }, [])
 
-  function handleSelect(j: JurisdictionData) {
-    setQuery(`${j.name}, ${j.state}`);
+  const matches = query.trim()
+    ? jurisdictions.filter(j =>
+        j.displayName.toLowerCase().includes(query.toLowerCase())
+      )
+    : jurisdictions;
+
+  // Only show real jurisdictions in the dropdown — synthetic are for scoring context only
+  const visibleMatches = matches.filter(j => j.dataType === 'real');
+
+  function handleSelect(j: JurisdictionSummary) {
+    setQuery(j.displayName);
     setOpen(false);
     onSelect(j);
   }
 
-  // Close dropdown on outside click
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -49,9 +58,9 @@ export default function JurisdictionSearch({ onSelect }: Props) {
         aria-autocomplete="list"
         aria-expanded={open}
       />
-      {open && matches.length > 0 && (
+      {open && visibleMatches.length > 0 && (
         <ul className={styles.dropdown} role="listbox">
-          {matches.map(j => (
+          {visibleMatches.map(j => (
             <li
               key={j.id}
               className={styles.option}

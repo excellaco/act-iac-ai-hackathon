@@ -61,3 +61,46 @@ const loudoun: JurisdictionData = {
 };
 
 export const JURISDICTIONS: JurisdictionData[] = [fairfax, arlington, loudoun];
+
+// Source labels used in the score panel. The DB doesn't store per-sub-score
+// attribution yet, so we map them here until the extraction pipeline provides it.
+const REAL_SOURCES = {
+  dci:  'Municode zoning code, extracted Mar 2025',
+  dcoi: 'BLS OES + BEA Regional Price Parities, 2024',
+  pci:  'U.S. Census Building Permits Survey, 2023',
+  crp:  'Peer comparison set (3 real + 7 illustrative jurisdictions)',
+}
+
+const SYNTHETIC_SOURCE = 'Illustrative data — not from official sources'
+
+/**
+ * Converts a /api/jurisdictions/[id]/score response into the JurisdictionData
+ * shape expected by ScorePanel.
+ */
+export function scoreResponseToJurisdictionData(
+  apiResponse: {
+    jurisdiction: { id: string; name: string; state: string; dataType: string }
+    score: { risComposite: string; dci: string; dcoi: string; pci: string; crp: string } | null
+  }
+): JurisdictionData | null {
+  const { jurisdiction, score } = apiResponse
+  if (!score) return null
+
+  const isSynthetic = jurisdiction.dataType === 'synthetic'
+  const sources = isSynthetic
+    ? { dci: SYNTHETIC_SOURCE, dcoi: SYNTHETIC_SOURCE, pci: SYNTHETIC_SOURCE, crp: SYNTHETIC_SOURCE }
+    : REAL_SOURCES
+
+  return {
+    id: jurisdiction.id,
+    name: jurisdiction.name,
+    state: jurisdiction.state,
+    ris: Math.round(parseFloat(score.risComposite)),
+    subScores: {
+      dci:  { score: Math.round(parseFloat(score.dci)),  confidence: 'High', source: sources.dci },
+      dcoi: { score: Math.round(parseFloat(score.dcoi)), confidence: 'High', source: sources.dcoi },
+      pci:  { score: Math.round(parseFloat(score.pci)),  confidence: 'High', source: sources.pci },
+      crp:  { score: Math.round(parseFloat(score.crp)),  confidence: 'High', source: sources.crp },
+    },
+  }
+}
