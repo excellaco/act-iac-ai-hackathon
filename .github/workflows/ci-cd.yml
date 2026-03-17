@@ -84,6 +84,11 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
 
+      - name: Seed database
+        run: npm run db:seed:all
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+
       - name: Check GCS raw data bucket is accessible
         run: bash scripts/check-gcs-bucket.sh
         env:
