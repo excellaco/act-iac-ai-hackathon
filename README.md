@@ -213,19 +213,24 @@ Triggered on PRs touching `infra/` or manually via **Actions → Infrastructure 
 
 | Secret | Description |
 |--------|-------------|
-| `GCP_SA_KEY` | JSON content of the GCP service account key |
-| `GCP_PROJECT_ID` | Your GCP project ID |
+| `GCP_PROJECT_ID` | GCP project ID (`parcela-490518`) |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Workload Identity Federation provider ID — see One-Time GCP Setup below |
+| `DATABASE_URL` | Cloud SQL Unix socket connection string for Cloud Run |
+| `DATABASE_URL_MIGRATE` | Cloud SQL TCP connection string for CI migrations via Cloud SQL Auth Proxy |
 | `SNYK_TOKEN` | Snyk auth token (from Account Settings in Snyk dashboard) |
 | `SONAR_TOKEN` | SonarCloud token (from My Account → Security in SonarCloud) |
-| `DATABASE_URL` | Cloud SQL connection string used by `npm run db:migrate` in CI |
 
 ---
 
 ## One-Time GCP Setup
 
+GCP project: `parcela-490518`. CI/CD authenticates via **Workload Identity Federation** — no service account JSON key is needed or used.
+
 **Enable required APIs:**
 ```bash
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
+  sqladmin.googleapis.com storage.googleapis.com \
+  iamcredentials.googleapis.com sts.googleapis.com
 ```
 
 **Create the Artifact Registry repository:**
@@ -239,26 +244,37 @@ gcloud artifacts repositories create excella-ai-hackathon \
 ```bash
 gcloud iam service-accounts create github-actions
 
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/run.admin"
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/artifactregistry.writer"
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-  --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-  --role="roles/iam.serviceAccountUser"
+for role in roles/run.admin roles/artifactregistry.writer roles/iam.serviceAccountUser \
+            roles/cloudsql.client roles/storage.admin; do
+  gcloud projects add-iam-policy-binding parcela-490518 \
+    --member="serviceAccount:github-actions@parcela-490518.iam.gserviceaccount.com" \
+    --role="$role"
+done
 ```
 
-**Generate the JSON key:**
+**Configure Workload Identity Federation:**
 ```bash
-gcloud iam service-accounts keys create key.json \
-  --iam-account=github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com
+gcloud iam workload-identity-pools create "github-actions-pool" \
+  --location="global" --display-name="GitHub Actions Pool"
+
+gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+  --location="global" \
+  --workload-identity-pool="github-actions-pool" \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
+  --attribute-condition="assertion.repository == 'excellaco/act-iac-ai-hackathon'"
+
+PROJECT_NUMBER=$(gcloud projects describe parcela-490518 --format="value(projectNumber)")
+gcloud iam service-accounts add-iam-policy-binding \
+  github-actions@parcela-490518.iam.gserviceaccount.com \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/excellaco/act-iac-ai-hackathon"
 ```
 
-Paste the contents of `key.json` into the `GCP_SA_KEY` GitHub secret.
+Set the `GCP_WORKLOAD_IDENTITY_PROVIDER` secret to:
+```
+projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+```
 
 ---
 
