@@ -40,3 +40,8 @@
   line-height: 1.6;
   margin-bottom: 8px;
 }
+
+.loading {
+  font-size: 14px;
+  color: #9ca3af;
+}
