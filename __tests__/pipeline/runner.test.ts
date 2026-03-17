@@ -1,7 +1,7 @@
 /**
  * E0-1: Unit tests for the pipeline runner
  */
-import { runPipeline, PdfFetcher, PdfParser, FieldExtractor } from '../../lib/pipeline/runner'
+import { runPipeline, rerunPipeline, getRunHistory, PdfFetcher, PdfParser, FieldExtractor } from '../../lib/pipeline/runner'
 import { PipelineLogger } from '../../lib/pipeline/errors'
 import { RawExtractionResult } from '../../lib/pipeline/normalize'
 import { Database } from '../../db/client'
@@ -214,6 +214,43 @@ describe('runPipeline', () => {
 
     expect(result.run.status).toBe('failed')
     expect(result.errors[0].message).toContain('corrupt PDF')
+  })
+
+  // ── E0-6: re-run behaviour ──────────────────────────────────────────────────
+
+  it('rerunPipeline creates a new run record (prior record retained)', async () => {
+    const db = makeDb('completed')
+    const options = {
+      fetcher: makeFetcher(),
+      parser: makeParser(),
+      extractors: [makeExtractor('height_limit_ft', makeRawResult('height_limit_ft', 35, 'feet'))],
+      logger: silentLogger,
+    }
+
+    // first run
+    await runPipeline(db, JURISDICTION_ID, options)
+    // second run
+    const result = await rerunPipeline(db, JURISDICTION_ID, options)
+
+    // each call to insert creates a new run record
+    expect(db.insert).toHaveBeenCalledTimes(4) // 2 run inserts + 2 field inserts
+    expect(result.run.id).toBe(RUN_ID)
+  })
+
+  it('getRunHistory returns run records ordered newest first', async () => {
+    const run1 = { ...makeDb('completed') }
+    const orderByMock = jest.fn().mockResolvedValue([
+      { id: 'run-2', status: 'completed', startedAt: new Date('2026-01-02') },
+      { id: 'run-1', status: 'completed', startedAt: new Date('2026-01-01') },
+    ])
+    const whereMock = jest.fn().mockReturnValue({ orderBy: orderByMock })
+    const db = {
+      select: jest.fn().mockReturnValue({ from: jest.fn().mockReturnValue({ where: whereMock }) }),
+    } as unknown as import('../../db/client').Database
+
+    const history = await getRunHistory(db, JURISDICTION_ID)
+    expect(history[0].id).toBe('run-2')
+    expect(history[1].id).toBe('run-1')
   })
 
   it('prefers high-confidence result over low-confidence across chunks', async () => {

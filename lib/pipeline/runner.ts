@@ -14,8 +14,9 @@
  * safeExtract (E0-3) and produce partial results rather than aborting the run.
  */
 
+import { sql } from 'drizzle-orm'
 import { Database } from '../../db/client'
-import { extractedFields } from '../../db/schema'
+import { extractedFields, pipelineRuns } from '../../db/schema'
 import { chunkText } from './chunk'
 import { normalizeExtractionResult, RawExtractionResult } from './normalize'
 import { validateExtractionResult } from './validate'
@@ -103,6 +104,28 @@ function confidenceRank(c: 'high' | 'medium' | 'low'): number {
 }
 
 // ─── runner ───────────────────────────────────────────────────────────────────
+
+// ─── run history ──────────────────────────────────────────────────────────────
+
+import { desc, eq } from 'drizzle-orm'
+
+/**
+ * Returns all pipeline run records for a jurisdiction, newest first.
+ * Prior runs are retained in the database — re-runs create new records,
+ * they do not overwrite the previous one.
+ */
+export async function getRunHistory(
+  db: Database,
+  jurisdictionId: string,
+): Promise<PipelineRun[]> {
+  const rows = await db
+    .select()
+    .from(pipelineRuns)
+    .where(eq(pipelineRuns.jurisdictionId, jurisdictionId))
+    .orderBy(desc(pipelineRuns.startedAt))
+
+  return rows as PipelineRun[]
+}
 
 export interface RunnerOptions {
   fetcher: PdfFetcher
@@ -202,11 +225,21 @@ export async function runPipeline(
         .values(rows)
         .onConflictDoUpdate({
           target: [extractedFields.jurisdictionId, extractedFields.fieldName],
+          // Use SQL excluded values so each row's own values are applied on conflict,
+          // not the static values from rows[0].  This is the correct upsert pattern
+          // for re-runs (E0-6): overwrites existing field rows with fresh extraction.
           set: {
-            rawValue: rows[0].rawValue,   // drizzle requires a set — actual values applied per row
-            fieldValue: rows[0].fieldValue,
-            confidence: rows[0].confidence,
-            pipelineRunId: run.id,
+            rawValue:       sql`excluded.raw_value`,
+            rawUnit:        sql`excluded.raw_unit`,
+            fieldValue:     sql`excluded.field_value`,
+            fieldValueText: sql`excluded.field_value_text`,
+            unit:           sql`excluded.unit`,
+            confidence:     sql`excluded.confidence`,
+            sourceDocument: sql`excluded.source_document`,
+            sourceSection:  sql`excluded.source_section`,
+            districtContext: sql`excluded.district_context`,
+            pipelineRunId:  sql`excluded.pipeline_run_id`,
+            extractedAt:    sql`now()`,
           },
         })
     }
@@ -248,4 +281,20 @@ export async function runPipeline(
       errors: [{ fieldName: 'pipeline', message }],
     }
   }
+}
+
+/**
+ * Re-run the pipeline for a jurisdiction.
+ *
+ * Identical to `runPipeline` — each call creates a new run record so the
+ * prior run is preserved in history.  Extracted field rows are overwritten
+ * via upsert (jurisdictionId + fieldName unique constraint) so the
+ * `extracted_fields` table always reflects the latest run's values.
+ */
+export async function rerunPipeline(
+  db: Database,
+  jurisdictionId: string,
+  options: RunnerOptions,
+): Promise<RunResult> {
+  return runPipeline(db, jurisdictionId, options)
 }
