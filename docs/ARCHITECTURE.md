@@ -66,3 +66,6 @@ Next.js / React frontend deployed to Cloud Run. Four functional areas: search + 
 | Pipeline execution | Batch pre-processing (not real-time) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | Raw PDF storage | GCS (`parcela-raw-data`) — files are ~90MB, too large for Git | `infra/` |
 | Infrastructure as code | Terraform (`infra/`) — GCS bucket and IAM; Cloud Run deployed via CI/CD | `infra/` |
+| Schema management | Drizzle ORM — `db/schema.ts` + `drizzle-kit` migrations | [ADR-0003](adr/0003-database-access-and-migrations.md) |
+| Local dev database | Docker Compose (`postgres:16`) — no GCP credentials required | [ADR-0003](adr/0003-database-access-and-migrations.md) |
+| Migration timing | Auto-apply on deploy before app starts | [ADR-0003](adr/0003-database-access-and-migrations.md) |
