@@ -66,14 +66,14 @@
 
 ### E3 — RIS Scoring Engine
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E3-1 | As a developer, I need the Density Constraint Index (DCI) calculated so that it contributes to the RIS | DCI computed using min-max normalization against peer set; returns 0–100 score | P0 | 3 |
-| E3-2 | As a developer, I need the Development Cost Impact (DCOI) calculated so that it contributes to the RIS | DCOI uses parking space cost multiplier + regional cost multiplier derived from BLS OES labor wages and BEA Regional Price Parities (Goods component); returns 0–100 | P0 | 3 |
-| E3-3 | As a developer, I need the Permitting Complexity Indicator (PCI) calculated so that it contributes to the RIS | PCI uses Census permit volume (E1-4) + discretionary review flag extracted from zoning text (E2-7); returns 0–100. Permit approval rates dropped for MVP — not reliably available from public data. By-right vs. conditional/special use permit distinction (E2-7) replaces it as the complexity signal. **Rationale:** This keeps PCI implementable against data we actually have while preserving the policy relevance of the sub-score. The by-right vs. conditional distinction is well-understood by policy makers and directly affects development timelines and risk. | P1 | 3 |
-| E3-4 | As a developer, I need the Comparative Restrictiveness Percentile (CRP) calculated so that jurisdictions can be ranked | CRP places jurisdiction within a peer comparison set of ~10 jurisdictions (3 real + ~7 synthetic seed data) and returns a normalized 0–100 score. **Rationale:** With only 3 real jurisdictions, a percentile collapses to a rank of 1/2/3 and is too weak to carry 25% of the composite RIS. Rather than defer CRP or reduce its weight, the peer set is expanded using a synthetic seed dataset of ~7 additional plausible-but-illustrative jurisdictions (see E9-5). This makes CRP statistically meaningful for the demo while keeping the score structure intact for when real data is added. Synthetic jurisdictions are clearly labeled in the UI and data source attribution. | P1 | 2 |
-| E3-5 | As a developer, I need the composite RIS computed as a weighted sum so that a single score is surfaced | RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP; returns 0–100. Weight rationale: DCI 30% — density constraints are the most direct regulatory barrier to housing supply; DCOI 25% — cost impacts directly affect financial feasibility; CRP 25% — comparative ranking provides peer context that makes the score actionable; PCI 20% — permitting complexity is partially reflected in CRP and harder to extract reliably, so weighted lower | P0 | 1 |
-| E3-6 | As a developer, I need scores stored per jurisdiction so that the API can serve them to the frontend | Scores + sub-scores + confidence tiers persisted to DB; queryable by jurisdiction ID | P0 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E3-1 | As a developer, I need the Density Constraint Index (DCI) calculated so that it contributes to the RIS | DCI computed using min-max normalization against peer set; returns 0–100 score | P0 | 3 | |
+| E3-2 | As a developer, I need the Development Cost Impact (DCOI) calculated so that it contributes to the RIS | DCOI uses parking space cost multiplier + regional cost multiplier derived from BLS OES labor wages and BEA Regional Price Parities (Goods component); returns 0–100 | P0 | 3 | |
+| E3-3 | As a developer, I need the Permitting Complexity Indicator (PCI) calculated so that it contributes to the RIS | PCI uses Census permit volume (E1-4) + discretionary review flag extracted from zoning text (E2-7); returns 0–100. Permit approval rates dropped for MVP — not reliably available from public data. By-right vs. conditional/special use permit distinction (E2-7) replaces it as the complexity signal. **Rationale:** This keeps PCI implementable against data we actually have while preserving the policy relevance of the sub-score. The by-right vs. conditional distinction is well-understood by policy makers and directly affects development timelines and risk. | P1 | 3 | |
+| E3-4 | As a developer, I need the Comparative Restrictiveness Percentile (CRP) calculated so that jurisdictions can be ranked | CRP places jurisdiction within a peer comparison set of ~10 jurisdictions (3 real + ~7 synthetic seed data) and returns a normalized 0–100 score. **Rationale:** With only 3 real jurisdictions, a percentile collapses to a rank of 1/2/3 and is too weak to carry 25% of the composite RIS. Rather than defer CRP or reduce its weight, the peer set is expanded using a synthetic seed dataset of ~7 additional plausible-but-illustrative jurisdictions (see E9-5). This makes CRP statistically meaningful for the demo while keeping the score structure intact for when real data is added. Synthetic jurisdictions are clearly labeled in the UI and data source attribution. | P1 | 2 | |
+| E3-5 | As a developer, I need the composite RIS computed as a weighted sum so that a single score is surfaced | RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP; returns 0–100. Weight rationale: DCI 30% — density constraints are the most direct regulatory barrier to housing supply; DCOI 25% — cost impacts directly affect financial feasibility; CRP 25% — comparative ranking provides peer context that makes the score actionable; PCI 20% — permitting complexity is partially reflected in CRP and harder to extract reliably, so weighted lower | P0 | 1 | Ready |
+| E3-6 | As a developer, I need scores stored per jurisdiction so that the API can serve them to the frontend | Scores + sub-scores + confidence tiers persisted to DB; queryable by jurisdiction ID | P0 | 2 | Ready |
 
 ---
 
@@ -90,24 +90,24 @@
 
 ### E5 — Search & Map UI
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E5-1 | As a housing policy analyst, I need a prominent search bar on the home screen so that I can find my jurisdiction directly without navigating a map | Search bar is the primary element on the home screen; labeled "Find your county or municipality" | P0 | 2 |
-| E5-2 | As a housing policy analyst, I need autocomplete suggestions as I type so that I can quickly select my jurisdiction | Autocomplete returns matching counties/municipalities from the 3 demo jurisdictions; selection loads the RIS panel | P0 | 2 |
-| E5-3 | As a housing policy analyst, I need a national choropleth heat map visible in the background so that I have geographic context while searching | US map rendered behind the search bar with state-level RIS shading; not interactive at this stage | P0 | 3 |
-| E5-4 | As a housing policy analyst, I need a color legend on the map so that I understand what the shading means | Legend shows RIS scale (0–100) with low/medium/high labels; always visible | P0 | 1 |
-| E5-5 | As a housing policy analyst, I need to be able to zoom out from my county to see the national or state map so that I can understand comparative context | Zoom-out control or button available from the county view; returns to national/state heat map | P1 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E5-1 | As a housing policy analyst, I need a prominent search bar on the home screen so that I can find my jurisdiction directly without navigating a map | Search bar is the primary element on the home screen; labeled "Find your county or municipality" | P0 | 2 | Ready |
+| E5-2 | As a housing policy analyst, I need autocomplete suggestions as I type so that I can quickly select my jurisdiction | Autocomplete returns matching counties/municipalities from the 3 demo jurisdictions; selection loads the RIS panel | P0 | 2 | Ready |
+| E5-3 | As a housing policy analyst, I need a national choropleth heat map visible in the background so that I have geographic context while searching | US map rendered behind the search bar with state-level RIS shading; not interactive at this stage | P0 | 3 | |
+| E5-4 | As a housing policy analyst, I need a color legend on the map so that I understand what the shading means | Legend shows RIS scale (0–100) with low/medium/high labels; always visible | P0 | 1 | |
+| E5-5 | As a housing policy analyst, I need to be able to zoom out from my county to see the national or state map so that I can understand comparative context | Zoom-out control or button available from the county view; returns to national/state heat map | P1 | 2 | |
 
 ### E6 — Score Panel UI
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E6-1 | As a housing policy analyst, I need the map to focus on my selected county so that I can see district-level RIS shading | After search selection, map zooms to county with zip code / district-level choropleth shading | P0 | 3 |
-| E6-2 | As a housing policy analyst, I need an accordion score panel to open alongside the map so that I can explore sub-scores by category | Right-side panel slides open with Composite Score + 4 sub-score accordions; each expandable | P0 | 3 |
-| E6-3 | As a housing policy analyst, I need confidence badges on each extracted field so that I know how reliable the data is | Each field shows High / Medium / Low badge; tooltip explains what each tier means | P0 | 2 |
-| E6-4 | As a housing policy analyst, I need data source attribution on each sub-score so that I know where the data came from | Each accordion section cites its source (e.g., "Municode zoning code, extracted 2025-03") | P0 | 2 |
-| E6-5 | As a housing policy analyst, I need an "About this score" link so that I can understand the methodology and assumptions | Link opens a modal explaining normalization, sub-score weights, and modeling limitations | P0 | 2 |
-| E6-6 | As a housing policy analyst, I need a disclaimer stating the RIS is descriptive not prescriptive so that I can use it defensibly in policy discussions | Static text visible on the score panel: "This score measures regulatory constraint and does not recommend policy positions." | P0 | 1 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E6-1 | As a housing policy analyst, I need the map to focus on my selected county so that I can see district-level RIS shading | After search selection, map zooms to county with zip code / district-level choropleth shading | P0 | 3 | |
+| E6-2 | As a housing policy analyst, I need an accordion score panel to open alongside the map so that I can explore sub-scores by category | Right-side panel slides open with Composite Score + 4 sub-score accordions; each expandable | P0 | 3 | Ready |
+| E6-3 | As a housing policy analyst, I need confidence badges on each extracted field so that I know how reliable the data is | Each field shows High / Medium / Low badge; tooltip explains what each tier means | P0 | 2 | Ready |
+| E6-4 | As a housing policy analyst, I need data source attribution on each sub-score so that I know where the data came from | Each accordion section cites its source (e.g., "Municode zoning code, extracted 2025-03") | P0 | 2 | Ready |
+| E6-5 | As a housing policy analyst, I need an "About this score" link so that I can understand the methodology and assumptions | Link opens a modal explaining normalization, sub-score weights, and modeling limitations | P0 | 2 | |
+| E6-6 | As a housing policy analyst, I need a disclaimer stating the RIS is descriptive not prescriptive so that I can use it defensibly in policy discussions | Static text visible on the score panel: "This score measures regulatory constraint and does not recommend policy positions." | P0 | 1 | Ready |
 
 ### E7 — Comparison View
 
@@ -133,14 +133,14 @@
 
 ### E9 — Infrastructure
 
-| ID | Story | Priority | Points |
-|----|-------|----------|--------|
-| E9-1 | Backend API serving RIS scores by jurisdiction ID | P0 | 3 |
-| E9-2 | Database schema for jurisdictions, extracted fields, and scores | P0 | 2 |
-| E9-3 | LLM extraction pipeline (batch mode for 3 demo jurisdictions) | P0 | 3 |
-| E9-4 | Cloud deployment (demo-ready hosted URL) | P1 | 3 |
-| E9-5 | Synthetic seed dataset of ~7 additional jurisdictions to expand the CRP peer comparison set | Seed data covers ~7 plausible US jurisdictions with realistic but fabricated regulatory field values and scores; loaded into DB alongside real data; all synthetic records flagged with `data_type: synthetic` and labeled "Illustrative data" in UI attribution. **Rationale:** CRP requires a meaningful peer comparison set to produce a statistically useful percentile. With only 3 real jurisdictions the score collapses to a rank of 1/2/3. A synthetic peer set expands this to ~10 jurisdictions, making CRP meaningful for the demo while real data is limited by the two-week timeline. This is common practice in hackathon demos and is defensible as long as synthetic data is clearly labeled. | P0 | 2 |
-| E9-9 | As a developer, I need the zoning ordinance PDFs stored in GCS and the pipeline updated to fetch from GCS so that large files (~90MB) are accessible without being committed to Git | Terraform config in `infra/` provisions `parcela-raw-data` GCS bucket with IAM binding for pipeline service account; pipeline fetches PDFs from GCS at runtime via `RAW_DATA_BUCKET` env var; local `data/raw/zoning/` folder retained as dev fallback when `RAW_DATA_BUCKET` is unset; `infra.yml` GitHub Actions workflow runs `terraform plan` on PRs and `terraform apply` on manual dispatch; deploy pipeline fails fast with clear error if bucket is not accessible. **See also:** #73 (E1-1a) — PDF upload. | P0 | 3 |
+| ID | Story | Priority | Points | Status |
+|----|-------|----------|--------|--------|
+| E9-1 | Backend API serving RIS scores by jurisdiction ID | P0 | 3 | Ready |
+| E9-2 | Database schema for jurisdictions, extracted fields, and scores | P0 | 2 | In Progress |
+| E9-3 | LLM extraction pipeline (batch mode for 3 demo jurisdictions) | P0 | 3 | |
+| E9-4 | Cloud deployment (demo-ready hosted URL) | P1 | 3 | |
+| E9-5 | Synthetic seed dataset of ~7 additional jurisdictions to expand the CRP peer comparison set | P0 | 2 | Ready |
+| E9-9 | As a developer, I need the zoning ordinance PDFs stored in GCS and the pipeline updated to fetch from GCS so that large files (~90MB) are accessible without being committed to Git | P0 | 3 | |
 
 ---
 
