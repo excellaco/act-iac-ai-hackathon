@@ -23,7 +23,7 @@ BUCKET="${RAW_DATA_BUCKET:-parcela-raw-data}"
 
 echo "Checking GCS bucket: gs://${BUCKET}"
 
-if gcloud storage buckets describe "gs://${BUCKET}" --format="value(name)" &>/dev/null; then
+if gcloud storage ls "gs://${BUCKET}/" &>/dev/null; then
   echo "OK — bucket gs://${BUCKET} is accessible"
   exit 0
 else
