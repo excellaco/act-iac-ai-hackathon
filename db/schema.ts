@@ -2,7 +2,7 @@
 // extension on Cloud SQL PostgreSQL. Enable it once with:
 //   CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp, unique } from 'drizzle-orm/pg-core'
 
 export const confidenceTier = pgEnum('confidence_tier', ['high', 'medium', 'low'])
 export const pipelineStatus = pgEnum('pipeline_status', ['running', 'completed', 'failed', 'partial'])
@@ -15,7 +15,7 @@ export const jurisdictions = pgTable('jurisdictions', {
   fipsCounty: char('fips_county', { length: 3 }).notNull(),
   displayName: text('display_name').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [{ unique: [t.fipsState, t.fipsCounty] }])
+}, (t) => [unique().on(t.fipsState, t.fipsCounty)])
 
 export const pipelineRuns = pgTable('pipeline_runs', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -44,7 +44,7 @@ export const extractedFields = pgTable('extracted_fields', {
   districtContext: text('district_context'),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
   extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [{ unique: [t.jurisdictionId, t.fieldName] }])
+}, (t) => [unique().on(t.jurisdictionId, t.fieldName)])
 
 export const risScores = pgTable('ris_scores', {
   id: uuid('id').primaryKey().defaultRandom(),

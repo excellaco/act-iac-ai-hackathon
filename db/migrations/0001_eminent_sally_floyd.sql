@@ -1,0 +1,2 @@
+ALTER TABLE "extracted_fields" ADD CONSTRAINT "extracted_fields_jurisdiction_id_field_name_unique" UNIQUE("jurisdiction_id","field_name");--> statement-breakpoint
+ALTER TABLE "jurisdictions" ADD CONSTRAINT "jurisdictions_fips_state_fips_county_unique" UNIQUE("fips_state","fips_county");

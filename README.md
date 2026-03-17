@@ -156,7 +156,7 @@ npm run db:migrate
 Set `DATABASE_URL` in `.env.local` for local dev (see `.env.example`):
 
 ```
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/parcela
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/parcela
 ```
 
 For Cloud Run, use the Cloud SQL Unix socket form:
