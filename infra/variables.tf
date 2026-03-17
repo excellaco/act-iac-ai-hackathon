@@ -12,7 +12,7 @@ variable "region" {
 variable "raw_data_bucket" {
   description = "GCS bucket name for raw zoning PDFs"
   type        = string
-  default     = "parcela-raw-data"
+  default     = "parcela-490518-raw-data"
 }
 
 variable "pipeline_service_account" {

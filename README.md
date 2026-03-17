@@ -104,7 +104,7 @@ Higher score = more restrictive regulatory environment.
 | AI Pipeline | Google ADK for TypeScript |
 | LLM | Gemini (via Vertex AI) |
 | Database | Cloud SQL (PostgreSQL) |
-| Raw PDF Storage | Google Cloud Storage (`parcela-raw-data`) |
+| Raw PDF Storage | Google Cloud Storage (`parcela-490518-raw-data`) |
 | Deployment | Google Cloud Run |
 | Infrastructure as Code | Terraform (`infra/`) |
 | CI/CD | GitHub Actions |
