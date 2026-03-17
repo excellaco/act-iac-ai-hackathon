@@ -26,8 +26,10 @@ describe('Home', () => {
     (fetchScore as jest.Mock).mockResolvedValue(mockScoreResponse);
   })
 
-  it('renders the search bar', () => {
+  it('renders the search bar', async () => {
     render(<Home />);
+    // waitFor lets the async fetchJurisdictions effect settle inside act()
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled());
     expect(screen.getByPlaceholderText('Find your county or municipality')).toBeInTheDocument();
   });
 
