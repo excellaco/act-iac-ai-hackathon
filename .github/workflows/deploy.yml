@@ -67,6 +67,11 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - name: Run database migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - name: Check GCS raw data bucket is accessible
         run: bash scripts/check-gcs-bucket.sh
         env:
