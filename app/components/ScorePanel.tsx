@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import ConfidenceBadge from './ConfidenceBadge';
+import MethodologyModal from './MethodologyModal';
 import styles from './ScorePanel.module.css';
 
 const SUB_SCORE_LABELS: Record<string, { label: string; description: string }> = {
@@ -26,6 +28,7 @@ function risLabel(score: number): string {
 export default function ScorePanel({ jurisdiction }: { jurisdiction: JurisdictionData }) {
   const { name, state, ris, subScores } = jurisdiction;
   const color = risColor(ris);
+  const [showMethodology, setShowMethodology] = useState(false);
 
   return (
     <aside className={styles.panel}>
@@ -40,7 +43,10 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
       </div>
 
       <p className={styles.risDescription}>
-        Regulatory Impact Score — composite of density, cost, permitting, and peer comparison sub-scores.
+        Regulatory Impact Score — composite of density, cost, permitting, and peer comparison sub-scores.{' '}
+        <button className={styles.methodologyLink} onClick={() => setShowMethodology(true)}>
+          About this score
+        </button>
       </p>
 
       <div className={styles.accordions}>
@@ -71,6 +77,10 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
       <p className={styles.disclaimer}>
         This score measures regulatory constraint and does not recommend policy positions.
       </p>
+
+      {showMethodology && (
+        <MethodologyModal onClose={() => setShowMethodology(false)} />
+      )}
     </aside>
   );
 }
