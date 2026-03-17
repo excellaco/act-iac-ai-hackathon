@@ -15,7 +15,7 @@
  *   await failRun(db, run.id, errorMessage)
  */
 
-import { eq } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { Database } from '../../db/client'
 import { pipelineRuns } from '../../db/schema'
 
@@ -118,7 +118,7 @@ export async function getLatestRun(
     .select()
     .from(pipelineRuns)
     .where(eq(pipelineRuns.jurisdictionId, jurisdictionId))
-    .orderBy(pipelineRuns.startedAt)
+    .orderBy(desc(pipelineRuns.startedAt))
     .limit(1)
 
   return (rows[0] as PipelineRun) ?? null

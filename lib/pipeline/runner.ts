@@ -216,7 +216,7 @@ export async function runPipeline(
       sourceDocument,
       sourceSection: o.result.source_section || null,
       districtContext: o.result.district_context || null,
-      pipelineRunId: run.id,
+      pipelineRunId: run!.id,
     }))
 
     if (rows.length > 0) {
