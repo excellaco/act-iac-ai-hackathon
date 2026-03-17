@@ -29,7 +29,7 @@ export default function MethodologyModal({ onClose }: Props) {
             <h3 className={styles.sectionTitle}>What is the RIS?</h3>
             <p>
               The Regulatory Impact Score (RIS) is a composite index from 0 to 100 that measures how
-              restrictive a jurisdiction's zoning and land-use regulations are relative to multifamily
+              restrictive a jurisdiction&apos;s zoning and land-use regulations are relative to multifamily
               housing development. Higher scores indicate greater regulatory constraint.
             </p>
           </section>
