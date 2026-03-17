@@ -23,10 +23,16 @@ BUCKET="${RAW_DATA_BUCKET:-parcela-raw-data}"
 
 echo "Checking GCS bucket: gs://${BUCKET}"
 
-if gcloud storage ls "gs://${BUCKET}/" &>/dev/null; then
+GCLOUD_OUTPUT=$(gcloud storage ls "gs://${BUCKET}/" 2>&1)
+GCLOUD_EXIT=$?
+
+if [[ $GCLOUD_EXIT -eq 0 ]]; then
   echo "OK — bucket gs://${BUCKET} is accessible"
   exit 0
 else
+  echo ""
+  echo "gcloud error:"
+  echo "${GCLOUD_OUTPUT}"
   echo ""
   echo "ERROR: GCS bucket 'gs://${BUCKET}' is not accessible."
   echo ""
