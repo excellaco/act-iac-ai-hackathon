@@ -18,5 +18,5 @@ variable "raw_data_bucket" {
 variable "pipeline_service_account" {
   description = "Service account email that the pipeline runs as (granted objectViewer on the raw data bucket)"
   type        = string
-  default     = "github-actions@ai-hackathon-490118.iam.gserviceaccount.com"
+  default     = "github-actions@parcela-490518.iam.gserviceaccount.com"
 }

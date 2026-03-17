@@ -14,7 +14,7 @@ Cloud Run and Cloud SQL are **not** managed here — Cloud Run is deployed by th
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 - `gcloud` CLI installed and authenticated
-- Editor or Owner role on `ai-hackathon-490118`
+- Editor or Owner role on `parcela-490518`
 
 Authenticate:
 ```bash
