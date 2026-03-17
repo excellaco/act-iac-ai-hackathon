@@ -5,6 +5,8 @@ An AI-powered housing regulatory and development feasibility intelligence platfo
 Parcela transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
 
 > **Hackathon scope:** MVP targets 2–3 contrasting Virginia jurisdictions (Fairfax, Arlington, Loudoun counties). See [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) for the full user flow.
+>
+> **Live demo:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
 
 ---
 
