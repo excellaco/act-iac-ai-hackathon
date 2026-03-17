@@ -10,7 +10,7 @@ flowchart LR
   B["Bldg permits"]
 
   subgraph PIPE["Ingestion & extraction · Google ADK · Cloud Run"]
-    P1["Fetch + parse · E0/E1"] --> P2["Chunk · E0-2"] --> P3["Extract via Gemini · E2"] --> P4["Validate + store · E0-4/5"]
+    P1["Fetch + parse · E0/E1"] --> P2["Chunk · E0-2"] --> P3["Extract via Gemini · E2"] --> P3b["Normalize · E0-7"] --> P4["Validate + store · E0-4/5"]
   end
 
   subgraph UI["Dashboard UI · Next.js / React · Cloud Run"]
@@ -36,7 +36,7 @@ flowchart LR
 Zoning ordinance PDFs are stored in GCS (`gs://parcela-490518-raw-data`) and fetched by the pipeline at runtime. Other public datasets (FMR, ACS, permits) are small CSVs downloaded via API. Infrastructure is managed with Terraform in `infra/`. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
 
 ### Ingestion & extraction pipeline (E0/E1/E2)
-A batch pre-processing pipeline built with Google ADK for TypeScript and deployed to Cloud Run. Runs once per jurisdiction before the demo. Implemented as a `SequentialAgent` (fetch → parse → chunk → extract → validate → store) with a nested `ParallelAgent` for the five LLM field extractions. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md).
+A batch pre-processing pipeline built with Google ADK for TypeScript and deployed to Cloud Run. Runs once per jurisdiction before the demo. Implemented as a `SequentialAgent` (fetch → parse → chunk → extract → normalize → validate → store) with a nested `ParallelAgent` for the five LLM field extractions. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md).
 
 ### Scoring & feasibility engine (E3/E4/E9)
 Deterministic TypeScript calculations served via Next.js API routes, backed by Cloud SQL (PostgreSQL). Computes the composite Regulatory Impact Score (RIS) and feasibility outputs (unit yield, buildable area, cost per unit) from structured pipeline outputs.
