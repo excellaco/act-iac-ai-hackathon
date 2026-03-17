@@ -82,9 +82,16 @@ jobs:
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }} .
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }}
 
+      - name: Run database migrations
+        run: npm run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
       - run: |
           gcloud run deploy excella-ai-hackathon \
             --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }} \
             --region us-central1 \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --add-cloudsql-instances ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela \
+            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }}
