@@ -71,10 +71,17 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
+          sleep 5
+
       - name: Run database migrations
         run: npm run db:migrate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
 
       - name: Check GCS raw data bucket is accessible
         run: bash scripts/check-gcs-bucket.sh
@@ -86,11 +93,6 @@ jobs:
       - run: |
           docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }} .
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }}
-
-      - name: Run database migrations
-        run: npm run db:migrate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - run: |
           gcloud run deploy excella-ai-hackathon \
