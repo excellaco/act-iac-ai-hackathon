@@ -6,6 +6,7 @@ import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp, unique 
 
 export const confidenceTier = pgEnum('confidence_tier', ['high', 'medium', 'low'])
 export const pipelineStatus = pgEnum('pipeline_status', ['running', 'completed', 'failed', 'partial'])
+export const dataType = pgEnum('data_type', ['real', 'synthetic'])
 
 export const jurisdictions = pgTable('jurisdictions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -14,6 +15,7 @@ export const jurisdictions = pgTable('jurisdictions', {
   fipsState: char('fips_state', { length: 2 }).notNull(),
   fipsCounty: char('fips_county', { length: 3 }).notNull(),
   displayName: text('display_name').notNull(),
+  dataType: dataType('data_type').notNull().default('real'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [unique().on(t.fipsState, t.fipsCounty)])
 
