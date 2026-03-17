@@ -1,4 +1,4 @@
-name: Deploy to GCP
+name: CI/CD
 
 on:
   push:
