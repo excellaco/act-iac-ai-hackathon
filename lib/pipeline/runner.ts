@@ -205,18 +205,27 @@ export async function runPipeline(
       await runExtractions(extractions, logger)
 
     // 8. store results to DB
+    // Strip null bytes and non-printable control chars from string values —
+    // PostgreSQL rejects UTF-8 strings containing 0x00, and verbatim PDF
+    // quotes from Gemini can include garbage bytes from PDF parsing.
+    const clean = (s: string | null | undefined): string | null => {
+      if (s == null) return null
+      const r = s.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim()
+      return r || null
+    }
+
     const rows = outcomes.map((o) => ({
       jurisdictionId,
       fieldName: o.result.field_name,
-      rawValue: o.result.raw_value !== null ? String(o.result.raw_value) : null,
-      rawUnit: o.result.raw_unit || null,
-      fieldValue: o.result.field_value !== null ? String(o.result.field_value) : null,
-      fieldValueText: o.result.field_value_text,
-      unit: o.result.unit || null,
+      rawValue: o.result.raw_value !== null ? clean(String(o.result.raw_value)) : null,
+      rawUnit: clean(o.result.raw_unit),
+      fieldValue: o.result.field_value !== null ? clean(String(o.result.field_value)) : null,
+      fieldValueText: clean(o.result.field_value_text) ?? 'Not found in document',
+      unit: clean(o.result.unit),
       confidence: o.result.confidence,
       sourceDocument,
-      sourceSection: o.result.source_section || null,
-      districtContext: o.result.district_context || null,
+      sourceSection: clean(o.result.source_section),
+      districtContext: clean(o.result.district_context),
       pipelineRunId: run!.id,
     }))
 
