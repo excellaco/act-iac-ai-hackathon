@@ -22,6 +22,20 @@
       "when": 1773780027778,
       "tag": "0002_naive_tony_stark",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773802477893,
+      "tag": "0003_nice_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773805094100,
+      "tag": "0004_swift_archangel",
+      "breakpoints": true
     }
   ]
 }
