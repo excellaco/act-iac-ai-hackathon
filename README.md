@@ -313,7 +313,7 @@ gcloud artifacts repositories create excella-ai-hackathon \
 gcloud iam service-accounts create github-actions
 
 for role in roles/run.admin roles/artifactregistry.writer roles/iam.serviceAccountUser \
-            roles/cloudsql.client roles/storage.admin; do
+            roles/cloudsql.client roles/storage.admin roles/aiplatform.user; do
   gcloud projects add-iam-policy-binding parcela-490518 \
     --member="serviceAccount:github-actions@parcela-490518.iam.gserviceaccount.com" \
     --role="$role"

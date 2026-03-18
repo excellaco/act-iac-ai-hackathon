@@ -1,0 +1,54 @@
+name: Extraction Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      jurisdiction:
+        description: 'Jurisdiction to process (leave blank for all 3)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - fairfax_va
+          - arlington_va
+          - loudoun_va
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
+          sleep 5
+
+      - name: Run extraction pipeline
+        run: npm run pipeline:run ${{ github.event.inputs.jurisdiction }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+          RAW_DATA_BUCKET: parcela-490518-raw-data
+          GEMINI_MODEL: gemini-2.0-flash-001
