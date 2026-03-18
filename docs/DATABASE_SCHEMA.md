@@ -1,8 +1,8 @@
 # Parcela — Database Schema
 
-This document defines the Cloud SQL (PostgreSQL) schema for the Parcela platform. All tables are created and owned by the backend API (E9). The ingestion pipeline writes to `jurisdictions`, `extracted_fields`, and `pipeline_runs`. The scoring engine reads from those tables and writes to `ris_scores`. The API serves from all four.
+This document defines the Cloud SQL (PostgreSQL) schema for the Parcela platform. All tables are created and owned by the backend API (E9). The ingestion pipeline writes to `jurisdictions`, `extracted_fields`, and `pipeline_runs`. The scoring engine reads from those tables and writes to `ris_scores`. The API serves from all tables.
 
-> **Table creation order:** Due to foreign key dependencies, tables must be created in this order: `jurisdictions` → `pipeline_runs` → `extracted_fields` → `ris_scores` → `feasibility_outputs`.
+> **Table creation order:** Due to foreign key dependencies, tables must be created in this order: `jurisdictions` → `pipeline_runs` → `extracted_fields` → `market_data` → `ris_scores` → `feasibility_outputs`.
 
 ---
 
@@ -13,6 +13,8 @@ This document defines the Cloud SQL (PostgreSQL) schema for the Parcela platform
 The master list of jurisdictions supported by the platform. Seeded manually for the three MVP demo jurisdictions.
 
 ```sql
+CREATE TYPE data_type AS ENUM ('real', 'synthetic');
+
 CREATE TABLE jurisdictions (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name          TEXT NOT NULL,                  -- e.g. "Fairfax County"
@@ -20,18 +22,20 @@ CREATE TABLE jurisdictions (
   fips_state    CHAR(2) NOT NULL,               -- e.g. "51"
   fips_county   CHAR(3) NOT NULL,               -- e.g. "059"
   display_name  TEXT NOT NULL,                  -- e.g. "Fairfax County, VA"
+  data_type     data_type NOT NULL DEFAULT 'real', -- 'real' or 'synthetic' (for CRP peer set)
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (fips_state, fips_county)
 );
 ```
 
-**Seed data (MVP):**
+**Seed data (MVP):** 3 real jurisdictions + ~7 synthetic records for CRP peer comparison. Synthetic jurisdictions are labeled "Illustrative data" in the UI. Run `npm run db:seed:all` to populate.
 
-| name | state | fips_state | fips_county | display_name |
-|------|-------|------------|-------------|--------------|
-| Fairfax County | VA | 51 | 059 | Fairfax County, VA |
-| Arlington County | VA | 51 | 013 | Arlington County, VA |
-| Loudoun County | VA | 51 | 107 | Loudoun County, VA |
+| name | state | data_type |
+|------|-------|-----------|
+| Fairfax County, VA | VA | real |
+| Arlington County, VA | VA | real |
+| Loudoun County, VA | VA | real |
+| ~7 additional | various | synthetic |
 
 ---
 
@@ -72,6 +76,7 @@ CREATE TABLE extracted_fields (
 | `setback_front_ft` | ft | E2-5 | Minimum front setback in feet |
 | `setback_side_ft` | ft | E2-5 | Minimum side setback in feet |
 | `setback_rear_ft` | ft | E2-5 | Minimum rear setback in feet |
+| `discretionary_review_required` | — | E2-7 | `by_right`, `conditional_use_permit`, or `special_use_permit` — stored in `field_value_text`; `raw_value` is always null for this categorical field |
 
 ---
 
@@ -94,6 +99,34 @@ CREATE TABLE pipeline_runs (
   error_message       TEXT                      -- populated on failure
 );
 ```
+
+---
+
+### `market_data`
+
+Stores reference economic data for each jurisdiction used by the scoring and feasibility engines (E3, E4). Populated by `npm run db:seed:market`. One row per jurisdiction — upserted on each seed run.
+
+```sql
+CREATE TABLE market_data (
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  jurisdiction_id         UUID NOT NULL REFERENCES jurisdictions(id) UNIQUE,
+  -- HUD Fair Market Rents (E1-2)
+  fmr_2br                 NUMERIC(8,2),         -- FY2025 2BR FMR (monthly, USD)
+  fmr_vintage             TEXT,                 -- e.g. "FY2025"
+  -- ACS housing and population (E1-3)
+  total_housing_units     INTEGER,              -- ACS B25001_001E
+  occupied_housing_units  INTEGER,              -- ACS B25002_002E
+  total_population        INTEGER,              -- ACS B01003_001E
+  acs_vintage             TEXT,                 -- e.g. "2020-2024 ACS 5-year"
+  -- Census Building Permits (E1-4)
+  permits_5plus           INTEGER,              -- 5+ unit building permits (multifamily proxy)
+  total_permits           INTEGER,              -- total permitted units
+  permits_vintage         TEXT,                 -- e.g. "2023 BPS annual"
+  retrieved_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**Data sources:** See `docs/DATA_SOURCES.md` sections 2 (HUD FMR), 3 (ACS), and 4 (BPS). Fetched from public APIs at seed time; falls back to hardcoded FY2025 values for the Washington DC MSA if the HUD API token is unavailable.
 
 ---
 
@@ -149,14 +182,15 @@ CREATE TABLE feasibility_outputs (
 
 ```
 jurisdictions
-  ├── extracted_fields  (one jurisdiction → many fields)
-  ├── pipeline_runs     (one jurisdiction → many runs)
-  ├── ris_scores        (one jurisdiction → one current score)
+  ├── extracted_fields    (one jurisdiction → many fields, one per field_name)
+  ├── pipeline_runs       (one jurisdiction → many runs)
+  ├── market_data         (one jurisdiction → one current row)
+  ├── ris_scores          (one jurisdiction → one current score)
   └── feasibility_outputs (one jurisdiction → one current output)
 
 pipeline_runs
-  ├── extracted_fields  (one run → many fields)
-  ├── ris_scores        (one run → one score)
+  ├── extracted_fields    (one run → many fields)
+  ├── ris_scores          (one run → one score)
   └── feasibility_outputs (one run → one output)
 ```
 

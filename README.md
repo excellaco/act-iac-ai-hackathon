@@ -27,8 +27,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 act-iac-ai-hackathon/
 ├── app/                        # Next.js app router pages and layouts
 ├── __tests__/                  # Jest + React Testing Library test suite
+│   ├── fixtures/zoning/        # E2-0 gold fixtures for LLM extraction evaluation
+│   ├── pipeline/               # Unit tests for E0 pipeline modules
+│   └── extractors/             # Unit tests for E2 Gemini extractors
+├── lib/
+│   ├── pipeline/               # E0/E1 pipeline — runner, chunker, fetchers, parser, normalizer, validator
+│   └── extractors/             # E2 Gemini extractors — one per regulatory field
+├── db/
+│   ├── schema.ts               # Drizzle schema (all 6 tables)
+│   ├── migrations/             # Auto-generated SQL migrations
+│   └── seeds/                  # Seed scripts for jurisdictions, scores, market data
+├── scripts/
+│   └── run-pipeline.ts         # CLI: npm run pipeline:run [jurisdictionId]
 ├── public/                     # Static assets
-├── scripts/                    # Utility scripts (e.g. GCS preflight check)
 ├── infra/                      # Terraform — GCS bucket and IAM (see infra/README.md)
 ├── data/
 │   └── raw/                    # Local dev fallback for source documents (see data/raw/README.md)
@@ -133,15 +144,25 @@ Parcela uses PostgreSQL (Cloud SQL in production) managed via [Drizzle ORM](http
 ### Local development
 
 ```bash
-# Start the database
+# Start local PostgreSQL (port 5433)
 docker compose up -d
 
-# Push the schema directly (no migration files needed during local dev)
+# Push the schema
 npm run db:push
 
-# Seed the three MVP jurisdictions
-npm run db:seed
+# Seed all data (jurisdictions, scores, synthetic peers, market data)
+npm run db:seed:all
 ```
+
+Individual seed scripts:
+
+| Script | What it seeds |
+|--------|--------------|
+| `npm run db:seed` | 3 real jurisdictions |
+| `npm run db:seed:scores` | Pre-computed RIS scores for real jurisdictions |
+| `npm run db:seed:synthetic` | ~7 synthetic peer jurisdictions for CRP |
+| `npm run db:seed:market` | FMR, ACS, and building permit data from public APIs |
+| `npm run db:seed:all` | All of the above in sequence |
 
 ### Migrations
 
@@ -153,12 +174,19 @@ npm run db:generate
 npm run db:migrate
 ```
 
-### Environment variable
+### Environment variables
 
-Set `DATABASE_URL` in `.env.local` for local dev (see `.env.example`):
+Copy `.env.example` to `.env.local` and set:
 
-```
+```bash
+# Required
 DATABASE_URL=postgresql://postgres:postgres@localhost:5433/parcela
+GOOGLE_CLOUD_PROJECT=parcela-490518   # required for Gemini/Vertex AI calls
+
+# Optional
+GEMINI_MODEL=gemini-2.0-flash-001     # defaults to gemini-2.0-flash-001
+RAW_DATA_BUCKET=parcela-490518-raw-data  # omit to use local data/raw/ fallback
+HUD_API_TOKEN=<token>                 # omit to use hardcoded FY2025 FMR fallbacks
 ```
 
 For Cloud Run, use the Cloud SQL Unix socket form:
@@ -180,6 +208,44 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 | Secret | Description |
 |--------|-------------|
 | `DATABASE_URL` | Cloud SQL connection string for CI migrations |
+
+---
+
+## Running the Extraction Pipeline
+
+The pipeline fetches zoning PDFs, parses them, and calls Gemini to extract regulatory fields into the database. Run it locally after setting up the database and Google Cloud credentials.
+
+### Prerequisites
+
+```bash
+# Authenticate with Google Cloud (required for Gemini calls)
+gcloud auth application-default login
+
+# Start local database and seed it
+docker compose up -d
+npm run db:seed:all
+```
+
+### Run
+
+```bash
+# All 3 jurisdictions
+npm run pipeline:run
+
+# Single jurisdiction
+npm run pipeline:run arlington_va
+npm run pipeline:run fairfax_va
+npm run pipeline:run loudoun_va
+```
+
+Uses local PDFs from `data/raw/zoning/` when `RAW_DATA_BUCKET` is not set, or fetches from GCS when it is.
+
+### Verify results
+
+```bash
+npm run db:studio   # browse extracted_fields table in Drizzle Studio (localhost:4983)
+npm run dev         # run the app — search for a jurisdiction to see the score panel
+```
 
 ---
 
