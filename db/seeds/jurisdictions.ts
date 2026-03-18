@@ -2,9 +2,9 @@ import { db } from '../client'
 import { jurisdictions } from '../schema'
 
 const MVP_JURISDICTIONS = [
-  { name: 'Fairfax County',   state: 'VA', fipsState: '51', fipsCounty: '059', displayName: 'Fairfax County, VA' },
-  { name: 'Arlington County', state: 'VA', fipsState: '51', fipsCounty: '013', displayName: 'Arlington County, VA' },
-  { name: 'Loudoun County',   state: 'VA', fipsState: '51', fipsCounty: '107', displayName: 'Loudoun County, VA' },
+  { name: 'Fairfax County',   state: 'VA', fipsState: '51', fipsCounty: '059', displayName: 'Fairfax County, VA',   slug: 'fairfax' },
+  { name: 'Arlington County', state: 'VA', fipsState: '51', fipsCounty: '013', displayName: 'Arlington County, VA', slug: 'arlington' },
+  { name: 'Loudoun County',   state: 'VA', fipsState: '51', fipsCounty: '107', displayName: 'Loudoun County, VA',   slug: 'loudoun' },
 ]
 
 async function seed() {
@@ -12,7 +12,7 @@ async function seed() {
   for (const j of MVP_JURISDICTIONS) {
     await db.insert(jurisdictions)
       .values(j)
-      .onConflictDoNothing()
+      .onConflictDoUpdate({ target: [jurisdictions.fipsState, jurisdictions.fipsCounty], set: { slug: j.slug } })
     console.log(`  ✓ ${j.displayName}`)
   }
   console.log('Done.')

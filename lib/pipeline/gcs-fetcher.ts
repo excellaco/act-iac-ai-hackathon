@@ -35,8 +35,8 @@ export class GcsFetcher implements PdfFetcher {
     this.storage = new Storage()
   }
 
-  async fetch(jurisdictionId: string): Promise<{ bytes: Buffer; sourceDocument: string }> {
-    const prefix = `zoning/${jurisdictionId}/`
+  async fetch(_jurisdictionId: string, slug: string): Promise<{ bytes: Buffer; sourceDocument: string }> {
+    const prefix = `zoning/${slug}/`
     const [files] = await this.storage.bucket(this.bucket).getFiles({ prefix })
 
     if (files.length === 0) {

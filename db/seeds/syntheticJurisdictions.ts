@@ -6,13 +6,13 @@ import { computeRIS } from '../../lib/scoring'
 // ~7 synthetic jurisdictions to expand the CRP peer comparison set.
 // All values are plausible but fabricated — not from official zoning sources.
 const SYNTHETIC_JURISDICTIONS = [
-  { name: 'Montgomery County',    state: 'MD', fipsState: '24', fipsCounty: '031', displayName: 'Montgomery County, MD' },
-  { name: "Prince George's County", state: 'MD', fipsState: '24', fipsCounty: '033', displayName: "Prince George's County, MD" },
-  { name: 'Alexandria City',      state: 'VA', fipsState: '51', fipsCounty: '510', displayName: 'Alexandria City, VA' },
-  { name: 'Prince William County', state: 'VA', fipsState: '51', fipsCounty: '153', displayName: 'Prince William County, VA' },
-  { name: 'Stafford County',      state: 'VA', fipsState: '51', fipsCounty: '179', displayName: 'Stafford County, VA' },
-  { name: 'Frederick County',     state: 'VA', fipsState: '51', fipsCounty: '069', displayName: 'Frederick County, VA' },
-  { name: 'Howard County',        state: 'MD', fipsState: '24', fipsCounty: '027', displayName: 'Howard County, MD' },
+  { name: 'Montgomery County',    state: 'MD', fipsState: '24', fipsCounty: '031', displayName: 'Montgomery County, MD',    slug: 'montgomery-md' },
+  { name: "Prince George's County", state: 'MD', fipsState: '24', fipsCounty: '033', displayName: "Prince George's County, MD", slug: 'prince-georges-md' },
+  { name: 'Alexandria City',      state: 'VA', fipsState: '51', fipsCounty: '510', displayName: 'Alexandria City, VA',      slug: 'alexandria-va' },
+  { name: 'Prince William County', state: 'VA', fipsState: '51', fipsCounty: '153', displayName: 'Prince William County, VA', slug: 'prince-william-va' },
+  { name: 'Stafford County',      state: 'VA', fipsState: '51', fipsCounty: '179', displayName: 'Stafford County, VA',      slug: 'stafford-va' },
+  { name: 'Frederick County',     state: 'VA', fipsState: '51', fipsCounty: '069', displayName: 'Frederick County, VA',     slug: 'frederick-va' },
+  { name: 'Howard County',        state: 'MD', fipsState: '24', fipsCounty: '027', displayName: 'Howard County, MD',        slug: 'howard-md' },
 ]
 
 const SYNTHETIC_SCORES: Record<string, { dci: number; dcoi: number; pci: number; crp: number }> = {

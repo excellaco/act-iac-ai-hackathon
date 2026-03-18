@@ -31,7 +31,7 @@ import { PipelineLogger, consoleLogger } from './errors'
  * Implementations: GCS fetch (prod) or local file read (dev fallback).
  */
 export interface PdfFetcher {
-  fetch(jurisdictionId: string): Promise<{ bytes: Buffer; sourceDocument: string }>
+  fetch(jurisdictionId: string, slug: string): Promise<{ bytes: Buffer; sourceDocument: string }>
 }
 
 /**
@@ -151,6 +151,7 @@ export interface RunnerOptions {
 export async function runPipeline(
   db: Database,
   jurisdictionId: string,
+  slug: string,
   options: RunnerOptions,
 ): Promise<RunResult> {
   const logger = options.logger ?? consoleLogger
@@ -162,8 +163,8 @@ export async function runPipeline(
     logger.info('pipeline started', { jurisdictionId, runId: run.id })
 
     // 2. fetch PDF
-    logger.info('fetching PDF', { jurisdictionId })
-    const { bytes, sourceDocument } = await options.fetcher.fetch(jurisdictionId)
+    logger.info('fetching PDF', { jurisdictionId, slug })
+    const { bytes, sourceDocument } = await options.fetcher.fetch(jurisdictionId, slug)
 
     // 3. parse PDF → text
     logger.info('parsing PDF', { sourceDocument })
@@ -294,7 +295,8 @@ export async function runPipeline(
 export async function rerunPipeline(
   db: Database,
   jurisdictionId: string,
+  slug: string,
   options: RunnerOptions,
 ): Promise<RunResult> {
-  return runPipeline(db, jurisdictionId, options)
+  return runPipeline(db, jurisdictionId, slug, options)
 }

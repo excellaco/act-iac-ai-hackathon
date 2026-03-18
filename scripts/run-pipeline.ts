@@ -62,14 +62,14 @@ async function main() {
 
     console.log(`── ${jur.displayName} (${jur.id})`)
 
-    const result = await runPipeline(db, jur.id, {
+    const result = await runPipeline(db, jur.id, jur.slug, {
       fetcher,
       parser,
       extractors,
       logger: {
-        info: (msg, ctx) => console.log(`   ${msg}`, ctx ?? ''),
-        warn: (msg, ctx) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
-        error: (msg, ctx) => console.error(`   ✗ ${msg}`, ctx ?? ''),
+        info: (msg: string, ctx?: object) => console.log(`   ${msg}`, ctx ?? ''),
+        warn: (msg: string, ctx?: object) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
+        error: (msg: string, ctx?: object) => console.error(`   ✗ ${msg}`, ctx ?? ''),
       },
     })
 

@@ -36,7 +36,7 @@ describe('GcsFetcher', () => {
     mockGetFiles.mockResolvedValue([files])
 
     const fetcher = new GcsFetcher('test-bucket')
-    const result = await fetcher.fetch('fairfax')
+    const result = await fetcher.fetch('uuid-1', 'fairfax')
 
     expect(result.bytes).toEqual(content)
     expect(result.sourceDocument).toBe('gs://test-bucket/zoning/fairfax/fairfax_2024.pdf')
@@ -46,7 +46,7 @@ describe('GcsFetcher', () => {
     mockGetFiles.mockResolvedValue([[]])
 
     const fetcher = new GcsFetcher('test-bucket')
-    await expect(fetcher.fetch('loudoun')).rejects.toThrow('no files found')
+    await expect(fetcher.fetch('uuid-2', 'loudoun')).rejects.toThrow('no files found')
   })
 
   it('passes the correct prefix to getFiles', async () => {
@@ -54,7 +54,7 @@ describe('GcsFetcher', () => {
     mockGetFiles.mockResolvedValue([files])
 
     const fetcher = new GcsFetcher('test-bucket')
-    await fetcher.fetch('arlington')
+    await fetcher.fetch('uuid-3', 'arlington')
 
     expect(mockGetFiles).toHaveBeenCalledWith({ prefix: 'zoning/arlington/' })
   })

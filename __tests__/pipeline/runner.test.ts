@@ -99,7 +99,7 @@ describe('runPipeline', () => {
       makeExtractor('height_limit_ft',    makeRawResult('height_limit_ft', 35, 'feet')),
     ]
 
-    const result = await runPipeline(db, JURISDICTION_ID, {
+    const result = await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(),
       parser: makeParser(),
       extractors,
@@ -115,14 +115,14 @@ describe('runPipeline', () => {
     const parser = makeParser()
     const db = makeDb()
 
-    await runPipeline(db, JURISDICTION_ID, {
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher,
       parser,
       extractors: [],
       logger: silentLogger,
     })
 
-    expect(fetcher.fetch).toHaveBeenCalledWith(JURISDICTION_ID)
+    expect(fetcher.fetch).toHaveBeenCalledWith(JURISDICTION_ID, 'test-slug')
     expect(parser.parse).toHaveBeenCalled()
   })
 
@@ -133,7 +133,7 @@ describe('runPipeline', () => {
     )
     const db = makeDb()
 
-    await runPipeline(db, JURISDICTION_ID, {
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(),
       parser: makeParser(),
       extractors: [extractor],
@@ -152,7 +152,7 @@ describe('runPipeline', () => {
       makeExtractor('height_limit_ft', makeRawResult('height_limit_ft', 35, 'feet')),
     ]
 
-    await runPipeline(db, JURISDICTION_ID, {
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(),
       parser: makeParser(),
       extractors,
@@ -169,7 +169,7 @@ describe('runPipeline', () => {
       { fieldName: 'min_lot_size_sqft', extract: jest.fn().mockRejectedValue(new Error('LLM error')) },
     ]
 
-    const result = await runPipeline(db, JURISDICTION_ID, {
+    const result = await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(),
       parser: makeParser(),
       extractors,
@@ -188,7 +188,7 @@ describe('runPipeline', () => {
       fetch: jest.fn().mockRejectedValue(new Error('GCS bucket not found')),
     }
 
-    const result = await runPipeline(db, JURISDICTION_ID, {
+    const result = await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher,
       parser: makeParser(),
       extractors: [],
@@ -205,7 +205,7 @@ describe('runPipeline', () => {
       parse: jest.fn().mockRejectedValue(new Error('corrupt PDF')),
     }
 
-    const result = await runPipeline(db, JURISDICTION_ID, {
+    const result = await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(),
       parser,
       extractors: [],
@@ -228,9 +228,9 @@ describe('runPipeline', () => {
     }
 
     // first run
-    await runPipeline(db, JURISDICTION_ID, options)
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', options)
     // second run
-    const result = await rerunPipeline(db, JURISDICTION_ID, options)
+    const result = await rerunPipeline(db, JURISDICTION_ID, 'test-slug', options)
 
     // each call to insert creates a new run record
     expect(db.insert).toHaveBeenCalledTimes(4) // 2 run inserts + 2 field inserts
@@ -272,7 +272,7 @@ describe('runPipeline', () => {
     const longText = 'Section 1: District A\n' + 'height limit is 10 feet\n'.repeat(200) +
       '\n\nSection 2: District B\n' + 'height limit is 35 feet\n'.repeat(200)
 
-    await runPipeline(db, JURISDICTION_ID, {
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', {
       fetcher: makeFetcher(longText),
       parser: makeParser(longText),
       extractors: [extractor],

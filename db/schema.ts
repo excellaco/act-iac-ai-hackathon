@@ -15,6 +15,7 @@ export const jurisdictions = pgTable('jurisdictions', {
   fipsState: char('fips_state', { length: 2 }).notNull(),
   fipsCounty: char('fips_county', { length: 3 }).notNull(),
   displayName: text('display_name').notNull(),
+  slug: text('slug').notNull().unique(),
   dataType: dataType('data_type').notNull().default('real'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [unique().on(t.fipsState, t.fipsCounty)])
