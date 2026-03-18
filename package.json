@@ -15,15 +15,13 @@
     "db:seed": "tsx -r dotenv/config db/seeds/jurisdictions.ts",
     "db:seed:scores": "tsx -r dotenv/config db/seeds/realScores.ts",
     "db:seed:synthetic": "tsx -r dotenv/config db/seeds/syntheticJurisdictions.ts",
-    "db:seed:market": "tsx -r dotenv/config db/seeds/marketData.ts",
-    "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market"
+    "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic"
   },
   "dependencies": {
-    "@google-cloud/storage": "^7.19.0",
+    "@google-cloud/vertexai": "^1.10.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.44.0",
     "next": "16.1.7",
-    "pdf-parse": "^2.4.5",
     "pg": "^8.13.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
@@ -35,7 +33,6 @@
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
-    "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.11.13",
     "@types/react": "^19",
     "@types/react-dom": "^19",
