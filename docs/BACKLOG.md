@@ -41,28 +41,28 @@
 
 ### E1 — Data Ingestion
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E1-1 | As a developer, I need zoning code PDFs for 3 municipalities ingested so that the LLM pipeline has source material | PDFs for Fairfax, Arlington, Loudoun downloaded, uploaded to GCS (`parcela-490518-raw-data`), and fetchable by the pipeline; text extracted via PDF parser | P0 | 2 |
-| E1-1a | As a developer, I need the zoning ordinance PDFs for Fairfax, Arlington, and Loudoun downloaded and uploaded to GCS so that the pipeline has source material to process | PDFs downloaded per `docs/DATA_SOURCES.md` section 1; uploaded to `gs://parcela-490518-raw-data/zoning/{jurisdiction}/` following naming convention in `data/raw/README.md`; download date recorded. **See also:** #74 (E9-9) — GCS bucket must exist first. | P0 | 2 |
-| E1-2 | As a developer, I need FMR data for target jurisdictions loaded so that cost modeling is possible | HUD FMR CSV ingested for target zip codes; queryable by jurisdiction | P0 | 1 |
-| E1-3 | As a developer, I need ACS data (population, housing units) loaded so that density context is available | ACS tables B25001/B25002 loaded for target counties | P0 | 1 |
-| E1-4 | As a developer, I need building permit data loaded so that permitting complexity can be scored | Census building permit data loaded for target jurisdictions | P1 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E1-1 | As a developer, I need zoning code PDFs for 3 municipalities ingested so that the LLM pipeline has source material | PDFs for Fairfax, Arlington, Loudoun downloaded, uploaded to GCS (`parcela-490518-raw-data`), and fetchable by the pipeline; text extracted via PDF parser | P0 | 2 | |
+| E1-1a | As a developer, I need the zoning ordinance PDFs for Fairfax, Arlington, and Loudoun downloaded and uploaded to GCS so that the pipeline has source material to process | PDFs downloaded per `docs/DATA_SOURCES.md` section 1; uploaded to `gs://parcela-490518-raw-data/zoning/{jurisdiction}/` following naming convention in `data/raw/README.md`; download date recorded. **See also:** #74 (E9-9) — GCS bucket must exist first. | P0 | 2 | |
+| E1-2 | As a developer, I need FMR data for target jurisdictions loaded so that cost modeling is possible | HUD FMR CSV ingested for target zip codes; queryable by jurisdiction | P0 | 1 | |
+| E1-3 | As a developer, I need ACS data (population, housing units) loaded so that density context is available | ACS tables B25001/B25002 loaded for target counties | P0 | 1 | |
+| E1-4 | As a developer, I need building permit data loaded so that permitting complexity can be scored | Census building permit data loaded for target jurisdictions | P1 | 2 | |
 
 ### E2 — LLM Extraction
 
 > **Note on acceptance criteria:** E2-1 and E2-7 reference "≥80% of gold fixture test cases". The fixture set is defined in E2-0 and must be completed before E2-1 through E2-7 are testable.
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E2-0 | As a developer, I need a gold fixture set of zoning text snippets with known correct answers so that LLM extraction prompts can be evaluated against a concrete benchmark | Fixtures stored in `__tests__/fixtures/zoning/`; 3–5 fixtures per field (E2-1 through E2-7); each fixture includes: source jurisdiction, raw zoning text snippet, expected extracted value, expected confidence tier; covers at least one easy case, one ambiguous case, and one edge case (e.g. value not stated) per field. **Rationale:** "≥80% of test cases" is unverifiable without a defined fixture set. Fixtures also serve as regression tests when prompts are tuned, and are versioned in the repo so the benchmark is reproducible. | P0 | 2 |
-| E2-1 | As a developer, I need an LLM prompt that extracts minimum lot size from zoning text so that DCI can be computed | Prompt correctly extracts lot size for ≥80% of gold fixture test cases (E2-0); returns value + confidence tier | P0 | 3 |
-| E2-2 | As a developer, I need an LLM prompt that extracts height limits so that DCI can be computed | Returns height limit in feet + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 |
-| E2-3 | As a developer, I need an LLM prompt that extracts density limits (units/acre) so that DCI can be computed | Returns units/acre figure + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 |
-| E2-4 | As a developer, I need an LLM prompt that extracts parking minimums so that DCOI can be computed | Returns spaces/unit figure + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 |
-| E2-5 | As a developer, I need an LLM prompt that extracts setback requirements so that DCI can be computed | Returns front/side/rear setbacks + confidence tier; ≥80% accuracy against gold fixtures (E2-0) | P1 | 2 |
-| E2-6 | As a developer, I need extracted fields stored in a structured schema so that the scoring engine can consume them | JSON output per jurisdiction: all fields + confidence tiers + source citation | P0 | 2 |
-| E2-7 | As a developer, I need an LLM prompt that extracts the discretionary review requirement for multifamily housing so that PCI can be computed | Returns one of: by-right, conditional use permit required, or special use permit required; plus confidence tier; ≥80% accuracy against gold fixtures (E2-0). **Rationale:** Permit approval rates are not reliably available from public data at county level. The by-right vs. conditional/special use permit distinction is extractable from zoning text and is a real, policy-relevant signal — a jurisdiction that requires a special use permit for multifamily is meaningfully more complex than one that allows it by-right. This field, combined with Census permit volume, gives PCI a defensible public-data foundation without coding against missing inputs. | P0 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E2-0 | As a developer, I need a gold fixture set of zoning text snippets with known correct answers so that LLM extraction prompts can be evaluated against a concrete benchmark | Fixtures stored in `__tests__/fixtures/zoning/`; 3–5 fixtures per field (E2-1 through E2-7); each fixture includes: source jurisdiction, raw zoning text snippet, expected extracted value, expected confidence tier; covers at least one easy case, one ambiguous case, and one edge case (e.g. value not stated) per field. **Rationale:** "≥80% of test cases" is unverifiable without a defined fixture set. Fixtures also serve as regression tests when prompts are tuned, and are versioned in the repo so the benchmark is reproducible. | P0 | 2 | Done |
+| E2-1 | As a developer, I need an LLM prompt that extracts minimum lot size from zoning text so that DCI can be computed | Prompt correctly extracts lot size for ≥80% of gold fixture test cases (E2-0); returns value + confidence tier | P0 | 3 | |
+| E2-2 | As a developer, I need an LLM prompt that extracts height limits so that DCI can be computed | Returns height limit in feet + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 | |
+| E2-3 | As a developer, I need an LLM prompt that extracts density limits (units/acre) so that DCI can be computed | Returns units/acre figure + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 | |
+| E2-4 | As a developer, I need an LLM prompt that extracts parking minimums so that DCOI can be computed | Returns spaces/unit figure + confidence tier; ≥80% accuracy against gold fixture test cases (E2-0) | P0 | 2 | |
+| E2-5 | As a developer, I need an LLM prompt that extracts setback requirements so that DCI can be computed | Returns front/side/rear setbacks + confidence tier; ≥80% accuracy against gold fixtures (E2-0) | P1 | 2 | |
+| E2-6 | As a developer, I need extracted fields stored in a structured schema so that the scoring engine can consume them | JSON output per jurisdiction: all fields + confidence tiers + source citation | P0 | 2 | |
+| E2-7 | As a developer, I need an LLM prompt that extracts the discretionary review requirement for multifamily housing so that PCI can be computed | Returns one of: by-right, conditional use permit required, or special use permit required; plus confidence tier; ≥80% accuracy against gold fixtures (E2-0). **Rationale:** Permit approval rates are not reliably available from public data at county level. The by-right vs. conditional/special use permit distinction is extractable from zoning text and is a real, policy-relevant signal — a jurisdiction that requires a special use permit for multifamily is meaningfully more complex than one that allows it by-right. This field, combined with Census permit volume, gives PCI a defensible public-data foundation without coding against missing inputs. | P0 | 2 | |
 
 ### E3 — RIS Scoring Engine
 
@@ -81,12 +81,12 @@
 
 ### E4 — Feasibility Modeling
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E4-1 | As a housing policy analyst, I need to see maximum theoretical unit yield per acre so that I understand density impact | Yield computed from lot size + height + density limits; displayed in score panel | P0 | 3 |
-| E4-2 | As a housing policy analyst, I need to see buildable area impacted by parking requirements so that I understand parking cost | Parking lot footprint estimated from spaces/unit × stall size; displayed as % of lot | P0 | 3 |
-| E4-3 | As a housing policy analyst, I need estimated cost per unit so that I understand financial feasibility | Cost = construction cost (BLS OES + BEA RPP regional multiplier applied to national baseline) + parking cost uplift; displayed in score panel | P1 | 3 |
-| E4-4 | As a housing policy analyst, I need to see whether local market rents can support the estimated construction cost so that I can make a defensible case for regulatory change | Rent feasibility indicator displayed alongside cost per unit: compares estimated monthly carrying cost (construction cost ÷ 240 months) to local HUD FMR 2BR; shows one of three labels — Feasible, Marginal, or Infeasible — with the underlying FMR and cost figures cited. **Rationale:** E4-3 answers "what does it cost to build?" (supply-side); E4-4 answers "can the market support that cost?" (demand-side). These are distinct policy questions that deserve separate stories. The rent comparison is the more powerful output for Val — it transforms a construction cost number into a policy argument. HUD FMR data is already ingested in E1-2, so the implementation cost is low. | P1 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E4-1 | As a housing policy analyst, I need to see maximum theoretical unit yield per acre so that I understand density impact | Yield computed from lot size + height + density limits; displayed in score panel | P0 | 3 | |
+| E4-2 | As a housing policy analyst, I need to see buildable area impacted by parking requirements so that I understand parking cost | Parking lot footprint estimated from spaces/unit × stall size; displayed as % of lot | P0 | 3 | |
+| E4-3 | As a housing policy analyst, I need estimated cost per unit so that I understand financial feasibility | Cost = construction cost (BLS OES + BEA RPP regional multiplier applied to national baseline) + parking cost uplift; displayed in score panel | P1 | 3 | |
+| E4-4 | As a housing policy analyst, I need to see whether local market rents can support the estimated construction cost so that I can make a defensible case for regulatory change | Rent feasibility indicator displayed alongside cost per unit: compares estimated monthly carrying cost (construction cost ÷ 240 months) to local HUD FMR 2BR; shows one of three labels — Feasible, Marginal, or Infeasible — with the underlying FMR and cost figures cited. **Rationale:** E4-3 answers "what does it cost to build?" (supply-side); E4-4 answers "can the market support that cost?" (demand-side). These are distinct policy questions that deserve separate stories. The rent comparison is the more powerful output for Val — it transforms a construction cost number into a policy argument. HUD FMR data is already ingested in E1-2, so the implementation cost is low. | P1 | 2 | |
 
 ### E5 — Search & Map UI
 
@@ -111,21 +111,21 @@
 
 ### E7 — Comparison View
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E7-1 | As a housing policy analyst, I need to add a second jurisdiction to compare so that I can benchmark my county | "Add jurisdiction to compare" search bar adds a second map + accordion panel side-by-side | P0 | 3 |
-| E7-2 | As a housing policy analyst, I need to add a third jurisdiction so that I have a richer comparison set | Layout supports up to 3 panels; panels scroll horizontally if needed | P1 | 2 |
-| E7-3 | As a housing policy analyst, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Summary bar above panels shows jurisdictions ranked by RIS with score delta indicators | P1 | 2 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E7-1 | As a housing policy analyst, I need to add a second jurisdiction to compare so that I can benchmark my county | "Add jurisdiction to compare" search bar adds a second map + accordion panel side-by-side | P0 | 3 | |
+| E7-2 | As a housing policy analyst, I need to add a third jurisdiction so that I have a richer comparison set | Layout supports up to 3 panels; panels scroll horizontally if needed | P1 | 2 | |
+| E7-3 | As a housing policy analyst, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Summary bar above panels shows jurisdictions ranked by RIS with score delta indicators | P1 | 2 | |
 
 ### E8 — What-If Simulation
 
-| ID | Story | Acceptance Criteria | Priority | Points |
-|----|-------|---------------------|----------|--------|
-| E8-1 | As a housing policy analyst, I need a "What-If" toggle so that I can switch into policy simulation mode | Toggle visible on the score panel; activates slider controls when enabled | P0 | 1 |
-| E8-2 | As a housing policy analyst, I need sliders for each regulatory constraint so that I can model policy changes | Sliders for: min lot size, height limits, density limits, parking minimums, setbacks | P0 | 3 |
-| E8-3 | As a housing policy analyst, I need the RIS to update when I move a slider so that I see the score impact in real time | Score and map shading update within 500ms of slider change | P0 | 3 |
-| E8-4 | As a housing policy analyst, I need feasibility outputs to update with slider changes so that I see development impact | Unit yield, buildable area, and cost per unit update alongside RIS | P0 | 3 |
-| E8-5 | As a housing policy analyst, I need to reset sliders to baseline so that I can return to actual regulatory values | Reset button restores all sliders to originally extracted regulatory values | P1 | 1 |
+| ID | Story | Acceptance Criteria | Priority | Points | Status |
+|----|-------|---------------------|----------|--------|--------|
+| E8-1 | As a housing policy analyst, I need a "What-If" toggle so that I can switch into policy simulation mode | Toggle visible on the score panel; activates slider controls when enabled | P0 | 1 | |
+| E8-2 | As a housing policy analyst, I need sliders for each regulatory constraint so that I can model policy changes | Sliders for: min lot size, height limits, density limits, parking minimums, setbacks | P0 | 3 | |
+| E8-3 | As a housing policy analyst, I need the RIS to update when I move a slider so that I see the score impact in real time | Score and map shading update within 500ms of slider change | P0 | 3 | |
+| E8-4 | As a housing policy analyst, I need feasibility outputs to update with slider changes so that I see development impact | Unit yield, buildable area, and cost per unit update alongside RIS | P0 | 3 | |
+| E8-5 | As a housing policy analyst, I need to reset sliders to baseline so that I can return to actual regulatory values | Reset button restores all sliders to originally extracted regulatory values | P1 | 1 | |
 
 ---
 
