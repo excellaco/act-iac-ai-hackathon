@@ -43,7 +43,7 @@ async function main() {
 
   console.log(`\nParcela extraction pipeline`)
   console.log(`Fetcher: ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/raw/)'}`)
-  console.log(`Model:   ${process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-001'}`)
+  console.log(`Model:   ${process.env.GEMINI_MODEL ?? 'gemini-2.0-flash'}`)
   console.log(`Target:  ${targets.join(', ')}\n`)
 
   for (const jurisdictionId of targets) {

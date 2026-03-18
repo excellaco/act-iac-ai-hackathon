@@ -44,7 +44,7 @@ export abstract class GeminiExtractor implements FieldExtractor {
     }
 
     this.vertexAI = new VertexAI({ project, location })
-    this.model = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-001'
+    this.model = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash'
   }
 
   async extract(chunk: string): Promise<RawExtractionResult | null> {
