@@ -213,12 +213,12 @@ export async function runPipeline(
       const r = s.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim()
       return r || null
     }
-    // Coerce to number or null — raw_value and field_value are numeric columns.
+    // Coerce to string or null — Drizzle types numeric columns as string, not number.
     // Gemini sometimes returns word-form numbers ("eight") despite the typed schema.
-    const toNum = (v: unknown): number | null => {
+    const toNum = (v: unknown): string | null => {
       if (v === null || v === undefined || v === '') return null
       const n = Number(v)
-      return isNaN(n) ? null : n
+      return isNaN(n) ? null : String(n)
     }
 
     const rows = outcomes.map((o) => ({
