@@ -213,13 +213,20 @@ export async function runPipeline(
       const r = s.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim()
       return r || null
     }
+    // Coerce to number or null — raw_value and field_value are numeric columns.
+    // Gemini sometimes returns word-form numbers ("eight") despite the typed schema.
+    const toNum = (v: unknown): number | null => {
+      if (v === null || v === undefined || v === '') return null
+      const n = Number(v)
+      return isNaN(n) ? null : n
+    }
 
     const rows = outcomes.map((o) => ({
       jurisdictionId,
       fieldName: o.result.field_name,
-      rawValue: o.result.raw_value !== null ? clean(String(o.result.raw_value)) : null,
+      rawValue: toNum(o.result.raw_value),
       rawUnit: clean(o.result.raw_unit),
-      fieldValue: o.result.field_value !== null ? clean(String(o.result.field_value)) : null,
+      fieldValue: toNum(o.result.field_value),
       fieldValueText: clean(o.result.field_value_text) ?? 'Not found in document',
       unit: clean(o.result.unit),
       confidence: o.result.confidence,
