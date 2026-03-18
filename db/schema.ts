@@ -61,6 +61,24 @@ export const risScores = pgTable('ris_scores', {
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
 })
 
+export const marketData = pgTable('market_data', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id).unique(),
+  // HUD Fair Market Rents (E1-2)
+  fmr2br: numeric('fmr_2br', { precision: 8, scale: 2 }),
+  fmrVintage: text('fmr_vintage'),
+  // ACS housing and population (E1-3)
+  totalHousingUnits: integer('total_housing_units'),
+  occupiedHousingUnits: integer('occupied_housing_units'),
+  totalPopulation: integer('total_population'),
+  acsVintage: text('acs_vintage'),
+  // Census Building Permits (E1-4)
+  permits5plus: integer('permits_5plus'),
+  totalPermits: integer('total_permits'),
+  permitsVintage: text('permits_vintage'),
+  retrievedAt: timestamp('retrieved_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const feasibilityOutputs = pgTable('feasibility_outputs', {
   id: uuid('id').primaryKey().defaultRandom(),
   jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id).unique(),

@@ -43,11 +43,11 @@
 
 | ID | Story | Acceptance Criteria | Priority | Points | Status |
 |----|-------|---------------------|----------|--------|--------|
-| E1-1 | As a developer, I need zoning code PDFs for 3 municipalities ingested so that the LLM pipeline has source material | PDFs for Fairfax, Arlington, Loudoun downloaded, uploaded to GCS (`parcela-490518-raw-data`), and fetchable by the pipeline; text extracted via PDF parser | P0 | 2 | |
-| E1-1a | As a developer, I need the zoning ordinance PDFs for Fairfax, Arlington, and Loudoun downloaded and uploaded to GCS so that the pipeline has source material to process | PDFs downloaded per `docs/DATA_SOURCES.md` section 1; uploaded to `gs://parcela-490518-raw-data/zoning/{jurisdiction}/` following naming convention in `data/raw/README.md`; download date recorded. **See also:** #74 (E9-9) — GCS bucket must exist first. | P0 | 2 | |
-| E1-2 | As a developer, I need FMR data for target jurisdictions loaded so that cost modeling is possible | HUD FMR CSV ingested for target zip codes; queryable by jurisdiction | P0 | 1 | |
-| E1-3 | As a developer, I need ACS data (population, housing units) loaded so that density context is available | ACS tables B25001/B25002 loaded for target counties | P0 | 1 | |
-| E1-4 | As a developer, I need building permit data loaded so that permitting complexity can be scored | Census building permit data loaded for target jurisdictions | P1 | 2 | |
+| E1-1 | As a developer, I need zoning code PDFs for 3 municipalities ingested so that the LLM pipeline has source material | PDFs for Fairfax, Arlington, Loudoun downloaded, uploaded to GCS (`parcela-490518-raw-data`), and fetchable by the pipeline; text extracted via PDF parser | P0 | 2 | Done |
+| E1-1a | As a developer, I need the zoning ordinance PDFs for Fairfax, Arlington, and Loudoun downloaded and uploaded to GCS so that the pipeline has source material to process | PDFs downloaded per `docs/DATA_SOURCES.md` section 1; uploaded to `gs://parcela-490518-raw-data/zoning/{jurisdiction}/` following naming convention in `data/raw/README.md`; download date recorded. **See also:** #74 (E9-9) — GCS bucket must exist first. | P0 | 2 | Done |
+| E1-2 | As a developer, I need FMR data for target jurisdictions loaded so that cost modeling is possible | HUD FMR CSV ingested for target zip codes; queryable by jurisdiction | P0 | 1 | Done |
+| E1-3 | As a developer, I need ACS data (population, housing units) loaded so that density context is available | ACS tables B25001/B25002 loaded for target counties | P0 | 1 | Done |
+| E1-4 | As a developer, I need building permit data loaded so that permitting complexity can be scored | Census building permit data loaded for target jurisdictions | P1 | 2 | Done |
 
 ### E2 — LLM Extraction
 
