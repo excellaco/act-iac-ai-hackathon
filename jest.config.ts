@@ -10,6 +10,7 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)sx?$': '@swc/jest',
   },
+  testPathIgnorePatterns: ['/node_modules/', '/__tests__/fixtures/'],
   collectCoverage: true,
   coverageReporters: ['lcov'],
 };
