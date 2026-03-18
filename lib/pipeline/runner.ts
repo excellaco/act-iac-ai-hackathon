@@ -258,7 +258,7 @@ export async function runPipeline(
       errors: errors.map((e) => ({ fieldName: e.fieldName, message: e.message })),
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
+    const message = (err instanceof Error ? err.message : String(err)).replace(/\x00/g, '')
     logger.error('pipeline fatal error', { jurisdictionId, message })
 
     if (run) {

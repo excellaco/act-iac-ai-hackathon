@@ -66,7 +66,12 @@ export abstract class GeminiExtractor implements FieldExtractor {
   }
 
   protected parseResponse(text: string): RawExtractionResult | null {
-    const parsed = JSON.parse(text)
+    // Strip null bytes and other ASCII control characters that are invalid in JSON
+    // (keep tab \x09, newline \x0A, carriage return \x0D which JSON allows escaped)
+    const sanitized = text
+      .replace(/\x00/g, '')
+      .replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+    const parsed = JSON.parse(sanitized)
     if (!parsed || typeof parsed !== 'object') return null
     return parsed as RawExtractionResult
   }
