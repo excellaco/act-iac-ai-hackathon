@@ -4,12 +4,20 @@
 
 const mockHandler = { enable: jest.fn(), disable: jest.fn() };
 
+const mockBounds = {
+  getNorth: jest.fn().mockReturnValue(39),
+  getSouth: jest.fn().mockReturnValue(38),
+  getEast: jest.fn().mockReturnValue(-77),
+  getWest: jest.fn().mockReturnValue(-78),
+};
+
 const mockLayer = {
   addTo: jest.fn().mockReturnThis(),
   remove: jest.fn().mockReturnThis(),
   setStyle: jest.fn().mockReturnThis(),
   bindPopup: jest.fn().mockReturnThis(),
   openPopup: jest.fn().mockReturnThis(),
+  getBounds: jest.fn().mockReturnValue(mockBounds),
 };
 
 const mockMap = {
