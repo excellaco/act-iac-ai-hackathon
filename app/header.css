@@ -1,0 +1,45 @@
+/* E9-10: App header with Parcela logo */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  z-index: 1000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.app-logo {
+  display: block;
+  flex-shrink: 0;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.app-tagline {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 400;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 12px;
+}
+
+/* Push page content below fixed header */
+.app-body {
+  padding-top: 48px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

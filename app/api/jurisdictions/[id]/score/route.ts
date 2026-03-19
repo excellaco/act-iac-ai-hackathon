@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db/client'
-import { jurisdictions, risScores, extractedFields } from '@/db/schema'
+import { jurisdictions, risScores, extractedFields, feasibilityOutputs, marketData } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function GET(
@@ -26,5 +26,32 @@ export async function GET(
     .from(extractedFields)
     .where(eq(extractedFields.jurisdictionId, id))
 
-  return NextResponse.json({ jurisdiction, score, extractedFields: fields })
+  const feasibility = await db.query.feasibilityOutputs.findFirst({
+    where: eq(feasibilityOutputs.jurisdictionId, id),
+  })
+
+  const market = await db.query.marketData.findFirst({
+    where: eq(marketData.jurisdictionId, id),
+  })
+
+  return NextResponse.json({
+    jurisdiction,
+    score,
+    extractedFields: fields,
+    feasibility: feasibility
+      ? {
+          maxUnitsPerAcre:     feasibility.maxUnitsPerAcre,
+          parkingFootprintPct: feasibility.parkingFootprintPct,
+          estimatedCostPerUnit: feasibility.estimatedCostPerUnit,
+          fmr2br:              feasibility.fmr2br,
+        }
+      : null,
+    marketData: market
+      ? {
+          fmr2br:       market.fmr2br,
+          permits5plus: market.permits5plus,
+          totalPermits: market.totalPermits,
+        }
+      : null,
+  })
 }

@@ -16,7 +16,8 @@
     "db:seed:scores": "tsx -r dotenv/config db/seeds/realScores.ts",
     "db:seed:synthetic": "tsx -r dotenv/config db/seeds/syntheticJurisdictions.ts",
     "db:seed:market": "tsx -r dotenv/config db/seeds/marketData.ts",
-    "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market",
+    "db:seed:feasibility": "tsx -r dotenv/config db/seeds/feasibilityOutputs.ts",
+    "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market && npm run db:seed:feasibility",
     "pipeline:run": "tsx -r dotenv/config scripts/run-pipeline.ts",
     "pipeline:extract": "tsx -r dotenv/config scripts/extract.ts",
     "pipeline:load": "tsx -r dotenv/config scripts/load.ts"

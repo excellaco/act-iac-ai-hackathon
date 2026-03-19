@@ -7,6 +7,7 @@ import { fetchScore } from '../lib/apiClient';
 import { scoreResponseToJurisdictionData, type JurisdictionData } from '../lib/mockData';
 import JurisdictionSearch from './components/JurisdictionSearch';
 import ScorePanel from './components/ScorePanel';
+import CompareView from './components/CompareView';
 import styles from './page.module.css';
 
 // Leaflet requires the browser's window object — must be dynamically imported with ssr: false
@@ -18,12 +19,15 @@ const ChoroplethMap = dynamic(() => import('./components/ChoroplethMap'), {
 export default function Home() {
   const [selected, setSelected] = useState<JurisdictionData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
 
   async function handleSelect(jurisdiction: JurisdictionSummary) {
     setLoading(true);
+    setCompareMode(false);
     try {
       const scoreData = await fetchScore(jurisdiction.id);
-      setSelected(scoreResponseToJurisdictionData(scoreData));
+      const jd = scoreResponseToJurisdictionData(scoreData);
+      setSelected(jd);
     } catch (err) {
       console.error('Failed to load score:', err);
     } finally {
@@ -33,6 +37,35 @@ export default function Home() {
 
   function handleReset() {
     setSelected(null);
+    setCompareMode(false);
+  }
+
+  // E6-7 / E7-1: Initiate comparison view when a peer chip is clicked
+  async function handleCompare(peer: { id: string; name: string; state: string; ris: number }) {
+    // Load the peer jurisdiction data if needed, then switch to compare mode
+    setCompareMode(true);
+    // Pre-fetch peer data so CompareView can load it
+    try {
+      const peerData = await fetchScore(peer.id);
+      const peerJd = scoreResponseToJurisdictionData(peerData);
+      if (peerJd && selected) {
+        // CompareView is initialized with `selected` and will add peerJd
+        setCompareMode(true);
+      }
+    } catch {
+      // Still enter compare mode even if fetch fails — CompareView handles it
+      setCompareMode(true);
+    }
+  }
+
+  // Comparison view — full-width, no map
+  if (compareMode && selected) {
+    return (
+      <CompareView
+        initial={selected}
+        onBack={() => setCompareMode(false)}
+      />
+    );
   }
 
   return (
@@ -55,7 +88,7 @@ export default function Home() {
       </main>
 
       {selected && (
-        <ScorePanel jurisdiction={selected} />
+        <ScorePanel jurisdiction={selected} onCompare={handleCompare} />
       )}
     </div>
   );

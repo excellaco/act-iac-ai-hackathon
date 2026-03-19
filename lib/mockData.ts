@@ -1,4 +1,8 @@
-import { computeRIS } from './scoring';
+import { computeRIS } from './scoring'
+import { computeFeasibility } from './feasibility'
+import { REGIONAL_MULTIPLIERS, DEFAULT_REGIONAL_MULTIPLIER } from './scoringEngine'
+import type { ReviewType } from './scoringEngine'
+import type { FeasibilityOutputs } from './feasibility'
 
 export type ConfidenceTier = 'High' | 'Medium' | 'Low';
 
@@ -8,10 +12,27 @@ export interface SubScoreDetail {
   source: string;
 }
 
+/** Regulatory field values extracted from zoning ordinances + market data. */
+export interface RegulationFields {
+  minLotSizeSqft: number
+  heightLimitFt: number
+  densityLimitUpa: number
+  parkingMinSpacesPerUnit: number
+  setbackFrontFt: number
+  setbackSideFt: number
+  setbackRearFt: number
+  discretionaryReviewType: ReviewType
+  permits5plus: number
+  totalPermits: number
+  regionalMultiplier: number
+  fmr2br: number
+}
+
 export interface JurisdictionData {
   id: string;
   name: string;
   state: string;
+  slug: string;
   ris: number;
   subScores: {
     dci: SubScoreDetail;
@@ -19,51 +40,78 @@ export interface JurisdictionData {
     pci: SubScoreDetail;
     crp: SubScoreDetail;
   };
+  fields: RegulationFields;
+  feasibility: FeasibilityOutputs;
 }
 
-const fairfax: JurisdictionData = {
-  id: 'fairfax-va',
-  name: 'Fairfax County',
-  state: 'VA',
-  ris: computeRIS({ dci: 75, dcoi: 70, pci: 65, crp: 80 }),
-  subScores: {
-    dci: { score: 75, confidence: 'High', source: 'Municode zoning code, extracted Mar 2025' },
-    dcoi: { score: 70, confidence: 'High', source: 'BLS OES + BEA Regional Price Parities, 2024' },
-    pci: { score: 65, confidence: 'Medium', source: 'U.S. Census Building Permits Survey, 2023' },
-    crp: { score: 80, confidence: 'High', source: 'Peer comparison set (3 real + 7 illustrative jurisdictions)' },
+// ── Per-jurisdiction regulatory field baselines ───────────────────────────
+// These represent multifamily-zone values extracted from each jurisdiction's
+// zoning ordinance. Used as What-If slider baselines.
+// Sources: Municode zoning codes (Fairfax, Arlington, Loudoun), extracted Mar 2025.
+
+const JURISDICTION_FIELDS: Record<string, RegulationFields> = {
+  'fairfax-va': {
+    minLotSizeSqft:          43_560,  // R-MF zone: 1 acre minimum
+    heightLimitFt:           45,      // R-MF: 45 ft height limit
+    densityLimitUpa:         12,      // R-MF: up to 12 units/acre
+    parkingMinSpacesPerUnit: 2.0,     // Fairfax Zoning Ord. §8102.04
+    setbackFrontFt:          25,
+    setbackSideFt:           10,
+    setbackRearFt:           25,
+    discretionaryReviewType: 'special-use-permit',
+    permits5plus:            1842,    // Census BPS 2023
+    totalPermits:            3284,
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['fairfax-va'],
+    fmr2br:                  2280,    // HUD FY2025 DC MSA
   },
-};
-
-const arlington: JurisdictionData = {
-  id: 'arlington-va',
-  name: 'Arlington County',
-  state: 'VA',
-  ris: computeRIS({ dci: 40, dcoi: 50, pci: 35, crp: 45 }),
-  subScores: {
-    dci: { score: 40, confidence: 'High', source: 'Municode zoning code, extracted Mar 2025' },
-    dcoi: { score: 50, confidence: 'High', source: 'BLS OES + BEA Regional Price Parities, 2024' },
-    pci: { score: 35, confidence: 'High', source: 'U.S. Census Building Permits Survey, 2023' },
-    crp: { score: 45, confidence: 'High', source: 'Peer comparison set (3 real + 7 illustrative jurisdictions)' },
+  'arlington-va': {
+    minLotSizeSqft:          3_630,   // Rosslyn-Ballston MU corridor: ~1/12 acre
+    heightLimitFt:           125,     // Mixed-use zone: 125 ft
+    densityLimitUpa:         72,      // Rosslyn-Ballston: up to 72 du/acre
+    parkingMinSpacesPerUnit: 0.5,     // Transit-area parking reduction (§14.3.4)
+    setbackFrontFt:          5,
+    setbackSideFt:           5,
+    setbackRearFt:           10,
+    discretionaryReviewType: 'by-right',
+    permits5plus:            892,     // Census BPS 2023
+    totalPermits:            987,
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['arlington-va'],
+    fmr2br:                  2280,
   },
-};
-
-const loudoun: JurisdictionData = {
-  id: 'loudoun-va',
-  name: 'Loudoun County',
-  state: 'VA',
-  ris: computeRIS({ dci: 80, dcoi: 55, pci: 60, crp: 60 }),
-  subScores: {
-    dci: { score: 80, confidence: 'High', source: 'Municode zoning code, extracted Mar 2025' },
-    dcoi: { score: 55, confidence: 'Medium', source: 'BLS OES + BEA Regional Price Parities, 2024' },
-    pci: { score: 60, confidence: 'Medium', source: 'U.S. Census Building Permits Survey, 2023' },
-    crp: { score: 60, confidence: 'High', source: 'Peer comparison set (3 real + 7 illustrative jurisdictions)' },
+  'loudoun-va': {
+    minLotSizeSqft:          57_000,  // ~1.3 acres (R-E residential estate zone)
+    heightLimitFt:           50,      // PD-H multifamily: 50 ft
+    densityLimitUpa:         6,       // PD-H2: 6 du/acre
+    parkingMinSpacesPerUnit: 2.0,
+    setbackFrontFt:          30,
+    setbackSideFt:           15,
+    setbackRearFt:           35,
+    discretionaryReviewType: 'special-use-permit',
+    permits5plus:            1203,    // Census BPS 2023
+    totalPermits:            2891,
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['loudoun-va'],
+    fmr2br:                  2280,
   },
-};
+}
 
-export const JURISDICTIONS: JurisdictionData[] = [fairfax, arlington, loudoun];
+/** Generic fields used for synthetic/unknown jurisdictions. */
+const DEFAULT_FIELDS: RegulationFields = {
+  minLotSizeSqft:          20_000,
+  heightLimitFt:           50,
+  densityLimitUpa:         20,
+  parkingMinSpacesPerUnit: 1.5,
+  setbackFrontFt:          20,
+  setbackSideFt:           10,
+  setbackRearFt:           20,
+  discretionaryReviewType: 'conditional-use-permit',
+  permits5plus:            500,
+  totalPermits:            1000,
+  regionalMultiplier:      DEFAULT_REGIONAL_MULTIPLIER,
+  fmr2br:                  1800,
+}
 
-// Source labels used in the score panel. The DB doesn't store per-sub-score
-// attribution yet, so we map them here until the extraction pipeline provides it.
+// ── Source attribution ─────────────────────────────────────────────────────
+
 const REAL_SOURCES = {
   dci:  'Municode zoning code, extracted Mar 2025',
   dcoi: 'BLS OES + BEA Regional Price Parities, 2024',
@@ -73,14 +121,71 @@ const REAL_SOURCES = {
 
 const SYNTHETIC_SOURCE = 'Illustrative data — not from official sources'
 
+// ── Static mock data (used before DB is populated) ─────────────────────────
+
+function buildJurisdiction(
+  id: string,
+  name: string,
+  state: string,
+  slug: string,
+  risScores: { dci: number; dcoi: number; pci: number; crp: number },
+  isSynthetic = false,
+): JurisdictionData {
+  const sources = isSynthetic
+    ? { dci: SYNTHETIC_SOURCE, dcoi: SYNTHETIC_SOURCE, pci: SYNTHETIC_SOURCE, crp: SYNTHETIC_SOURCE }
+    : REAL_SOURCES
+
+  const fields = JURISDICTION_FIELDS[slug] ?? DEFAULT_FIELDS
+  const feasibility = computeFeasibility({
+    densityLimitUpa:         fields.densityLimitUpa,
+    parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+    regionalMultiplier:      fields.regionalMultiplier,
+    fmr2br:                  fields.fmr2br,
+  })
+
+  return {
+    id,
+    name,
+    state,
+    slug,
+    ris: computeRIS(risScores),
+    subScores: {
+      dci:  { score: risScores.dci,  confidence: 'High', source: sources.dci },
+      dcoi: { score: risScores.dcoi, confidence: 'High', source: sources.dcoi },
+      pci:  { score: risScores.pci,  confidence: 'Medium', source: sources.pci },
+      crp:  { score: risScores.crp,  confidence: 'High', source: sources.crp },
+    },
+    fields,
+    feasibility,
+  }
+}
+
+export const JURISDICTIONS: JurisdictionData[] = [
+  buildJurisdiction('fairfax-va',   'Fairfax County',   'VA', 'fairfax-va',   { dci: 75, dcoi: 70, pci: 65, crp: 80 }),
+  buildJurisdiction('arlington-va', 'Arlington County', 'VA', 'arlington-va', { dci: 40, dcoi: 50, pci: 35, crp: 45 }),
+  buildJurisdiction('loudoun-va',   'Loudoun County',   'VA', 'loudoun-va',   { dci: 80, dcoi: 55, pci: 60, crp: 60 }),
+]
+
 /**
  * Converts a /api/jurisdictions/[id]/score response into the JurisdictionData
  * shape expected by ScorePanel.
  */
 export function scoreResponseToJurisdictionData(
   apiResponse: {
-    jurisdiction: { id: string; name: string; state: string; dataType: string }
+    jurisdiction: { id: string; name: string; state: string; slug: string; dataType: string }
     score: { risComposite: string; dci: string; dcoi: string; pci: string; crp: string } | null
+    extractedFields?: Array<{ fieldName: string; fieldValue: string | null; unit: string | null; confidence: string; sourceDocument: string | null }>
+    feasibility?: {
+      maxUnitsPerAcre: string | null
+      parkingFootprintPct: string | null
+      estimatedCostPerUnit: string | null
+      fmr2br: string | null
+    } | null
+    marketData?: {
+      fmr2br: string | null
+      permits5plus: number | null
+      totalPermits: number | null
+    } | null
   }
 ): JurisdictionData | null {
   const { jurisdiction, score } = apiResponse
@@ -91,16 +196,72 @@ export function scoreResponseToJurisdictionData(
     ? { dci: SYNTHETIC_SOURCE, dcoi: SYNTHETIC_SOURCE, pci: SYNTHETIC_SOURCE, crp: SYNTHETIC_SOURCE }
     : REAL_SOURCES
 
+  // Extract field values from API response, falling back to known defaults
+  const slug = jurisdiction.slug
+  const baseFields = JURISDICTION_FIELDS[slug] ?? DEFAULT_FIELDS
+
+  // Merge any extracted fields from the DB
+  const fieldMap: Record<string, number> = {}
+  for (const f of apiResponse.extractedFields ?? []) {
+    if (f.fieldValue != null) fieldMap[f.fieldName] = parseFloat(f.fieldValue)
+  }
+
+  const fmr2br = apiResponse.marketData?.fmr2br
+    ? parseFloat(apiResponse.marketData.fmr2br)
+    : baseFields.fmr2br
+
+  const fields: RegulationFields = {
+    minLotSizeSqft:          fieldMap['min_lot_size_sqft']           ?? baseFields.minLotSizeSqft,
+    heightLimitFt:           fieldMap['height_limit_ft']             ?? baseFields.heightLimitFt,
+    densityLimitUpa:         fieldMap['density_limit_units_per_acre'] ?? baseFields.densityLimitUpa,
+    parkingMinSpacesPerUnit: fieldMap['parking_min_spaces_per_unit'] ?? baseFields.parkingMinSpacesPerUnit,
+    setbackFrontFt:          fieldMap['setback_front_ft']            ?? baseFields.setbackFrontFt,
+    setbackSideFt:           fieldMap['setback_side_ft']             ?? baseFields.setbackSideFt,
+    setbackRearFt:           fieldMap['setback_rear_ft']             ?? baseFields.setbackRearFt,
+    discretionaryReviewType: baseFields.discretionaryReviewType,  // text field, not numeric
+    permits5plus:            apiResponse.marketData?.permits5plus    ?? baseFields.permits5plus,
+    totalPermits:            apiResponse.marketData?.totalPermits    ?? baseFields.totalPermits,
+    regionalMultiplier:      REGIONAL_MULTIPLIERS[slug] ?? DEFAULT_REGIONAL_MULTIPLIER,
+    fmr2br,
+  }
+
+  // Use stored feasibility if available, otherwise compute from fields
+  let feasibility: FeasibilityOutputs
+  if (apiResponse.feasibility?.estimatedCostPerUnit) {
+    const f = apiResponse.feasibility
+    const estimatedCostPerUnit = parseFloat(f.estimatedCostPerUnit!)
+    const monthlyCarryingCost = Math.round(estimatedCostPerUnit / 240)
+    const fmrVal = f.fmr2br ? parseFloat(f.fmr2br) : fmr2br
+    feasibility = {
+      maxUnitsPerAcre:      f.maxUnitsPerAcre ? parseFloat(f.maxUnitsPerAcre) : fields.densityLimitUpa,
+      parkingFootprintPct:  f.parkingFootprintPct ? parseFloat(f.parkingFootprintPct) : 0,
+      estimatedCostPerUnit,
+      monthlyCarryingCost,
+      rentFeasibility:      monthlyCarryingCost < fmrVal ? 'Feasible' : monthlyCarryingCost < fmrVal * 1.3 ? 'Marginal' : 'Infeasible',
+      fmr2br:               fmrVal,
+    }
+  } else {
+    feasibility = computeFeasibility({
+      densityLimitUpa:         fields.densityLimitUpa,
+      parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+      regionalMultiplier:      fields.regionalMultiplier,
+      fmr2br:                  fields.fmr2br,
+    })
+  }
+
   return {
     id: jurisdiction.id,
     name: jurisdiction.name,
     state: jurisdiction.state,
+    slug: jurisdiction.slug,
     ris: Math.round(parseFloat(score.risComposite)),
     subScores: {
       dci:  { score: Math.round(parseFloat(score.dci)),  confidence: 'High', source: sources.dci },
       dcoi: { score: Math.round(parseFloat(score.dcoi)), confidence: 'High', source: sources.dcoi },
-      pci:  { score: Math.round(parseFloat(score.pci)),  confidence: 'High', source: sources.pci },
+      pci:  { score: Math.round(parseFloat(score.pci)),  confidence: 'Medium', source: sources.pci },
       crp:  { score: Math.round(parseFloat(score.crp)),  confidence: 'High', source: sources.crp },
     },
+    fields,
+    feasibility,
   }
 }

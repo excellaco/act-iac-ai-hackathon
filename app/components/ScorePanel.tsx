@@ -4,6 +4,9 @@ import { useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
+import FeasibilityPanel from './FeasibilityPanel';
+import WhatIfPanel from './WhatIfPanel';
+import ComparePeers from './ComparePeers';
 import styles from './ScorePanel.module.css';
 
 const SUB_SCORE_LABELS: Record<string, { label: string; description: string }> = {
@@ -25,8 +28,13 @@ function risLabel(score: number): string {
   return 'Low Restrictiveness';
 }
 
-export default function ScorePanel({ jurisdiction }: { jurisdiction: JurisdictionData }) {
-  const { name, state, ris, subScores } = jurisdiction;
+interface Props {
+  jurisdiction: JurisdictionData;
+  onCompare: (peer: { id: string; name: string; state: string; ris: number }) => void;
+}
+
+export default function ScorePanel({ jurisdiction, onCompare }: Props) {
+  const { name, state, ris, subScores, fields, feasibility } = jurisdiction;
   const color = risColor(ris);
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
@@ -71,13 +79,24 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
             </span>
           </label>
         </div>
+
+        {/* E8-2 / E8-3 / E8-4 / E8-5 / E8-6: What-If panel */}
         {whatIfEnabled && (
-          <p className={styles.whatIfPlaceholder}>
-            Simulation controls coming soon — adjust sliders below to model policy changes
-          </p>
+          <WhatIfPanel
+            baselineRis={ris}
+            baselineSubScores={{
+              dci:  subScores.dci.score,
+              dcoi: subScores.dcoi.score,
+              pci:  subScores.pci.score,
+              crp:  subScores.crp.score,
+            }}
+            fields={fields}
+            baselineFeasibility={feasibility}
+          />
         )}
       </div>
 
+      {/* Sub-score accordions */}
       <div className={styles.accordions}>
         {(Object.entries(subScores) as [keyof typeof subScores, typeof subScores[keyof typeof subScores]][]).map(([key, detail]) => {
           const { label, description } = SUB_SCORE_LABELS[key];
@@ -102,6 +121,12 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
           );
         })}
       </div>
+
+      {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
+      <FeasibilityPanel feasibility={feasibility} />
+
+      {/* E6-7: Compare Peers */}
+      <ComparePeers current={jurisdiction} onCompare={onCompare} />
 
       <p className={styles.disclaimer}>
         This score measures regulatory constraint and does not recommend policy positions.
