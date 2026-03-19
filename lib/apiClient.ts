@@ -14,6 +14,7 @@ export interface ScoreResponse {
     id: string
     name: string
     state: string
+    slug: string
     displayName: string
     dataType: 'real' | 'synthetic'
   }
@@ -32,6 +33,17 @@ export interface ScoreResponse {
     confidence: 'high' | 'medium' | 'low'
     sourceDocument: string | null
   }>
+  feasibility: {
+    maxUnitsPerAcre: string | null
+    parkingFootprintPct: string | null
+    estimatedCostPerUnit: string | null
+    fmr2br: string | null
+  } | null
+  marketData: {
+    fmr2br: string | null
+    permits5plus: number | null
+    totalPermits: number | null
+  } | null
 }
 
 export async function fetchJurisdictions(): Promise<JurisdictionSummary[]> {
