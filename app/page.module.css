@@ -50,6 +50,20 @@
   border-radius: 4px;
 }
 
+.error {
+  position: absolute;
+  top: 72px;
+  left: 16px;
+  z-index: 10;
+  max-width: min(360px, calc(100% - 32px));
+  font-size: 14px;
+  color: #b91c1c;
+  background: rgba(254, 242, 242, 0.96);
+  border: 1px solid #fecaca;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
 .searchShellHero {
   position: relative;
   z-index: 10;
@@ -69,18 +83,16 @@
   width: min(320px, calc(100% - 32px));
 }
 
+.heroCopy {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
 .searchSlot {
   width: 100%;
 }
 
-.heroHeading {
-  margin-top: 0;
-  margin-bottom: 16px;
-  order: -2;
-}
-
 .heroSubheading {
   margin-top: 0;
-  margin-bottom: 24px;
-  order: -1;
+  margin-bottom: 0;
 }

@@ -5,16 +5,21 @@ import { fetchJurisdictions, type JurisdictionSummary } from '../../lib/apiClien
 import styles from './JurisdictionSearch.module.css';
 
 interface Props {
+  query: string;
+  onQueryChange: (query: string) => void;
   onSelect: (jurisdiction: JurisdictionSummary) => void;
   disabled?: boolean;
 }
 
-export default function JurisdictionSearch({ onSelect, disabled = false }: Props) {
-  const [query, setQuery] = useState('');
+export default function JurisdictionSearch({
+  query,
+  onQueryChange,
+  onSelect,
+  disabled = false,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [jurisdictions, setJurisdictions] = useState<JurisdictionSummary[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const listboxId = 'jurisdiction-search-listbox';
 
   useEffect(() => {
     fetchJurisdictions()
@@ -32,7 +37,6 @@ export default function JurisdictionSearch({ onSelect, disabled = false }: Props
   const visibleMatches = matches.filter(j => j.dataType === 'real');
 
   function handleSelect(j: JurisdictionSummary) {
-    setQuery(j.displayName);
     setOpen(false);
     onSelect(j);
   }
@@ -55,28 +59,21 @@ export default function JurisdictionSearch({ onSelect, disabled = false }: Props
         placeholder="Find your county or municipality"
         value={query}
         disabled={disabled}
-        role="combobox"
-        aria-controls={listboxId}
-        aria-haspopup="listbox"
         onChange={e => {
-          setQuery(e.target.value);
+          onQueryChange(e.target.value);
           if (!disabled) setOpen(true);
         }}
         onFocus={() => {
           if (!disabled) setOpen(true);
         }}
         aria-label="Find your county or municipality"
-        aria-autocomplete="list"
-        aria-expanded={!disabled && open}
       />
       {!disabled && open && visibleMatches.length > 0 && (
-        <ul className={styles.dropdown} role="listbox" id={listboxId}>
+        <ul className={styles.dropdown}>
           {visibleMatches.map(j => (
             <li
               key={j.id}
               className={styles.option}
-              role="option"
-              aria-selected="false"
               onMouseDown={() => handleSelect(j)}
             >
               <span className={styles.optionName}>{j.name}</span>
