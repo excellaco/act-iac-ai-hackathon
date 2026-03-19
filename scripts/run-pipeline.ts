@@ -24,6 +24,7 @@ import { GcsFetcher } from '../lib/pipeline/gcs-fetcher'
 import { LocalFetcher } from '../lib/pipeline/local-fetcher'
 import { PdfParserImpl } from '../lib/pipeline/pdf-parser'
 import { buildExtractors } from '../lib/extractors/index'
+import { buildArtifactStore } from '../lib/pipeline/artifact-store'
 
 const ALL_JURISDICTION_IDS = ['fairfax_va', 'arlington_va', 'loudoun_va']
 
@@ -40,6 +41,7 @@ async function main() {
 
   const parser = new PdfParserImpl()
   const extractors = buildExtractors()
+  const artifactStore = buildArtifactStore()
 
   console.log(`\nParcela extraction pipeline`)
   console.log(`Fetcher: ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/raw/)'}`)
@@ -66,6 +68,7 @@ async function main() {
       fetcher,
       parser,
       extractors,
+      artifactStore,
       logger: {
         info: (msg: string, ctx?: object) => console.log(`   ${msg}`, ctx ?? ''),
         warn: (msg: string, ctx?: object) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
