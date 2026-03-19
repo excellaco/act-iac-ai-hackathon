@@ -37,19 +37,20 @@ const STATE_RIS: Record<string, number> = {
   'Utah': 44, 'District of Columbia': 80,
 };
 
-// Hardcoded county bounds for known jurisdictions
+// Hardcoded county bounds keyed by jurisdiction name.
+// selected.id is a UUID from the DB — keying by name avoids the mismatch.
 // Production would use Census TIGER county boundaries.
 const COUNTY_BOUNDS: Record<string, [[number, number], [number, number]]> = {
-  'fairfax-va':   [[38.59, -77.67], [39.01, -77.12]],
-  'arlington-va': [[38.83, -77.17], [38.93, -77.03]],
-  'loudoun-va':   [[38.85, -77.68], [39.33, -77.33]],
+  'Fairfax County':   [[38.59, -77.67], [39.01, -77.12]],
+  'Arlington County': [[38.83, -77.17], [38.93, -77.03]],
+  'Loudoun County':   [[38.85, -77.68], [39.33, -77.33]],
 };
 
 // Simplified rectangle polygons for county overlays
 const COUNTY_POLYGONS: Record<string, [number, number][]> = {
-  'fairfax-va':   [[38.59, -77.67], [38.59, -77.12], [39.01, -77.12], [39.01, -77.67]],
-  'arlington-va': [[38.83, -77.17], [38.83, -77.03], [38.93, -77.03], [38.93, -77.17]],
-  'loudoun-va':   [[38.85, -77.68], [38.85, -77.33], [39.33, -77.33], [39.33, -77.68]],
+  'Fairfax County':   [[38.59, -77.67], [38.59, -77.12], [39.01, -77.12], [39.01, -77.67]],
+  'Arlington County': [[38.83, -77.17], [38.83, -77.03], [38.93, -77.03], [38.93, -77.17]],
+  'Loudoun County':   [[38.85, -77.68], [38.85, -77.33], [39.33, -77.33], [39.33, -77.68]],
 };
 
 function risColor(score: number | undefined): string {
@@ -149,8 +150,8 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
       }
 
       if (selected) {
-        const bounds = COUNTY_BOUNDS[selected.id];
-        const polygon = COUNTY_POLYGONS[selected.id];
+        const bounds = COUNTY_BOUNDS[selected.name];
+        const polygon = COUNTY_POLYGONS[selected.name];
 
         if (bounds) {
           // Re-enable interaction in county view
