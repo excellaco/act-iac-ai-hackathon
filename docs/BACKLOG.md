@@ -109,24 +109,26 @@
 | E6-4 | As a housing policy analyst, I need data source attribution on each sub-score so that I know where the data came from | Each accordion section cites its source (e.g., "Municode zoning code, extracted 2025-03") | P0 | 2 | Done |
 | E6-5 | As a housing policy analyst, I need an "About this score" link so that I can understand the methodology and assumptions | Link opens a modal explaining normalization, sub-score weights, and modeling limitations | P0 | 2 | |
 | E6-6 | As a housing policy analyst, I need a disclaimer stating the RIS is descriptive not prescriptive so that I can use it defensibly in policy discussions | Static text visible on the score panel: "This score measures regulatory constraint and does not recommend policy positions." | P0 | 1 | Done |
+| E6-7 | As a housing policy analyst, I need to see how my jurisdiction compares to nearby peers directly on the score panel so that I get immediate comparative context without leaving the view | Score panel includes an inline "Compare Peers" section below the sub-score accordions; shows 2–3 pre-populated peer chip cards displaying jurisdiction name, RIS score, and signed point delta (e.g., "Arlington County — 52 / −22 pts lower"); section includes a "or search" divider with a search input for additional jurisdictions; clicking a peer chip initiates the comparison view (E7-1) | P0 | 2 | |
 
 ### E7 — Comparison View
 
 | ID | Story | Acceptance Criteria | Priority | Points | Status |
 |----|-------|---------------------|----------|--------|--------|
-| E7-1 | As a housing policy analyst, I need to add a second jurisdiction to compare so that I can benchmark my county | "Add jurisdiction to compare" search bar adds a second map + accordion panel side-by-side | P0 | 3 | |
-| E7-2 | As a housing policy analyst, I need to add a third jurisdiction so that I have a richer comparison set | Layout supports up to 3 panels; panels scroll horizontally if needed | P1 | 2 | |
-| E7-3 | As a housing policy analyst, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Summary bar above panels shows jurisdictions ranked by RIS with score delta indicators | P1 | 2 | |
+| E7-1 | As a housing policy analyst, I need to add a second jurisdiction to compare so that I can benchmark my county | Score panel includes an inline "Compare Peers" section at the bottom showing pre-populated peer chip cards (jurisdiction name + RIS score + point delta vs. current jurisdiction); clicking a peer chip navigates to the full 2-jurisdiction comparison view; comparison view shows 2-column grid of compare-cards (map thumbnail, RIS score, 4 sub-scores, key fields); a search input allows adding any jurisdiction beyond the pre-populated peers | P0 | 3 | |
+| E7-2 | As a housing policy analyst, I need to add a third jurisdiction so that I have a richer comparison set | "Add a third jurisdiction" dashed-border card visible in 2-jurisdiction view; clicking it reveals suggested peers and a search input; 3-jurisdiction view shows 3-column grid with no add card | P1 | 2 | |
+| E7-3 | As a housing policy analyst, I need a summary ranking bar so that I can immediately see which jurisdiction is most restrictive | Rank bar above comparison panels shows each jurisdiction as a ranked item with: position (#1, #2, #3), name, RIS score, and restrictiveness label (High / Moderate / Low) color-coded to match the score color scale | P1 | 2 | |
 
 ### E8 — What-If Simulation
 
 | ID | Story | Acceptance Criteria | Priority | Points | Status |
 |----|-------|---------------------|----------|--------|--------|
 | E8-1 | As a housing policy analyst, I need a "What-If" toggle so that I can switch into policy simulation mode | Toggle visible on the score panel; activates slider controls when enabled | P0 | 1 | |
-| E8-2 | As a housing policy analyst, I need sliders for each regulatory constraint so that I can model policy changes | Sliders for: min lot size, height limits, density limits, parking minimums, setbacks | P0 | 3 | |
-| E8-3 | As a housing policy analyst, I need the RIS to update when I move a slider so that I see the score impact in real time | Score and map shading update within 500ms of slider change | P0 | 3 | |
+| E8-2 | As a housing policy analyst, I need sliders for each regulatory constraint so that I can model policy changes | Sliders grouped by policy area for: parking minimum, height limit, density limit, min lot size, and setbacks; each slider shows current (simulated) value, original baseline value struck-through, and a % delta badge (e.g., ▼ 50%) colored green for relaxation, red for tightening | P0 | 3 | |
+| E8-3 | As a housing policy analyst, I need the RIS to update when I move a slider so that I see the score impact in real time | Results pane shows a score comparison block: "Baseline RIS: [X]" → "Simulated RIS: [Y]" with a signed delta (e.g., −21); score updates within 500ms of slider change | P0 | 3 | |
 | E8-4 | As a housing policy analyst, I need feasibility outputs to update with slider changes so that I see development impact | Unit yield, buildable area, and cost per unit update alongside RIS | P0 | 3 | |
 | E8-5 | As a housing policy analyst, I need to reset sliders to baseline so that I can return to actual regulatory values | Reset button restores all sliders to originally extracted regulatory values | P1 | 1 | |
+| E8-6 | As a housing policy analyst, I need a plain-language explanation of what my simulation shows so that I can translate the score change into a policy argument | Results pane includes a narrative explanation box below the feasibility cards; text summarizes which constraints were changed, the resulting RIS delta, and the feasibility impact in plain language (e.g., "Reducing parking minimums from 2.0 to 1.0 spaces/unit would drop the RIS by 21 points and increase max unit yield from 4 to 8 units/acre"); key input values cited inline | P1 | 2 | |
 
 ---
 
