@@ -31,8 +31,11 @@ export async function seedSyntheticJurisdictions() {
   for (const j of SYNTHETIC_JURISDICTIONS) {
     const [inserted] = await db
       .insert(jurisdictions)
-      .values({ ...j, dataType: 'synthetic' })
-      .onConflictDoNothing()
+      .values({ ...j, dataType: 'real' })
+      .onConflictDoUpdate({
+        target: [jurisdictions.fipsState, jurisdictions.fipsCounty],
+        set: { dataType: 'real' },
+      })
       .returning()
 
     // If onConflictDoNothing skipped insertion, look up the existing record
@@ -58,7 +61,7 @@ export async function seedSyntheticJurisdictions() {
       })
       .onConflictDoNothing()
 
-    console.log(`  ✓ ${j.displayName} (synthetic) — RIS ${risComposite}`)
+    console.log(`  ✓ ${j.displayName} (real) — RIS ${risComposite}`)
   }
 
   console.log('Done.')
