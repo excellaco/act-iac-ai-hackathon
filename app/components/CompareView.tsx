@@ -227,11 +227,14 @@ function AddCard({ onAdd, excludeIds }: AddCardProps) {
 
 interface CompareViewProps {
   initial: JurisdictionData;
+  initialPeer?: JurisdictionData;
   onBack: () => void;
 }
 
-export default function CompareView({ initial, onBack }: CompareViewProps) {
-  const [jurisdictions, setJurisdictions] = useState<JurisdictionData[]>([initial]);
+export default function CompareView({ initial, initialPeer, onBack }: CompareViewProps) {
+  const [jurisdictions, setJurisdictions] = useState<JurisdictionData[]>(
+    initialPeer ? [initial, initialPeer] : [initial],
+  );
 
   function handleAdd(jd: JurisdictionData) {
     setJurisdictions((prev) => [...prev.filter((j) => j.id !== jd.id), jd]);
