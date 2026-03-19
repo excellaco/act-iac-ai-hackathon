@@ -62,7 +62,9 @@ export function risLabelShort(score: number): string {
 
 // ── Sub-score metadata ───────────────────────────────────────────────────
 
-export const SUB_SCORE_META: Record<string, { label: string; shortLabel: string; description: string }> = {
+export type SubScoreKey = 'dci' | 'dcoi' | 'pci' | 'crp'
+
+export const SUB_SCORE_META: Record<SubScoreKey, { label: string; shortLabel: string; description: string }> = {
   dci:  { label: 'Density Constraint Index',        shortLabel: 'Density (DCI)',      description: 'Measures restrictions on lot size, height, density, and setbacks.' },
   dcoi: { label: 'Development Cost Impact',         shortLabel: 'Cost (DCOI)',        description: 'Estimates cost burden from parking requirements and regional construction costs.' },
   pci:  { label: 'Permitting Complexity Indicator',  shortLabel: 'Permitting (PCI)',   description: 'Reflects permit volume and whether multifamily housing requires discretionary approval.' },
