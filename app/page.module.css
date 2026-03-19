@@ -25,18 +25,6 @@
 }
 
 /* Hero content sits above the map */
-.hero {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  text-align: center;
-  width: 100%;
-  padding: 48px 32px;
-}
-
 .heading {
   font-size: 48px;
   font-weight: 800;
@@ -62,11 +50,37 @@
   border-radius: 4px;
 }
 
-/* Compact search bar — overlaid on map when a jurisdiction is already selected */
-.compactSearch {
+.searchShellHero {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 604px);
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.searchShellCompact {
   position: absolute;
   top: 16px;
   left: 16px;
   z-index: 10;
-  width: 320px;
+  width: min(320px, calc(100% - 32px));
+}
+
+.searchSlot {
+  width: 100%;
+}
+
+.heroHeading {
+  margin-top: 0;
+  margin-bottom: 16px;
+  order: -2;
+}
+
+.heroSubheading {
+  margin-top: 0;
+  margin-bottom: 24px;
+  order: -1;
 }

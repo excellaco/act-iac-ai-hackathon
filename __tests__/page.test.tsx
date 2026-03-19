@@ -22,6 +22,7 @@ const mockScoreResponse = {
 
 describe('Home', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     (fetchJurisdictions as jest.Mock).mockResolvedValue(mockJurisdictions);
     (fetchScore as jest.Mock).mockResolvedValue(mockScoreResponse);
   })
@@ -59,6 +60,17 @@ describe('Home', () => {
     fireEvent.mouseDown(screen.getByText('Fairfax County'));
     await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
     expect(screen.getByText('Density Constraint Index')).toBeInTheDocument();
+  });
+
+  it('preserves the selected jurisdiction in the visible search input', async () => {
+    render(<Home />);
+    const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+    fireEvent.focus(searchInput);
+    await waitFor(() => screen.getByText('Fairfax County'));
+    fireEvent.mouseDown(screen.getByText('Fairfax County'));
+    await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+    expect(searchInput).toHaveValue('Fairfax County, VA');
+    expect(screen.getByPlaceholderText('Find your county or municipality')).toBe(searchInput);
   });
 
   it('shows disclaimer in score panel', async () => {

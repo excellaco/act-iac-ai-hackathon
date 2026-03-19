@@ -6,13 +6,15 @@ import styles from './JurisdictionSearch.module.css';
 
 interface Props {
   onSelect: (jurisdiction: JurisdictionSummary) => void;
+  disabled?: boolean;
 }
 
-export default function JurisdictionSearch({ onSelect }: Props) {
+export default function JurisdictionSearch({ onSelect, disabled = false }: Props) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [jurisdictions, setJurisdictions] = useState<JurisdictionSummary[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const listboxId = 'jurisdiction-search-listbox';
 
   useEffect(() => {
     fetchJurisdictions()
@@ -52,19 +54,29 @@ export default function JurisdictionSearch({ onSelect }: Props) {
         type="text"
         placeholder="Find your county or municipality"
         value={query}
-        onChange={e => { setQuery(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
+        disabled={disabled}
+        role="combobox"
+        aria-controls={listboxId}
+        aria-haspopup="listbox"
+        onChange={e => {
+          setQuery(e.target.value);
+          if (!disabled) setOpen(true);
+        }}
+        onFocus={() => {
+          if (!disabled) setOpen(true);
+        }}
         aria-label="Find your county or municipality"
         aria-autocomplete="list"
-        aria-expanded={open}
+        aria-expanded={!disabled && open}
       />
-      {open && visibleMatches.length > 0 && (
-        <ul className={styles.dropdown} role="listbox">
+      {!disabled && open && visibleMatches.length > 0 && (
+        <ul className={styles.dropdown} role="listbox" id={listboxId}>
           {visibleMatches.map(j => (
             <li
               key={j.id}
               className={styles.option}
               role="option"
+              aria-selected="false"
               onMouseDown={() => handleSelect(j)}
             >
               <span className={styles.optionName}>{j.name}</span>

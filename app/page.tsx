@@ -72,23 +72,20 @@ export default function Home() {
         {/* Full-bleed choropleth map as background */}
         <ChoroplethMap selected={selected} onReset={handleReset} />
 
-        {/* Hero content — shown on initial landing */}
-        {!selected && !loading && (
-          <div className={styles.hero}>
-            <h1 className={styles.heading}>Parcela</h1>
-            <p className={styles.subheading}>
-              Understand the regulatory barriers to housing in your jurisdiction.
-            </p>
-            <JurisdictionSearch onSelect={handleSelect} />
+        <div className={selected ? styles.searchShellCompact : styles.searchShellHero}>
+          <div className={styles.searchSlot}>
+            <JurisdictionSearch onSelect={handleSelect} disabled={loading} />
           </div>
-        )}
 
-        {/* Compact search — shown when a jurisdiction is already selected */}
-        {selected && !loading && (
-          <div className={styles.compactSearch}>
-            <JurisdictionSearch onSelect={handleSelect} />
-          </div>
-        )}
+          {!selected && !loading && (
+            <>
+              <h1 className={`${styles.heading} ${styles.heroHeading}`}>Parcela</h1>
+              <p className={`${styles.subheading} ${styles.heroSubheading}`}>
+                Understand the regulatory barriers to housing in your jurisdiction.
+              </p>
+            </>
+          )}
+        </div>
 
         {loading && <p className={styles.loading}>Loading score…</p>}
       </main>
