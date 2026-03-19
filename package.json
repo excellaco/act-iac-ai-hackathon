@@ -24,13 +24,16 @@
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",
     "@google-cloud/vertexai": "^1.10.0",
+    "@types/leaflet": "^1.9.21",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.44.0",
+    "leaflet": "^1.9.4",
     "next": "16.1.7",
     "pdf-parse": "^1.1.4",
     "pg": "^8.13.3",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
     "@swc/core": "^1.15.18",

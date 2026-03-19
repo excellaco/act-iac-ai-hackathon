@@ -6,24 +6,35 @@
 
 .main {
   flex: 1;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 32px;
-  transition: padding 0.2s;
 }
 
 .mainWithPanel {
   justify-content: center;
 }
 
+/* Map placeholder shown while Leaflet is loading (ssr: false) */
+.mapPlaceholder {
+  position: absolute;
+  inset: 0;
+  background: #e8eef4;
+}
+
+/* Hero content sits above the map */
 .hero {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   text-align: center;
   width: 100%;
+  padding: 48px 32px;
 }
 
 .heading {
@@ -31,17 +42,22 @@
   font-weight: 800;
   color: #111827;
   letter-spacing: -1.5px;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.8);
 }
 
 .subheading {
   font-size: 18px;
-  color: #6b7280;
+  color: #374151;
   max-width: 420px;
   line-height: 1.6;
   margin-bottom: 8px;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.7);
 }
 
 .loading {
   font-size: 14px;
-  color: #9ca3af;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 4px 12px;
+  border-radius: 4px;
 }
