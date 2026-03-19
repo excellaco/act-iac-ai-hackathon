@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parcela — Clickable Prototype v2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bupu-1: #edf8fb; --bupu-2: #b3cde3; --bupu-3: #8c96c6; --bupu-4: #8856a7; --bupu-5: #810f7c;
+  --bg: #f8f7fc; --surface: #ffffff; --text-primary: #1a1033; --text-secondary: #6b6280;
+  --text-muted: #9e96ad; --border: #e8e4f0; --accent: #8856a7; --accent-light: #f3eef8;
+  --high-restrict: #a83279; --mod-restrict: #8856a7; --low-restrict: #3d8c6f;
+  --conf-high: #3d8c6f; --conf-med: #c68f2d; --conf-low: #c15b4a;
+  --delta-pos: #2d8f5e; --delta-neg: #c15b4a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); overflow-x:hidden; }
+.screen { display:none; min-height:100vh; position:relative; }
+.screen.active { display:block; }
+
+.proto-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(26,16,51,0.95); backdrop-filter:blur(12px); padding:10px 20px; display:flex; align-items:center; justify-content:space-between; z-index:9999; border-top:1px solid rgba(136,86,167,0.3); }
+.proto-nav .step-label { color:#b8a9d4; font-size:12px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; }
+.proto-nav .step-title { color:#fff; font-size:14px; font-weight:600; }
+.proto-nav button { background:var(--accent); color:#fff; border:none; padding:8px 20px; border-radius:6px; font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+.proto-nav button:hover { background:var(--bupu-5); }
+.proto-nav button:disabled { opacity:0.3; cursor:default; }
+.proto-nav .nav-btns { display:flex; gap:8px; }
+.step-dots { display:flex; gap:6px; align-items:center; }
+.step-dots .dot { width:8px; height:8px; border-radius:50%; background:rgba(136,86,167,0.3); transition:all 0.2s; cursor:pointer; }
+.step-dots .dot.active { background:var(--accent); width:24px; border-radius:4px; }
+.step-dots .dot.visited { background:rgba(136,86,167,0.6); }
+
+.annotation { position:absolute; background:rgba(26,16,51,0.92); color:#fff; padding:12px 16px; border-radius:8px; font-size:12px; line-height:1.5; max-width:280px; z-index:100; border:1px solid rgba(136,86,167,0.4); box-shadow:0 8px 32px rgba(0,0,0,0.25); pointer-events:none; }
+.annotation strong { color:var(--bupu-2); }
+.annotation::before { content:''; position:absolute; width:10px; height:10px; background:rgba(26,16,51,0.92); border:1px solid rgba(136,86,167,0.4); transform:rotate(45deg); }
+.annotation.arrow-left::before { left:-6px; top:16px; border-right:none; border-top:none; }
+.annotation.arrow-top::before { top:-6px; left:24px; border-bottom:none; border-right:none; }
+.annotation .backlog-ref { display:inline-block; margin-top:6px; padding:2px 6px; background:rgba(136,86,167,0.3); border-radius:3px; font-size:10px; font-weight:600; }
+
+.topbar { position:fixed; top:0; left:0; right:0; height:52px; background:rgba(255,255,255,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; z-index:100; }
+.topbar-logo { font-family:'DM Serif Display',serif; font-size:22px; color:var(--text-primary); margin-right:24px; }
+.topbar-search { flex:1; max-width:360px; padding:7px 14px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; background:var(--bg); color:var(--text-secondary); outline:none; }
+
+/* ── Screen 1: Landing ── */
+.landing { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-bottom:80px; background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(136,86,167,0.07) 0%, transparent 70%), var(--bg); }
+.landing-logo { font-family:'DM Serif Display',serif; font-size:64px; color:var(--text-primary); letter-spacing:-2px; margin-bottom:12px; }
+.landing-sub { font-size:17px; color:var(--text-secondary); max-width:440px; text-align:center; line-height:1.7; margin-bottom:36px; }
+.search-box { width:520px; position:relative; }
+.search-box input { width:100%; padding:16px 20px 16px 48px; border:2px solid var(--border); border-radius:12px; font-family:inherit; font-size:16px; background:var(--surface); color:var(--text-primary); outline:none; }
+.search-box .search-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--text-muted); }
+.search-dropdown { position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,0.08); overflow:hidden; }
+.search-dropdown .item { padding:14px 20px; cursor:pointer; display:flex; justify-content:space-between; transition:background 0.1s; }
+.search-dropdown .item:hover { background:var(--accent-light); }
+.search-dropdown .item .name { font-weight:600; }
+.search-dropdown .item .state { color:var(--text-muted); font-size:13px; }
+.map-hint { margin-top:40px; display:flex; align-items:center; gap:16px; padding:16px 24px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-size:13px; color:var(--text-secondary); }
+.map-mini { width:120px; height:72px; background:linear-gradient(135deg, var(--bupu-1), var(--bupu-2), var(--bupu-3)); border-radius:6px; opacity:0.7; }
+
+/* ── Screen 2: Score Panel ── */
+.score-layout { display:flex; min-height:100vh; padding-bottom:80px; }
+.map-area { flex:1; background:linear-gradient(135deg, var(--bupu-1) 0%, var(--bupu-2) 40%, var(--bupu-3) 70%, var(--bupu-4) 100%); position:relative; display:flex; align-items:center; justify-content:center; }
+.map-placeholder { text-align:center; color:rgba(255,255,255,0.7); font-size:14px; z-index:1; }
+.map-placeholder .county-shape { width:200px; height:160px; margin:0 auto 16px; background:rgba(255,255,255,0.1); border:2px dashed rgba(255,255,255,0.25); border-radius:20% 30% 25% 35%; display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(255,255,255,0.5); }
+.map-legend { position:absolute; bottom:20px; left:20px; background:rgba(255,255,255,0.92); backdrop-filter:blur(8px); padding:12px 16px; border-radius:8px; font-size:11px; color:var(--text-secondary); z-index:2; }
+.legend-bar { display:flex; height:10px; border-radius:3px; overflow:hidden; margin:6px 0 4px; width:160px; }
+.legend-bar span { flex:1; }
+.legend-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-muted); }
+
+.score-panel { width:400px; background:var(--surface); border-left:1px solid var(--border); padding:68px 0 24px; overflow-y:auto; max-height:100vh; }
+.sp-header { padding:20px 24px 16px; border-bottom:1px solid var(--border); }
+.sp-county { font-size:20px; font-weight:700; }
+.sp-state { color:var(--text-muted); font-size:13px; margin-top:2px; }
+.sp-ris-row { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+.sp-ris-badge { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; border:3px solid; }
+.sp-ris-label { font-size:12px; font-weight:600; }
+.sp-ris-about { font-size:11px; color:var(--accent); cursor:pointer; margin-top:2px; text-decoration:underline; background:none; border:none; font-family:inherit; }
+.accordion { border-bottom:1px solid var(--border); }
+.acc-header { padding:14px 24px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:background 0.1s; }
+.acc-header:hover { background:var(--accent-light); }
+.acc-left { display:flex; align-items:center; gap:8px; }
+.acc-label { font-size:13px; font-weight:600; }
+.conf-badge { padding:2px 6px; border-radius:3px; font-size:9px; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; }
+.conf-high { background:rgba(61,140,111,0.12); color:var(--conf-high); }
+.conf-med { background:rgba(198,143,45,0.12); color:var(--conf-med); }
+.acc-score { font-size:18px; font-weight:700; }
+.acc-body { padding:0 24px 14px; font-size:12px; color:var(--text-secondary); line-height:1.6; }
+.acc-source { margin-top:6px; font-size:11px; color:var(--text-muted); }
+.acc-source strong { color:var(--text-secondary); }
+.fields-table { width:100%; margin-top:8px; border-collapse:collapse; }
+.fields-table td { padding:4px 0; font-size:12px; border-bottom:1px solid rgba(0,0,0,0.04); }
+.fields-table .field-name { color:var(--text-secondary); }
+.fields-table .field-val { text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
+.disclaimer { padding:16px 24px; font-size:11px; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border); margin-top:8px; font-style:italic; }
+
+/* ── Compare Peers (bottom of score panel) ── */
+.compare-peers { padding:20px 24px; border-top:2px solid var(--accent); background:linear-gradient(180deg, var(--accent-light) 0%, var(--surface) 100%); }
+.cp-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.cp-sub { font-size:12px; color:var(--text-secondary); margin-bottom:14px; line-height:1.5; }
+.cp-label { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:0.3px; text-transform:uppercase; margin-bottom:8px; }
+.peer-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.peer-chip { display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; cursor:pointer; transition:all 0.15s; flex:1; min-width:140px; }
+.peer-chip:hover { border-color:var(--accent); background:var(--accent-light); }
+.peer-chip .pc-score { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; border:2px solid; flex-shrink:0; }
+.peer-chip .pc-name { font-size:13px; font-weight:600; }
+.peer-chip .pc-delta { font-size:11px; color:var(--text-muted); }
+.cp-divider { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.cp-divider .line { flex:1; height:1px; background:var(--border); }
+.cp-divider span { font-size:11px; color:var(--text-muted); }
+.cp-search { width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:13px; background:var(--surface); color:var(--text-primary); outline:none; }
+
+/* ── Comparison screens ── */
+.compare-layout { padding:68px 20px 100px; }
+.compare-header { text-align:center; margin-bottom:24px; }
+.compare-header h2 { font-size:20px; font-weight:700; }
+.compare-header p { color:var(--text-secondary); font-size:13px; margin-top:4px; }
+.rank-bar { display:flex; gap:12px; justify-content:center; margin-bottom:28px; flex-wrap:wrap; }
+.rank-item { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 20px; min-width:200px; }
+.rank-pos { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:var(--accent-light); color:var(--accent); }
+.rank-name { font-size:14px; font-weight:600; }
+.rank-score { font-size:22px; font-weight:800; margin-left:auto; }
+.compare-grid-2 { display:grid; grid-template-columns:1fr 1fr auto; gap:16px; max-width:920px; margin:0 auto; align-items:start; }
+.compare-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.compare-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.cc-map { height:120px; }
+.cc-content { padding:16px 20px; }
+.cc-name { font-size:16px; font-weight:700; }
+.cc-ris-row { display:flex; align-items:center; margin:10px 0 14px; }
+.cc-ris-num { font-size:32px; font-weight:800; }
+.cc-ris-label { font-size:11px; font-weight:600; letter-spacing:0.3px; }
+.cc-sub { display:flex; justify-content:space-between; padding:6px 0; font-size:12px; border-bottom:1px solid rgba(0,0,0,0.04); }
+.cc-sub:last-child { border-bottom:none; }
+.cc-sub-name { color:var(--text-secondary); }
+.cc-sub-val { font-weight:600; font-variant-numeric:tabular-nums; }
+
+.add-card { background:var(--surface); border:2px dashed var(--border); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 20px; text-align:center; cursor:pointer; transition:all 0.15s; min-height:380px; }
+.add-card:hover { border-color:var(--accent); background:var(--accent-light); }
+.add-icon { width:48px; height:48px; border-radius:50%; background:var(--accent-light); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--accent); margin-bottom:12px; transition:all 0.15s; }
+.add-card:hover .add-icon { background:var(--accent); color:#fff; border-color:var(--accent); }
+.add-card .add-title { font-size:14px; font-weight:600; margin-bottom:4px; }
+.add-card .add-sub { font-size:12px; color:var(--text-muted); line-height:1.5; }
+.add-card .add-peers { margin-top:16px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+.add-card .add-peer-chip { padding:6px 12px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; transition:all 0.1s; }
+.add-card .add-peer-chip:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* ── What-If ── */
+.whatif-layout { display:flex; min-height:100vh; padding-bottom:80px; }
+.whatif-controls { width:340px; background:var(--surface); border-right:1px solid var(--border); padding:68px 0 24px; overflow-y:auto; }
+.wc-header { padding:20px 20px 16px; border-bottom:1px solid var(--border); }
+.wc-toggle { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.wc-toggle-pill { width:40px; height:22px; background:var(--accent); border-radius:11px; position:relative; }
+.wc-toggle-pill::after { content:''; position:absolute; width:16px; height:16px; background:#fff; border-radius:50%; top:3px; right:3px; }
+.wc-title { font-size:16px; font-weight:700; }
+.wc-county { font-size:12px; color:var(--text-muted); }
+.slider-group { padding:16px 20px; border-bottom:1px solid var(--border); }
+.sg-label { font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; }
+.sg-values { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+.sg-current { font-size:14px; font-weight:700; }
+.sg-original { font-size:11px; color:var(--text-muted); text-decoration:line-through; }
+.sg-delta { font-size:11px; font-weight:700; padding:1px 5px; border-radius:3px; }
+.sg-delta.better { background:rgba(45,143,94,0.12); color:var(--delta-pos); }
+.slider-track { width:100%; height:6px; background:var(--border); border-radius:3px; position:relative; }
+.slider-fill { height:100%; border-radius:3px; background:var(--accent); }
+.slider-thumb { width:16px; height:16px; background:var(--accent); border:2px solid #fff; border-radius:50%; position:absolute; top:-5px; box-shadow:0 2px 6px rgba(0,0,0,0.2); }
+.wc-reset { margin:16px 20px; padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:var(--surface); font-family:inherit; font-size:12px; font-weight:600; color:var(--text-secondary); cursor:pointer; width:calc(100% - 40px); }
+.whatif-results { flex:1; padding:68px 32px 24px; overflow-y:auto; }
+.wr-score-compare { display:flex; gap:24px; align-items:center; justify-content:center; margin:24px 0 32px; }
+.wr-score-block { text-align:center; }
+.wr-score-label { font-size:11px; font-weight:600; color:var(--text-muted); letter-spacing:0.3px; text-transform:uppercase; margin-bottom:6px; }
+.wr-score-num { font-size:48px; font-weight:800; }
+.wr-arrow { font-size:28px; color:var(--text-muted); }
+.wr-delta-big { font-size:28px; font-weight:800; color:var(--delta-pos); }
+.feasibility-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+.feas-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 20px; }
+.fc-label { font-size:11px; color:var(--text-muted); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
+.fc-value { font-size:28px; font-weight:800; margin:6px 0 2px; }
+.fc-delta { font-size:12px; font-weight:600; }
+
+/* ── Boundary ── */
+.boundary-layout { min-height:100vh; padding:68px 40px 100px; display:flex; flex-direction:column; align-items:center; }
+.boundary-header { text-align:center; margin-bottom:40px; max-width:600px; }
+.boundary-header h2 { font-family:'DM Serif Display',serif; font-size:28px; margin-bottom:8px; }
+.boundary-header p { color:var(--text-secondary); font-size:14px; line-height:1.7; }
+.boundary-cols { display:grid; grid-template-columns:1fr auto 1fr; gap:0; max-width:900px; width:100%; align-items:start; }
+.boundary-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px 24px; }
+.bc-title { font-size:18px; font-weight:700; margin-bottom:4px; }
+.bc-sub { font-size:12px; color:var(--text-muted); margin-bottom:16px; }
+.bc-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; font-size:13px; line-height:1.5; }
+.bc-check { flex-shrink:0; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; margin-top:1px; }
+.bc-yes { background:rgba(61,140,111,0.12); color:var(--conf-high); }
+.bc-no { background:rgba(193,91,74,0.1); color:var(--conf-low); }
+.bc-item-label { font-weight:600; }
+.boundary-divider { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 20px; color:var(--text-muted); font-size:11px; font-weight:600; gap:8px; }
+.boundary-divider .line { width:1px; height:60px; background:var(--border); }
+.vza-link { display:inline-flex; align-items:center; gap:8px; margin-top:16px; padding:10px 20px; background:var(--accent); color:#fff; border-radius:8px; font-size:13px; font-weight:600; text-decoration:none; transition:background 0.15s; }
+.vza-link:hover { background:var(--bupu-5); }
+.boundary-scenario { max-width:700px; margin-top:36px; padding:24px; background:var(--accent-light); border:1px solid rgba(136,86,167,0.15); border-radius:12px; font-size:13px; line-height:1.7; color:var(--text-secondary); }
+.boundary-scenario strong { color:var(--text-primary); }
+.boundary-scenario .scenario-title { font-size:14px; font-weight:700; color:var(--accent); margin-bottom:8px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ SCREEN 1: Landing ═══ -->
+<div class="screen active" id="s1">
+  <div class="landing">
+    <div class="landing-logo">Parcela</div>
+    <p class="landing-sub">Understand the regulatory barriers to housing development in your jurisdiction — and model what happens when they change.</p>
+    <div class="search-box">
+      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Find your county or municipality" value="Fairfax" readonly />
+      <div class="search-dropdown">
+        <div class="item" onclick="goTo(2)"><span class="name">Fairfax County</span><span class="state">Virginia</span></div>
+        <div class="item"><span class="name">Fairfax City</span><span class="state">Virginia</span></div>
+        <div class="item"><span class="name">Fairfield County</span><span class="state">Connecticut</span></div>
+      </div>
+    </div>
+    <div class="map-hint"><div class="map-mini"></div><div><div style="font-weight:600; margin-bottom:2px;">National RIS heat map</div>Background context only — search is the primary entry point.</div></div>
+  </div>
+  <div class="annotation arrow-left" style="right:60px; top:50%; transform:translateY(-50%);"><strong>Search-first entry (E5-1, E5-2)</strong><br>Val knows her jurisdiction. She types directly — no map navigation required.<div class="backlog-ref">Backlog: E5-1, E5-2</div></div>
+</div>
+
+<!-- ═══ SCREEN 2: Score Panel + Compare Peers ═══ -->
+<div class="screen" id="s2">
+  <div class="topbar"><div class="topbar-logo">Parcela</div><input class="topbar-search" value="Fairfax County, VA" readonly /></div>
+  <div class="score-layout">
+    <div class="map-area">
+      <div class="map-placeholder"><div class="county-shape">Leaflet map<br>choropleth view</div><div>Fairfax County — district-level RIS shading</div></div>
+      <div class="map-legend"><div style="font-weight:600;">Regulatory Impact Score</div><div class="legend-bar"><span style="background:var(--bupu-1)"></span><span style="background:var(--bupu-2)"></span><span style="background:var(--bupu-3)"></span><span style="background:var(--bupu-4)"></span><span style="background:var(--bupu-5)"></span></div><div class="legend-labels"><span>0 — Low</span><span>100 — High</span></div></div>
+    </div>
+    <div class="score-panel">
+      <div class="sp-header"><div class="sp-county">Fairfax County</div><div class="sp-state">Virginia</div>
+        <div class="sp-ris-row"><div><div class="sp-ris-label" style="color:var(--high-restrict);">High Restrictiveness</div><button class="sp-ris-about">About this score</button></div><div class="sp-ris-badge" style="border-color:var(--high-restrict); color:var(--high-restrict);">74</div></div>
+      </div>
+      <div class="accordion"><div class="acc-header"><div class="acc-left"><span class="acc-label">Density Constraint Index</span><span class="conf-badge conf-high">HIGH</span></div><span class="acc-score" style="color:var(--high-restrict)">78</span></div>
+        <div class="acc-body">Measures restrictions on lot size, height, density limits, and setbacks.<table class="fields-table"><tr><td class="field-name">Min lot size</td><td class="field-val">12,500 sq ft</td></tr><tr><td class="field-name">Max height</td><td class="field-val">35 ft</td></tr><tr><td class="field-name">Density limit</td><td class="field-val">4 units/acre</td></tr><tr><td class="field-name">Front setback</td><td class="field-val">30 ft</td></tr></table><div class="acc-source"><strong>Source:</strong> Fairfax County Zoning Ordinance, extracted 2026-03</div></div>
+      </div>
+      <div class="accordion"><div class="acc-header"><div class="acc-left"><span class="acc-label">Development Cost Impact</span><span class="conf-badge conf-high">HIGH</span></div><span class="acc-score" style="color:var(--high-restrict)">72</span></div>
+        <div class="acc-body">Estimated cost burden from parking minimums and regional construction costs.<table class="fields-table"><tr><td class="field-name">Parking minimum</td><td class="field-val">2.0 spaces/unit</td></tr><tr><td class="field-name">Est. parking cost uplift</td><td class="field-val">+$36,000/unit</td></tr><tr><td class="field-name">Regional cost multiplier</td><td class="field-val">1.24×</td></tr></table><div class="acc-source"><strong>Source:</strong> HUD FMR, BLS OES, BEA RPP</div></div>
+      </div>
+      <div class="accordion"><div class="acc-header"><div class="acc-left"><span class="acc-label">Permitting Complexity</span><span class="conf-badge conf-med">MED</span></div><span class="acc-score" style="color:var(--mod-restrict)">68</span></div></div>
+      <div class="accordion"><div class="acc-header"><div class="acc-left"><span class="acc-label">Comparative Restrictiveness</span><span class="conf-badge conf-high">HIGH</span></div><span class="acc-score" style="color:var(--high-restrict)">76</span></div></div>
+      <div class="disclaimer">This score measures regulatory constraint and does not recommend policy positions.</div>
+
+      <!-- ▼ Compare with Peers ▼ -->
+      <div class="compare-peers">
+        <div class="cp-title">Compare with peer jurisdictions</div>
+        <div class="cp-sub">How does Fairfax County stack up against its neighbors?</div>
+        <div class="cp-label">Neighboring counties</div>
+        <div class="peer-chips">
+          <div class="peer-chip" onclick="goTo(3)">
+            <div class="pc-score" style="border-color:var(--mod-restrict); color:var(--mod-restrict);">52</div>
+            <div><div class="pc-name">Arlington County</div><div class="pc-delta">−22 pts lower</div></div>
+          </div>
+          <div class="peer-chip" onclick="goTo(3)">
+            <div class="pc-score" style="border-color:var(--mod-restrict); color:var(--mod-restrict);">68</div>
+            <div><div class="pc-name">Loudoun County</div><div class="pc-delta">−6 pts lower</div></div>
+          </div>
+        </div>
+        <div class="cp-divider"><div class="line"></div><span>or search</span><div class="line"></div></div>
+        <input class="cp-search" placeholder="Search for another jurisdiction..." readonly />
+      </div>
+    </div>
+  </div>
+  <div class="annotation arrow-left" style="right:420px; top:65%; transform:translateY(-50%);"><strong>Compare peers — Pattern 1+2 hybrid</strong><br>Suggested peer chips with RIS score preview + search fallback. One click → full-screen comparison. No mode switch needed.<div class="backlog-ref">Backlog: E7-1 (revised)</div></div>
+</div>
+
+<!-- ═══ SCREEN 3: 2-Jurisdiction Comparison ═══ -->
+<div class="screen" id="s3">
+  <div class="topbar"><div class="topbar-logo">Parcela</div><input class="topbar-search" value="Comparing: Fairfax County vs Arlington County" readonly /></div>
+  <div class="compare-layout">
+    <div class="compare-header"><h2>Cross-Jurisdiction Comparison</h2><p>Fairfax County vs Arlington County — regulatory impact side by side</p></div>
+    <div class="rank-bar">
+      <div class="rank-item"><div class="rank-pos">1</div><div><div class="rank-name">Fairfax</div><div style="font-size:11px; color:var(--text-muted);">More restrictive</div></div><div class="rank-score" style="color:var(--high-restrict)">74</div></div>
+      <div class="rank-item"><div class="rank-pos">2</div><div><div class="rank-name">Arlington</div><div style="font-size:11px; color:var(--text-muted);">−22 pts</div></div><div class="rank-score" style="color:var(--mod-restrict)">52</div></div>
+    </div>
+    <div class="compare-grid-2">
+      <div class="compare-card"><div class="cc-map" style="background:linear-gradient(135deg, var(--bupu-3), var(--bupu-5));"></div><div class="cc-content"><div class="cc-name">Fairfax County</div><div class="cc-ris-row"><div><div class="cc-ris-num" style="color:var(--high-restrict)">74</div><div class="cc-ris-label" style="color:var(--high-restrict)">High</div></div></div><div class="cc-sub"><span class="cc-sub-name">Density (DCI)</span><span class="cc-sub-val">78</span></div><div class="cc-sub"><span class="cc-sub-name">Cost (DCOI)</span><span class="cc-sub-val">72</span></div><div class="cc-sub"><span class="cc-sub-name">Permitting (PCI)</span><span class="cc-sub-val">68</span></div><div class="cc-sub"><span class="cc-sub-name">Peer rank (CRP)</span><span class="cc-sub-val">76</span></div><div class="cc-sub" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);"><span class="cc-sub-name">Parking min</span><span class="cc-sub-val">2.0 sp/unit</span></div><div class="cc-sub"><span class="cc-sub-name">Min lot</span><span class="cc-sub-val">12,500 sf</span></div><div class="cc-sub"><span class="cc-sub-name">Est. cost/unit</span><span class="cc-sub-val">$282K</span></div></div></div>
+      <div class="compare-card"><div class="cc-map" style="background:linear-gradient(135deg, var(--bupu-1), var(--bupu-3));"></div><div class="cc-content"><div class="cc-name">Arlington County</div><div class="cc-ris-row"><div><div class="cc-ris-num" style="color:var(--mod-restrict)">52</div><div class="cc-ris-label" style="color:var(--mod-restrict)">Moderate</div></div></div><div class="cc-sub"><span class="cc-sub-name">Density (DCI)</span><span class="cc-sub-val">48</span></div><div class="cc-sub"><span class="cc-sub-name">Cost (DCOI)</span><span class="cc-sub-val">58</span></div><div class="cc-sub"><span class="cc-sub-name">Permitting (PCI)</span><span class="cc-sub-val">42</span></div><div class="cc-sub"><span class="cc-sub-name">Peer rank (CRP)</span><span class="cc-sub-val">55</span></div><div class="cc-sub" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);"><span class="cc-sub-name">Parking min</span><span class="cc-sub-val">1.0 sp/unit</span></div><div class="cc-sub"><span class="cc-sub-name">Min lot</span><span class="cc-sub-val">6,000 sf</span></div><div class="cc-sub"><span class="cc-sub-name">Est. cost/unit</span><span class="cc-sub-val">$248K</span></div></div></div>
+      <div class="add-card" onclick="goTo(4)">
+        <div class="add-icon">+</div>
+        <div class="add-title">Add a third jurisdiction</div>
+        <div class="add-sub">Compare up to 3 side by side</div>
+        <div class="add-peers">
+          <div class="add-peer-chip" onclick="event.stopPropagation(); goTo(4)">Loudoun County</div>
+          <div class="add-peer-chip">Prince William</div>
+          <div class="add-peer-chip">Alexandria</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation arrow-top" style="right:40px; top:100px;"><strong>Progressive disclosure: "Add another" card</strong><br>Same peer-chip pattern repeats inside the dashed-border card. Val can stop at 2 or add a third — no dead end.<div class="backlog-ref">Backlog: E7-1, E7-2</div></div>
+</div>
+
+<!-- ═══ SCREEN 4: 3-Jurisdiction Comparison ═══ -->
+<div class="screen" id="s4">
+  <div class="topbar"><div class="topbar-logo">Parcela</div><input class="topbar-search" value="Comparing: Fairfax · Arlington · Loudoun" readonly /></div>
+  <div class="compare-layout">
+    <div class="compare-header"><h2>Cross-Jurisdiction Comparison</h2><p>Side-by-side regulatory impact for Northern Virginia counties</p></div>
+    <div class="rank-bar">
+      <div class="rank-item"><div class="rank-pos">1</div><div><div class="rank-name">Fairfax</div><div style="font-size:11px; color:var(--text-muted);">Most restrictive</div></div><div class="rank-score" style="color:var(--high-restrict)">74</div></div>
+      <div class="rank-item"><div class="rank-pos">2</div><div><div class="rank-name">Loudoun</div><div style="font-size:11px; color:var(--text-muted);">–6 pts</div></div><div class="rank-score" style="color:var(--mod-restrict)">68</div></div>
+      <div class="rank-item"><div class="rank-pos">3</div><div><div class="rank-name">Arlington</div><div style="font-size:11px; color:var(--text-muted);">Least restrictive</div></div><div class="rank-score" style="color:var(--mod-restrict)">52</div></div>
+    </div>
+    <div class="compare-grid-3">
+      <div class="compare-card"><div class="cc-map" style="background:linear-gradient(135deg, var(--bupu-3), var(--bupu-5));"></div><div class="cc-content"><div class="cc-name">Fairfax County</div><div class="cc-ris-row"><div><div class="cc-ris-num" style="color:var(--high-restrict)">74</div><div class="cc-ris-label" style="color:var(--high-restrict)">High</div></div></div><div class="cc-sub"><span class="cc-sub-name">Density (DCI)</span><span class="cc-sub-val">78</span></div><div class="cc-sub"><span class="cc-sub-name">Cost (DCOI)</span><span class="cc-sub-val">72</span></div><div class="cc-sub"><span class="cc-sub-name">Permitting (PCI)</span><span class="cc-sub-val">68</span></div><div class="cc-sub"><span class="cc-sub-name">Peer rank (CRP)</span><span class="cc-sub-val">76</span></div><div class="cc-sub" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);"><span class="cc-sub-name">Parking min</span><span class="cc-sub-val">2.0 sp/unit</span></div><div class="cc-sub"><span class="cc-sub-name">Min lot</span><span class="cc-sub-val">12,500 sf</span></div></div></div>
+      <div class="compare-card"><div class="cc-map" style="background:linear-gradient(135deg, var(--bupu-2), var(--bupu-4));"></div><div class="cc-content"><div class="cc-name">Loudoun County</div><div class="cc-ris-row"><div><div class="cc-ris-num" style="color:var(--mod-restrict)">68</div><div class="cc-ris-label" style="color:var(--mod-restrict)">Moderate</div></div></div><div class="cc-sub"><span class="cc-sub-name">Density (DCI)</span><span class="cc-sub-val">74</span></div><div class="cc-sub"><span class="cc-sub-name">Cost (DCOI)</span><span class="cc-sub-val">65</span></div><div class="cc-sub"><span class="cc-sub-name">Permitting (PCI)</span><span class="cc-sub-val">62</span></div><div class="cc-sub"><span class="cc-sub-name">Peer rank (CRP)</span><span class="cc-sub-val">70</span></div><div class="cc-sub" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);"><span class="cc-sub-name">Parking min</span><span class="cc-sub-val">1.5 sp/unit</span></div><div class="cc-sub"><span class="cc-sub-name">Min lot</span><span class="cc-sub-val">10,000 sf</span></div></div></div>
+      <div class="compare-card"><div class="cc-map" style="background:linear-gradient(135deg, var(--bupu-1), var(--bupu-3));"></div><div class="cc-content"><div class="cc-name">Arlington County</div><div class="cc-ris-row"><div><div class="cc-ris-num" style="color:var(--mod-restrict)">52</div><div class="cc-ris-label" style="color:var(--mod-restrict)">Moderate</div></div></div><div class="cc-sub"><span class="cc-sub-name">Density (DCI)</span><span class="cc-sub-val">48</span></div><div class="cc-sub"><span class="cc-sub-name">Cost (DCOI)</span><span class="cc-sub-val">58</span></div><div class="cc-sub"><span class="cc-sub-name">Permitting (PCI)</span><span class="cc-sub-val">42</span></div><div class="cc-sub"><span class="cc-sub-name">Peer rank (CRP)</span><span class="cc-sub-val">55</span></div><div class="cc-sub" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border);"><span class="cc-sub-name">Parking min</span><span class="cc-sub-val">1.0 sp/unit</span></div><div class="cc-sub"><span class="cc-sub-name">Min lot</span><span class="cc-sub-val">6,000 sf</span></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 5: What-If ═══ -->
+<div class="screen" id="s5">
+  <div class="topbar"><div class="topbar-logo">Parcela</div><input class="topbar-search" value="Fairfax County, VA — What-If Simulation" readonly /></div>
+  <div class="whatif-layout">
+    <div class="whatif-controls">
+      <div class="wc-header"><div class="wc-toggle"><div class="wc-toggle-pill"></div><span class="wc-title">What-If Simulation</span></div><div class="wc-county">Fairfax County, Virginia</div></div>
+      <div class="slider-group"><div class="sg-label">Parking Minimum</div><div class="sg-values"><span class="sg-current">1.0 sp/unit</span><span class="sg-original">2.0 sp/unit</span><span class="sg-delta better">▼ 50%</span></div><div class="slider-track"><div class="slider-fill" style="width:33%"></div><div class="slider-thumb" style="left:calc(33% - 8px)"></div></div></div>
+      <div class="slider-group"><div class="sg-label">Max Height Limit</div><div class="sg-values"><span class="sg-current">50 ft</span><span class="sg-original">35 ft</span><span class="sg-delta better">▲ 43%</span></div><div class="slider-track"><div class="slider-fill" style="width:60%"></div><div class="slider-thumb" style="left:calc(60% - 8px)"></div></div></div>
+      <div class="slider-group"><div class="sg-label">Density Limit</div><div class="sg-values"><span class="sg-current">8 units/acre</span><span class="sg-original">4 units/acre</span><span class="sg-delta better">▲ 100%</span></div><div class="slider-track"><div class="slider-fill" style="width:55%"></div><div class="slider-thumb" style="left:calc(55% - 8px)"></div></div></div>
+      <div class="slider-group"><div class="sg-label">Minimum Lot Size</div><div class="sg-values"><span class="sg-current">12,500 sq ft</span><span class="sg-original">12,500 sq ft</span><span class="sg-delta" style="color:var(--text-muted)">—</span></div><div class="slider-track"><div class="slider-fill" style="width:75%"></div><div class="slider-thumb" style="left:calc(75% - 8px)"></div></div></div>
+      <button class="wc-reset">⟲ Reset to baseline values</button>
+    </div>
+    <div class="whatif-results">
+      <div class="wr-score-compare"><div class="wr-score-block"><div class="wr-score-label">Baseline RIS</div><div class="wr-score-num" style="color:var(--high-restrict)">74</div></div><div class="wr-arrow">→</div><div class="wr-score-block"><div class="wr-score-label">Simulated RIS</div><div class="wr-score-num" style="color:var(--mod-restrict)">53</div></div><div class="wr-delta-big">−21</div></div>
+      <div class="feasibility-cards">
+        <div class="feas-card"><div class="fc-label">Est. Cost per Unit</div><div class="fc-value" style="color:var(--delta-pos)">$264K</div><div class="fc-delta" style="color:var(--delta-pos);">▼ $18,000 from baseline ($282K)</div></div>
+        <div class="feas-card"><div class="fc-label">Max Unit Yield / Acre</div><div class="fc-value" style="color:var(--delta-pos)">8.0</div><div class="fc-delta" style="color:var(--delta-pos);">▲ 4.0 from baseline (4.0)</div></div>
+        <div class="feas-card"><div class="fc-label">Rent Feasibility</div><div class="fc-value" style="color:var(--delta-pos)">Feasible</div><div class="fc-delta" style="color:var(--delta-pos);">was Marginal — FMR $1,864/mo covers carry cost</div></div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 20px; font-size:13px; line-height:1.7; color:var(--text-secondary);"><strong style="color:var(--text-primary);">What this simulation shows:</strong> Reducing parking from 2.0 to 1.0 spaces/unit and increasing the height limit from 35 to 50 ft would drop the RIS by 21 points and reduce estimated per-unit cost by $18,000. At the simulated density of 8 units/acre, monthly carrying costs fall below HUD Fair Market Rent ($1,864/mo for 2BR), moving feasibility from Marginal to Feasible.<div style="margin-top:10px; font-size:11px; color:var(--text-muted); font-style:italic;">Sources: HUD FMR FY2025, BLS OES, BEA RPP (Goods), Fairfax County Zoning Ordinance</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN 6: VZA Boundary ═══ -->
+<div class="screen" id="s6">
+  <div class="topbar"><div class="topbar-logo">Parcela</div><input class="topbar-search" value="Fairfax County, VA" readonly /></div>
+  <div class="boundary-layout">
+    <div class="boundary-header"><h2>Where Parcela ends & the Virginia Zoning Atlas begins</h2><p>Parcela answers <strong>"what do the rules cost?"</strong> — the VZA answers <strong>"what are all the rules?"</strong> They're complementary tools.</p></div>
+    <div class="boundary-cols">
+      <div class="boundary-card" style="border-color:var(--accent);"><div class="bc-title" style="color:var(--accent);">Parcela</div><div class="bc-sub">Regulatory impact analysis & simulation</div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">Regulatory Impact Score</span><br>Composite 0–100 with 4 sub-scores</div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">Cost-per-unit estimates</span><br>Dollar impact of each regulation</div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">What-if simulation</span><br>Adjust parameters, see score & cost change</div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">Rent feasibility indicator</span><br>Can the market support the construction cost?</div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">Confidence scoring</span><br>Every LLM-extracted value has a trust badge</div></div>
+        <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">Parcel-level zoning detail</span></div></div>
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">All housing types classified</span></div></div>
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">ADU allowance mapping</span></div></div>
+        </div>
+      </div>
+      <div class="boundary-divider"><div class="line"></div><span>+</span><div class="line"></div></div>
+      <div class="boundary-card"><div class="bc-title">Virginia Zoning Atlas</div><div class="bc-sub">Comprehensive zoning rule catalog (321 jurisdictions)</div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">All housing types classified</span></div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">Parcel-level zoning map</span></div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">By-right vs. public hearing</span></div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">ADU provisions per zone</span></div></div>
+        <div class="bc-item"><div class="bc-check bc-yes">✓</div><div><span class="bc-item-label">321 VA jurisdictions</span></div></div>
+        <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">Cost quantification</span></div></div>
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">Impact scoring</span></div></div>
+          <div class="bc-item"><div class="bc-check bc-no">✗</div><div><span class="bc-item-label">Policy simulation</span></div></div>
+        </div>
+        <a class="vza-link" href="https://www.zoningatlas.org/atlas" target="_blank">Open Virginia Zoning Atlas →</a>
+      </div>
+    </div>
+    <div class="boundary-scenario"><div class="scenario-title">Val's real-world handoff</div>Val runs a what-if in Parcela and sees that reducing parking from 2.0 to 1.0 sp/unit drops cost by $18K. Her supervisor asks: <strong>"Where exactly in the county does that parking requirement apply?"</strong><br><br>Val opens the VZA, navigates to Fairfax, filters for parking mandates, and shows exactly which zones carry the 2-space requirement. The VZA gives spatial detail; Parcela gives the cost argument. <strong>Together, a complete policy briefing.</strong></div>
+  </div>
+</div>
+
+<!-- ═══ Navigation ═══ -->
+<div class="proto-nav">
+  <div><div class="step-label" id="navLabel">Step 1 of 6</div><div class="step-title" id="navTitle">Landing — Search Entry</div></div>
+  <div class="step-dots"><div class="dot active" onclick="goTo(1)"></div><div class="dot" onclick="goTo(2)"></div><div class="dot" onclick="goTo(3)"></div><div class="dot" onclick="goTo(4)"></div><div class="dot" onclick="goTo(5)"></div><div class="dot" onclick="goTo(6)"></div></div>
+  <div class="nav-btns"><button id="prevBtn" onclick="prev()" disabled>← Back</button><button id="nextBtn" onclick="next()">Next →</button></div>
+</div>
+<script>
+const T=6, screens=[
+  {l:'Step 1 of 6',t:'Landing — Search Entry'},
+  {l:'Step 2 of 6',t:'Score Panel + Compare Peers'},
+  {l:'Step 3 of 6',t:'2-Jurisdiction Comparison (Transition)'},
+  {l:'Step 4 of 6',t:'3-Jurisdiction Comparison'},
+  {l:'Step 5 of 6',t:'What-If Policy Simulation'},
+  {l:'Step 6 of 6',t:'Boundary — Parcela ↔ VZA'},
+];
+let c=0; const v=new Set([0]);
+function goTo(n){c=n-1;v.add(c);render()}
+function next(){if(c<T-1){c++;v.add(c);render()}}
+function prev(){if(c>0){c--;render()}}
+function render(){
+  document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===c));
+  document.getElementById('navLabel').textContent=screens[c].l;
+  document.getElementById('navTitle').textContent=screens[c].t;
+  document.getElementById('prevBtn').disabled=c===0;
+  document.getElementById('nextBtn').disabled=c===T-1;
+  document.querySelectorAll('.step-dots .dot').forEach((d,i)=>{d.className='dot';if(i===c)d.classList.add('active');else if(v.has(i))d.classList.add('visited')});
+}
+</script>
+</body>
+</html>
