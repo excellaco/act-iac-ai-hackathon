@@ -3,15 +3,6 @@ name: Extraction Pipeline
 on:
   workflow_dispatch:
     inputs:
-      stage:
-        description: 'Pipeline stage to run'
-        required: false
-        default: 'run'
-        type: choice
-        options:
-          - run
-          - extract
-          - load
       jurisdiction:
         description: 'Jurisdiction to process (leave blank for all 3)'
         required: false
@@ -55,7 +46,7 @@ jobs:
           sleep 5
 
       - name: Run extraction pipeline
-        run: npm run pipeline:${{ github.event.inputs.stage || 'run' }} ${{ github.event.inputs.jurisdiction }}
+        run: npm run pipeline:run ${{ github.event.inputs.jurisdiction }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
