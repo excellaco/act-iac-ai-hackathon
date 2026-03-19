@@ -4,8 +4,6 @@ import {
   computePCI,
   computeCRP,
   computeAllSubScores,
-  BASE_COST_PER_UNIT,
-  PARKING_STALL_COST,
   type DciInputs,
   type PciInputs,
 } from '../lib/scoringEngine'
@@ -195,11 +193,14 @@ describe('computePCI', () => {
     const score = computePCI({
       permits5plus: 500,
       totalPermits: 1000,
-      discretionaryReviewType: 'unknown-type' as any,
+      discretionaryReviewType: 'unknown-type' as PciInputs['discretionaryReviewType'],
     })
-    // Should not throw, should use fallback score of 65
-    expect(score).toBeGreaterThanOrEqual(0)
-    expect(score).toBeLessThanOrEqual(100)
+    const fallbackScore = computePCI({
+      permits5plus: 500,
+      totalPermits: 1000,
+      discretionaryReviewType: 'conditional-use-permit',
+    })
+    expect(score).toBe(fallbackScore)
   })
 })
 
@@ -225,17 +226,14 @@ describe('computeCRP', () => {
   })
 
   it('excludes own jurisdiction from peer comparison when slug provided', () => {
-    // Fairfax composite is 210 — the highest in the peer set.
-    // Without slug exclusion, all 10 peers are below → 100%
-    // With slug exclusion, Fairfax is removed and all 9 remaining are below → still 100%
-    // Use a mid-range example to see the difference:
-    // Composite = 160 (same as frederick at 160)
+    // Composite = 160, matching Frederick's reference composite.
+    // Excluding the current jurisdiction removes one peer from the denominator,
+    // which raises the percentile from 30% (3/10) to 33% (3/9).
     const withSlug = computeCRP({ dci: 60, dcoi: 50, pci: 50, slug: 'frederick-county-va' })
     const withoutSlug = computeCRP({ dci: 60, dcoi: 50, pci: 50 })
-    // With frederick excluded, there's one fewer peer below the threshold
-    // so the scores could differ
-    expect(withSlug).toBeGreaterThanOrEqual(0)
-    expect(withoutSlug).toBeGreaterThanOrEqual(0)
+    expect(withoutSlug).toBe(30)
+    expect(withSlug).toBe(33)
+    expect(withSlug).toBeGreaterThan(withoutSlug)
   })
 
   it('higher sub-scores produce higher CRP', () => {
