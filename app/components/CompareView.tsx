@@ -4,19 +4,8 @@ import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData } from '../../lib/mockData';
+import { risColor, risLabelShort, SUB_SCORE_META } from '../../lib/ris';
 import styles from './CompareView.module.css';
-
-function risColor(score: number): string {
-  if (score >= 70) return '#dc2626';
-  if (score >= 40) return '#d97706';
-  return '#16a34a';
-}
-
-function risLabel(score: number): string {
-  if (score >= 70) return 'High';
-  if (score >= 40) return 'Moderate';
-  return 'Low';
-}
 
 interface RankingBarProps {
   jurisdictions: JurisdictionData[];
@@ -44,7 +33,7 @@ function RankingBar({ jurisdictions }: RankingBarProps) {
                   background: risColor(j.ris) + '15',
                 }}
               >
-                {risLabel(j.ris)} Restrictiveness
+                {risLabelShort(j.ris)} Restrictiveness
               </span>
             </div>
           </div>
@@ -85,15 +74,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
 
       <div className={styles.subScores}>
         {(Object.entries(subScores) as [string, { score: number }][]).map(([key, detail]) => {
-          const labels: Record<string, string> = {
-            dci: 'Density (DCI)',
-            dcoi: 'Cost (DCOI)',
-            pci: 'Permitting (PCI)',
-            crp: 'Peer Rank (CRP)',
-          };
           return (
             <div key={key} className={styles.subScoreRow}>
-              <span className={styles.subScoreLabel}>{labels[key]}</span>
+              <span className={styles.subScoreLabel}>{SUB_SCORE_META[key]?.shortLabel ?? key}</span>
               <div className={styles.subScoreBar}>
                 <div
                   className={styles.subScoreBarFill}
