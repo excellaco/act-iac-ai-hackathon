@@ -37,20 +37,19 @@ const STATE_RIS: Record<string, number> = {
   'Utah': 44, 'District of Columbia': 80,
 };
 
-// Hardcoded county bounds keyed by jurisdiction name.
-// selected.id is a UUID from the DB — keying by name avoids the mismatch.
-// Production would use Census TIGER county boundaries.
-const COUNTY_BOUNDS: Record<string, [[number, number], [number, number]]> = {
-  'Fairfax County':   [[38.59, -77.67], [39.01, -77.12]],
-  'Arlington County': [[38.83, -77.17], [38.93, -77.03]],
-  'Loudoun County':   [[38.85, -77.68], [39.33, -77.33]],
-};
-
-// Simplified rectangle polygons for county overlays
-const COUNTY_POLYGONS: Record<string, [number, number][]> = {
-  'Fairfax County':   [[38.59, -77.67], [38.59, -77.12], [39.01, -77.12], [39.01, -77.67]],
-  'Arlington County': [[38.83, -77.17], [38.83, -77.03], [38.93, -77.03], [38.93, -77.17]],
-  'Loudoun County':   [[38.85, -77.68], [38.85, -77.33], [39.33, -77.33], [39.33, -77.68]],
+// Lookup map from jurisdiction display name to 5-digit FIPS code.
+// selected.name from the DB keyed by display name, not FIPS.
+const NAME_TO_FIPS: Record<string, string> = {
+  'Fairfax County':         '51059',
+  'Arlington County':       '51013',
+  'Loudoun County':         '51107',
+  'Frederick County':       '51069',
+  'Prince William County':  '51153',
+  'Stafford County':        '51179',
+  'Alexandria City':        '51510',
+  'Howard County':          '24027',
+  'Montgomery County':      '24031',
+  "Prince George's County": '24033',
 };
 
 function risColor(score: number | undefined): string {
@@ -72,6 +71,8 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
   const mapRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const countyLayerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const countiesRef = useRef<any>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -125,6 +126,14 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
           }).addTo(map);
         })
         .catch((err) => console.error('Failed to load GeoJSON:', err));
+
+      // Load target county boundaries for later use when a county is selected
+      fetch('/geo/target-counties.json')
+        .then((res) => res.json())
+        .then((geojson) => {
+          countiesRef.current = geojson;
+        })
+        .catch((err) => console.error('Failed to load county GeoJSON:', err));
     });
 
     return () => {
@@ -150,30 +159,28 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
       }
 
       if (selected) {
-        const bounds = COUNTY_BOUNDS[selected.name];
-        const polygon = COUNTY_POLYGONS[selected.name];
+        const fips = NAME_TO_FIPS[selected.name];
+        const counties = countiesRef.current;
+        const feature = fips && counties
+          ? counties.features.find((f: { id: string }) => f.id === fips)
+          : null;
 
-        if (bounds) {
+        if (feature) {
           // Re-enable interaction in county view
           map.dragging.enable();
           map.scrollWheelZoom.enable();
           map.doubleClickZoom.enable();
           map.touchZoom.enable();
 
-          map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
-        }
-
-        if (polygon) {
           const color = risColor(selected.ris);
-          const layer = L.polygon(
-            polygon.map(([lat, lng]) => [lat, lng] as [number, number]),
-            {
+          const layer = L.geoJSON(feature, {
+            style: {
               fillColor: color,
               fillOpacity: 0.65,
               color: '#1e40af',
               weight: 2,
-            }
-          );
+            },
+          });
 
           layer.bindPopup(
             `<div style="text-align:center;font-family:sans-serif">
@@ -187,6 +194,10 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
           layer.addTo(map);
           layer.openPopup();
           countyLayerRef.current = layer;
+
+          // Fit map to the actual county boundary bounding box
+          const bounds = L.geoJSON(feature).getBounds();
+          map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
         }
       } else {
         // Reset to national view — disable interaction
