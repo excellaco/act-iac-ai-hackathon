@@ -1,3 +1,6 @@
+/* Leaflet map styles — loaded globally to ensure they are available after dynamic import */
+@import 'leaflet/dist/leaflet.css';
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

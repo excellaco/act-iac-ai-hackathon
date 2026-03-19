@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { JurisdictionSummary } from '../lib/apiClient';
 import { fetchScore } from '../lib/apiClient';
 import { scoreResponseToJurisdictionData, type JurisdictionData } from '../lib/mockData';
 import JurisdictionSearch from './components/JurisdictionSearch';
 import ScorePanel from './components/ScorePanel';
 import styles from './page.module.css';
+
+// Leaflet requires the browser's window object — must be dynamically imported with ssr: false
+const ChoroplethMap = dynamic(() => import('./components/ChoroplethMap'), {
+  ssr: false,
+  loading: () => <div className={styles.mapPlaceholder} />,
+});
 
 export default function Home() {
   const [selected, setSelected] = useState<JurisdictionData | null>(null);
@@ -24,9 +31,17 @@ export default function Home() {
     }
   }
 
+  function handleReset() {
+    setSelected(null);
+  }
+
   return (
     <div className={styles.layout}>
       <main className={`${styles.main} ${selected ? styles.mainWithPanel : ''}`}>
+        {/* Full-bleed choropleth map as background */}
+        <ChoroplethMap selected={selected} onReset={handleReset} />
+
+        {/* Hero content overlaid above the map */}
         <div className={styles.hero}>
           <h1 className={styles.heading}>Parcela</h1>
           <p className={styles.subheading}>
