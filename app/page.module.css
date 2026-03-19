@@ -61,3 +61,12 @@
   padding: 4px 12px;
   border-radius: 4px;
 }
+
+/* Compact search bar — overlaid on map when a jurisdiction is already selected */
+.compactSearch {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  width: 320px;
+}

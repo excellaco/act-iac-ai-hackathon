@@ -31,8 +31,10 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {/* E9-10: App header with Parcela logo */}
         <header className="app-header">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/parcela-logo.svg" alt="Parcela" height="28" className="app-logo" />
+          <a href="/" className="app-logo-link">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/parcela-logo.svg" alt="Parcela — return to home" height="28" className="app-logo" />
+          </a>
           <nav className="app-nav">
             <span className="app-tagline">Housing Regulatory Impact Simulator</span>
           </nav>

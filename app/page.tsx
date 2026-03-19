@@ -72,7 +72,7 @@ export default function Home() {
         {/* Full-bleed choropleth map as background */}
         <ChoroplethMap selected={selected} onReset={handleReset} />
 
-        {/* Hero content — hidden once a jurisdiction is selected so the map takes focus */}
+        {/* Hero content — shown on initial landing */}
         {!selected && !loading && (
           <div className={styles.hero}>
             <h1 className={styles.heading}>Parcela</h1>
@@ -82,6 +82,14 @@ export default function Home() {
             <JurisdictionSearch onSelect={handleSelect} />
           </div>
         )}
+
+        {/* Compact search — shown when a jurisdiction is already selected */}
+        {selected && !loading && (
+          <div className={styles.compactSearch}>
+            <JurisdictionSearch onSelect={handleSelect} />
+          </div>
+        )}
+
         {loading && <p className={styles.loading}>Loading score…</p>}
       </main>
 

@@ -16,6 +16,13 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
+.app-logo-link {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
 .app-logo {
   display: block;
   flex-shrink: 0;

@@ -16,10 +16,12 @@ const SUB_SCORE_LABELS: Record<string, { label: string; description: string }> =
   crp:  { label: 'Comparative Restrictiveness',        description: 'Ranks this jurisdiction within a peer comparison set of 10 jurisdictions.' },
 };
 
+// BuPu palette matching the choropleth map (ChoroplethMap.tsx).
+// Uses the darker half of the BuPu scale for text/border contrast on white.
 function risColor(score: number): string {
-  if (score >= 70) return '#dc2626';
-  if (score >= 40) return '#d97706';
-  return '#16a34a';
+  if (score >= 70) return '#045a8d';
+  if (score >= 40) return '#2b8cbe';
+  return '#74a9cf';
 }
 
 function risLabel(score: number): string {
