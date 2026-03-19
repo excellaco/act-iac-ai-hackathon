@@ -3,7 +3,7 @@ jest.mock('../lib/apiClient', () => ({
   fetchScore: jest.fn(),
 }))
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import Home from '../app/page';
 import { fetchJurisdictions, fetchScore } from '../lib/apiClient';
 
@@ -22,8 +22,9 @@ const mockScoreResponse = {
 
 describe('Home', () => {
   beforeEach(() => {
-    (fetchJurisdictions as jest.Mock).mockResolvedValue(mockJurisdictions);
-    (fetchScore as jest.Mock).mockResolvedValue(mockScoreResponse);
+    jest.clearAllMocks();
+    (fetchJurisdictions as jest.Mock).mockReset().mockResolvedValue(mockJurisdictions);
+    (fetchScore as jest.Mock).mockReset().mockResolvedValue(mockScoreResponse);
   })
 
   it('renders the search bar', async () => {
@@ -31,6 +32,14 @@ describe('Home', () => {
     // waitFor lets the async fetchJurisdictions effect settle inside act()
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled());
     expect(screen.getByPlaceholderText('Find your county or municipality')).toBeInTheDocument();
+  });
+
+  it('renders the heading before the search in the DOM', async () => {
+    render(<Home />);
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled());
+    const heading = screen.getByRole('heading', { name: 'Parcela' });
+    const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+    expect(heading.compareDocumentPosition(searchInput) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('shows real jurisdiction options on focus after API loads', async () => {
@@ -59,6 +68,47 @@ describe('Home', () => {
     fireEvent.mouseDown(screen.getByText('Fairfax County'));
     await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
     expect(screen.getByText('Density Constraint Index')).toBeInTheDocument();
+  });
+
+  it('preserves the selected jurisdiction in the visible search input', async () => {
+    render(<Home />);
+    const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+    fireEvent.focus(searchInput);
+    await waitFor(() => screen.getByText('Fairfax County'));
+    fireEvent.mouseDown(screen.getByText('Fairfax County'));
+    await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+    expect(searchInput).toHaveValue('Fairfax County, VA');
+    expect(screen.getByPlaceholderText('Find your county or municipality')).toBe(searchInput);
+  });
+
+  it('restores the previous selection and shows an error when a new score load fails', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (fetchScore as jest.Mock)
+      .mockResolvedValueOnce(mockScoreResponse)
+      .mockRejectedValueOnce(new Error('boom'));
+
+    try {
+      render(<Home />);
+
+      const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+      fireEvent.focus(searchInput);
+      await waitFor(() => screen.getByText('Fairfax County'));
+      fireEvent.mouseDown(screen.getByText('Fairfax County'));
+      await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+
+      fireEvent.change(searchInput, { target: { value: 'arling' } });
+      const searchResults = searchInput.parentElement as HTMLElement;
+      await waitFor(() => expect(within(searchResults).getByText('Arlington County')).toBeInTheDocument());
+      fireEvent.mouseDown(within(searchResults).getByText('Arlington County'));
+
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent('Failed to load jurisdiction score. Try again.')
+      );
+      expect(searchInput).toHaveValue('Fairfax County, VA');
+      expect(screen.getByText('Density Constraint Index')).toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it('shows disclaimer in score panel', async () => {

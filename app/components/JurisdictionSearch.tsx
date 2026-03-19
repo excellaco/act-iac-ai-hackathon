@@ -5,11 +5,18 @@ import { fetchJurisdictions, type JurisdictionSummary } from '../../lib/apiClien
 import styles from './JurisdictionSearch.module.css';
 
 interface Props {
+  query: string;
+  onQueryChange: (query: string) => void;
   onSelect: (jurisdiction: JurisdictionSummary) => void;
+  disabled?: boolean;
 }
 
-export default function JurisdictionSearch({ onSelect }: Props) {
-  const [query, setQuery] = useState('');
+export default function JurisdictionSearch({
+  query,
+  onQueryChange,
+  onSelect,
+  disabled = false,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [jurisdictions, setJurisdictions] = useState<JurisdictionSummary[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +37,6 @@ export default function JurisdictionSearch({ onSelect }: Props) {
   const visibleMatches = matches.filter(j => j.dataType === 'real');
 
   function handleSelect(j: JurisdictionSummary) {
-    setQuery(j.displayName);
     setOpen(false);
     onSelect(j);
   }
@@ -52,19 +58,22 @@ export default function JurisdictionSearch({ onSelect }: Props) {
         type="text"
         placeholder="Find your county or municipality"
         value={query}
-        onChange={e => { setQuery(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
+        disabled={disabled}
+        onChange={e => {
+          onQueryChange(e.target.value);
+          if (!disabled) setOpen(true);
+        }}
+        onFocus={() => {
+          if (!disabled) setOpen(true);
+        }}
         aria-label="Find your county or municipality"
-        aria-autocomplete="list"
-        aria-expanded={open}
       />
-      {open && visibleMatches.length > 0 && (
-        <ul className={styles.dropdown} role="listbox">
+      {!disabled && open && visibleMatches.length > 0 && (
+        <ul className={styles.dropdown}>
           {visibleMatches.map(j => (
             <li
               key={j.id}
               className={styles.option}
-              role="option"
               onMouseDown={() => handleSelect(j)}
             >
               <span className={styles.optionName}>{j.name}</span>
