@@ -20,16 +20,18 @@ const FIELD_BASELINES: Record<string, {
   densityLimitUpa: number
   parkingMinSpacesPerUnit: number
 }> = {
-  'fairfax-va':        { densityLimitUpa: 12,  parkingMinSpacesPerUnit: 2.0 },
-  'arlington-va':      { densityLimitUpa: 72,  parkingMinSpacesPerUnit: 0.5 },
-  'loudoun-va':        { densityLimitUpa: 6,   parkingMinSpacesPerUnit: 2.0 },
-  'montgomery-md':     { densityLimitUpa: 40,  parkingMinSpacesPerUnit: 1.5 },
-  'prince-georges-md': { densityLimitUpa: 25,  parkingMinSpacesPerUnit: 1.5 },
-  'howard-md':         { densityLimitUpa: 30,  parkingMinSpacesPerUnit: 1.5 },
-  'alexandria-va':     { densityLimitUpa: 80,  parkingMinSpacesPerUnit: 0.75 },
-  'prince-william-va': { densityLimitUpa: 15,  parkingMinSpacesPerUnit: 2.0 },
-  'stafford-va':       { densityLimitUpa: 5,   parkingMinSpacesPerUnit: 2.5 },
-  'frederick-va':      { densityLimitUpa: 8,   parkingMinSpacesPerUnit: 2.0 },
+  // Real demo jurisdictions (slugs from db/seeds/jurisdictions.ts)
+  'fairfax':                   { densityLimitUpa: 12,  parkingMinSpacesPerUnit: 2.0 },
+  'arlington':                 { densityLimitUpa: 72,  parkingMinSpacesPerUnit: 0.5 },
+  'loudoun':                   { densityLimitUpa: 6,   parkingMinSpacesPerUnit: 2.0 },
+  // Synthetic peer jurisdictions (slugs from db/seeds/syntheticJurisdictions.ts)
+  'montgomery-county-md':      { densityLimitUpa: 40,  parkingMinSpacesPerUnit: 1.5 },
+  "prince-george's-county-md": { densityLimitUpa: 25,  parkingMinSpacesPerUnit: 1.5 },
+  'howard-county-md':          { densityLimitUpa: 30,  parkingMinSpacesPerUnit: 1.5 },
+  'alexandria-city-va':        { densityLimitUpa: 80,  parkingMinSpacesPerUnit: 0.75 },
+  'prince-william-county-va':  { densityLimitUpa: 15,  parkingMinSpacesPerUnit: 2.0 },
+  'stafford-county-va':        { densityLimitUpa: 5,   parkingMinSpacesPerUnit: 2.5 },
+  'frederick-county-va':       { densityLimitUpa: 8,   parkingMinSpacesPerUnit: 2.0 },
 }
 
 const DEFAULT_FMR = 1800

@@ -75,16 +75,18 @@ export function computeDCI(fields: DciInputs): number {
  * Source: Bureau of Economic Analysis regional price parity data.
  */
 export const REGIONAL_MULTIPLIERS: Record<string, number> = {
-  'fairfax-va':        1.12,
-  'arlington-va':      1.15,
-  'loudoun-va':        1.08,
-  'montgomery-md':     1.11,
-  'prince-georges-md': 1.05,
-  'howard-md':         1.10,
-  'alexandria-va':     1.14,
-  'prince-william-va': 1.07,
-  'stafford-va':       1.04,
-  'frederick-va':      1.03,
+  // Real demo jurisdictions (slugs from db/seeds/jurisdictions.ts)
+  'fairfax':                   1.12,
+  'arlington':                 1.15,
+  'loudoun':                   1.08,
+  // Synthetic peer jurisdictions (slugs from db/seeds/syntheticJurisdictions.ts)
+  'montgomery-county-md':      1.11,
+  "prince-george's-county-md": 1.05,
+  'howard-county-md':          1.10,
+  'alexandria-city-va':        1.14,
+  'prince-william-county-va':  1.07,
+  'stafford-county-va':        1.04,
+  'frederick-county-va':       1.03,
 }
 
 export const DEFAULT_REGIONAL_MULTIPLIER = 1.00
@@ -165,16 +167,16 @@ export function computePCI(inputs: PciInputs): number {
  * Source: seeded RIS scores for 3 real + 7 synthetic jurisdictions.
  */
 const PEER_COMPOSITES = [
-  { slug: 'alexandria-va',      composite: 35 + 60 + 30 },   // 125
-  { slug: 'arlington-va',       composite: 40 + 50 + 35 },   // 125
-  { slug: 'prince-georges-md',  composite: 50 + 55 + 45 },   // 150
-  { slug: 'frederick-va',       composite: 75 + 35 + 50 },   // 160
-  { slug: 'prince-william-va',  composite: 70 + 45 + 55 },   // 170
-  { slug: 'montgomery-md',      composite: 65 + 65 + 55 },   // 185
-  { slug: 'howard-md',          composite: 60 + 70 + 60 },   // 190
-  { slug: 'stafford-va',        composite: 85 + 40 + 65 },   // 190
-  { slug: 'loudoun-va',         composite: 80 + 55 + 60 },   // 195
-  { slug: 'fairfax-va',         composite: 75 + 70 + 65 },   // 210
+  { slug: 'alexandria-city-va',        composite: 35 + 60 + 30 },   // 125
+  { slug: 'arlington',                 composite: 40 + 50 + 35 },   // 125
+  { slug: "prince-george's-county-md", composite: 50 + 55 + 45 },   // 150
+  { slug: 'frederick-county-va',       composite: 75 + 35 + 50 },   // 160
+  { slug: 'prince-william-county-va',  composite: 70 + 45 + 55 },   // 170
+  { slug: 'montgomery-county-md',      composite: 65 + 65 + 55 },   // 185
+  { slug: 'howard-county-md',          composite: 60 + 70 + 60 },   // 190
+  { slug: 'stafford-county-va',        composite: 85 + 40 + 65 },   // 190
+  { slug: 'loudoun',                   composite: 80 + 55 + 60 },   // 195
+  { slug: 'fairfax',                   composite: 75 + 70 + 65 },   // 210
 ]
 
 export interface CrpInputs {
