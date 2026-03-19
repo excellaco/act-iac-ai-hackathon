@@ -4,8 +4,10 @@
 jest.mock('@/db/client', () => ({
   db: {
     query: {
-      jurisdictions: { findFirst: jest.fn() },
-      risScores:      { findFirst: jest.fn() },
+      jurisdictions:      { findFirst: jest.fn() },
+      risScores:          { findFirst: jest.fn() },
+      feasibilityOutputs: { findFirst: jest.fn() },
+      marketData:         { findFirst: jest.fn() },
     },
     select: jest.fn(),
   },
@@ -47,7 +49,9 @@ describe('GET /api/jurisdictions/[id]/score', () => {
       from: jest.fn().mockReturnValue({
         where: jest.fn().mockResolvedValue([]),
       }),
-    })
+    });
+    (db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue(null);
+    (db.query.marketData.findFirst as jest.Mock).mockResolvedValue(null);
   })
 
   it('returns jurisdiction and score for a valid id', async () => {
