@@ -3,13 +3,8 @@
 import { useState, useEffect } from 'react';
 import { fetchJurisdictions } from '../../lib/apiClient';
 import type { JurisdictionData } from '../../lib/mockData';
+import { risColor } from '../../lib/ris';
 import styles from './ComparePeers.module.css';
-
-function risColor(score: number): string {
-  if (score >= 70) return '#dc2626';
-  if (score >= 40) return '#d97706';
-  return '#16a34a';
-}
 
 interface Props {
   current: JurisdictionData;

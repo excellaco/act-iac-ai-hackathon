@@ -2,24 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
+import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
 import styles from './ChoroplethMap.module.css';
-
-// BuPu 5-stop palette: light → dark = low → high RIS
-const BUPU_STOPS = [
-  { min: 0,  max: 20,  color: '#f1eef6' },
-  { min: 20, max: 40,  color: '#bdc9e1' },
-  { min: 40, max: 60,  color: '#74a9cf' },
-  { min: 60, max: 80,  color: '#2b8cbe' },
-  { min: 80, max: 100, color: '#045a8d' },
-];
-
-const LEGEND_STOPS = [
-  { label: '0 Low',  color: '#f1eef6' },
-  { label: '20',     color: '#bdc9e1' },
-  { label: '40',     color: '#74a9cf' },
-  { label: '60',     color: '#2b8cbe' },
-  { label: '80 High',color: '#045a8d' },
-];
 
 const STATE_RIS: Record<string, number> = {
   'Virginia': 68, 'Maryland': 62, 'California': 75, 'Texas': 45,
@@ -52,13 +36,6 @@ const NAME_TO_FIPS: Record<string, string> = {
   "Prince George's County": '24033',
 };
 
-function risColor(score: number | undefined): string {
-  if (score === undefined) return '#e5e7eb';
-  for (const stop of BUPU_STOPS) {
-    if (score >= stop.min && score < stop.max) return stop.color;
-  }
-  return '#045a8d'; // 100 edge case
-}
 
 interface ChoroplethMapProps {
   selected: JurisdictionData | null;
@@ -117,7 +94,7 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
               const name = feature?.properties?.name as string | undefined;
               const score = name ? STATE_RIS[name] : undefined;
               return {
-                fillColor: risColor(score),
+                fillColor: risFillColor(score),
                 fillOpacity: 0.75,
                 color: '#ffffff',
                 weight: 1,
@@ -172,7 +149,7 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
           map.doubleClickZoom.enable();
           map.touchZoom.enable();
 
-          const color = risColor(selected.ris);
+          const color = risFillColor(selected.ris);
           const layer = L.geoJSON(feature, {
             style: {
               fillColor: color,
