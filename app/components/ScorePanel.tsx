@@ -29,6 +29,7 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
   const { name, state, ris, subScores } = jurisdiction;
   const color = risColor(ris);
   const [showMethodology, setShowMethodology] = useState(false);
+  const [whatIfEnabled, setWhatIfEnabled] = useState(false);
 
   return (
     <aside className={styles.panel}>
@@ -48,6 +49,34 @@ export default function ScorePanel({ jurisdiction }: { jurisdiction: Jurisdictio
           About this score
         </button>
       </p>
+
+      {/* E8-1: What-If Simulation toggle */}
+      <div className={styles.whatIfSection}>
+        <div className={styles.whatIfHeader}>
+          <div className={styles.whatIfLabels}>
+            <span className={styles.whatIfTitle}>What-If Simulation</span>
+            <span className={styles.whatIfSubtitle}>
+              Adjust regulatory parameters to model policy changes
+            </span>
+          </div>
+          <label className={styles.toggleLabel} aria-label="Toggle What-If Simulation">
+            <input
+              type="checkbox"
+              className={styles.toggleInput}
+              checked={whatIfEnabled}
+              onChange={(e) => setWhatIfEnabled(e.target.checked)}
+            />
+            <span className={styles.toggleTrack}>
+              <span className={styles.toggleThumb} />
+            </span>
+          </label>
+        </div>
+        {whatIfEnabled && (
+          <p className={styles.whatIfPlaceholder}>
+            Simulation controls coming soon — adjust sliders below to model policy changes
+          </p>
+        )}
+      </div>
 
       <div className={styles.accordions}>
         {(Object.entries(subScores) as [keyof typeof subScores, typeof subScores[keyof typeof subScores]][]).map(([key, detail]) => {

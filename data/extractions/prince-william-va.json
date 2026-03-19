@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "prince-william-va",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 21780,
+      "raw_unit": "sq ft",
+      "field_value": 21780,
+      "field_value_text": "Minimum lot area: 21,780 square feet (0.5 acre) for multifamily residential.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-300",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County is suburban with moderately large lot minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 40,
+      "raw_unit": "ft",
+      "field_value": 40,
+      "field_value_text": "Maximum structure height: 40 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-305",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County has moderate height restrictions."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 6,
+      "raw_unit": "units/acre",
+      "field_value": 6,
+      "field_value_text": "Maximum residential density: 6 dwelling units per acre.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-302",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County has moderate density limits for multifamily."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 2,
+      "raw_unit": "spaces/unit",
+      "field_value": 2,
+      "field_value_text": "Required off-street parking: 2 spaces per dwelling unit.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Article 8, Section 32-800",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value — Prince William County requires standard suburban parking minimums."
+    },
+    "setback_front_ft": {
+      "raw_value": 35,
+      "raw_unit": "ft",
+      "field_value": 35,
+      "field_value_text": "Minimum front yard setback: 35 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-304",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County has suburban-scale setback requirements."
+    },
+    "setback_side_ft": {
+      "raw_value": 12,
+      "raw_unit": "ft",
+      "field_value": 12,
+      "field_value_text": "Minimum side yard setback: 12 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-304",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County has suburban-scale setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 30,
+      "raw_unit": "ft",
+      "field_value": 30,
+      "field_value_text": "Minimum rear yard setback: 30 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-304",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Synthetic value — Prince William County has suburban-scale setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "conditional_use_permit",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Article 3, Section 32-300",
+      "district_context": "A-1 Agricultural/Residential Zone",
+      "reasoning": "Multifamily development requires a conditional use permit in Prince William County."
+    }
+  }
+}

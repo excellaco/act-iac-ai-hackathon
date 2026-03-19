@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "prince-georges-md",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 5000,
+      "raw_unit": "sq ft",
+      "field_value": 5000,
+      "field_value_text": "Minimum lot size for multifamily residential: 5,000 square feet.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-451",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County multifamily minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 60,
+      "raw_unit": "ft",
+      "field_value": 60,
+      "field_value_text": "Maximum building height: 60 feet in the R-18 zone.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-453",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County height limits."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 18,
+      "raw_unit": "units/acre",
+      "field_value": 18,
+      "field_value_text": "Maximum density: 18 dwelling units per acre.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-451",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County density limits."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 1.25,
+      "raw_unit": "spaces/unit",
+      "field_value": 1.25,
+      "field_value_text": "Required off-street parking: 1.25 spaces per dwelling unit.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-568",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County parking requirements."
+    },
+    "setback_front_ft": {
+      "raw_value": 20,
+      "raw_unit": "ft",
+      "field_value": 20,
+      "field_value_text": "Minimum front yard: 20 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-453",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County setback requirements."
+    },
+    "setback_side_ft": {
+      "raw_value": 7,
+      "raw_unit": "ft",
+      "field_value": 7,
+      "field_value_text": "Minimum side yard: 7 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-453",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 20,
+      "raw_unit": "ft",
+      "field_value": 20,
+      "field_value_text": "Minimum rear yard: 20 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Subtitle 27-453",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Synthetic value representative of Prince George's County setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Subtitle 27-451",
+      "district_context": "R-18 Multifamily Residential",
+      "reasoning": "Multifamily development is permitted by right in the R-18 zone in Prince George's County."
+    }
+  }
+}

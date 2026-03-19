@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "montgomery-md",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 8000,
+      "raw_unit": "sq ft",
+      "field_value": 8000,
+      "field_value_text": "Minimum lot area: 8,000 square feet for multifamily residential development.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County multifamily zoning minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 60,
+      "raw_unit": "ft",
+      "field_value": 60,
+      "field_value_text": "No building shall exceed 60 feet in height in the R-60 zone.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3.5",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County height limits."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 12,
+      "raw_unit": "units/acre",
+      "field_value": 12,
+      "field_value_text": "Maximum density shall not exceed 12 dwelling units per acre.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3.2",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County density limits."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 1.5,
+      "raw_unit": "spaces/unit",
+      "field_value": 1.5,
+      "field_value_text": "Required parking: 1.5 spaces per dwelling unit for multifamily buildings.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Article 59-6.2",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value representative of Montgomery County parking requirements."
+    },
+    "setback_front_ft": {
+      "raw_value": 25,
+      "raw_unit": "ft",
+      "field_value": 25,
+      "field_value_text": "Minimum front setback: 25 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3.4",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County setback requirements."
+    },
+    "setback_side_ft": {
+      "raw_value": 10,
+      "raw_unit": "ft",
+      "field_value": 10,
+      "field_value_text": "Minimum side setback: 10 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3.4",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 25,
+      "raw_unit": "ft",
+      "field_value": 25,
+      "field_value_text": "Minimum rear setback: 25 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article 59-4.3.4",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Synthetic value representative of Montgomery County setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "conditional_use_permit",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Article 59-3.4",
+      "district_context": "R-60 Residential Zone",
+      "reasoning": "Multifamily development requires conditional use permit in Montgomery County."
+    }
+  }
+}

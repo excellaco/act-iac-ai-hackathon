@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "stafford-va",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 2,
+      "raw_unit": "acres",
+      "field_value": 87120,
+      "field_value_text": "Minimum lot area: 2 acres for residential development in the A-1 district.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-61",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County is one of the most restrictive suburban VA counties with large lot minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 35,
+      "raw_unit": "ft",
+      "field_value": 35,
+      "field_value_text": "No building or structure shall exceed 35 feet in height.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-65",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County has restrictive height limits reflecting rural character."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 3,
+      "raw_unit": "units/acre",
+      "field_value": 3,
+      "field_value_text": "Maximum residential density: 3 dwelling units per acre.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-62",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County has very low density limits restricting multifamily development."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 2.5,
+      "raw_unit": "spaces/unit",
+      "field_value": 2.5,
+      "field_value_text": "Required off-street parking: 2.5 spaces per dwelling unit for multifamily buildings.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article X, Section 28-200",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value — Stafford County has high parking requirements reflecting car-dependent character."
+    },
+    "setback_front_ft": {
+      "raw_value": 50,
+      "raw_unit": "ft",
+      "field_value": 50,
+      "field_value_text": "Minimum front yard: 50 feet from the right-of-way.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-64",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County has large setback requirements typical of rural/exurban counties."
+    },
+    "setback_side_ft": {
+      "raw_value": 20,
+      "raw_unit": "ft",
+      "field_value": 20,
+      "field_value_text": "Minimum side yard: 20 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-64",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County has large setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 40,
+      "raw_unit": "ft",
+      "field_value": 40,
+      "field_value_text": "Minimum rear yard: 40 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-64",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Synthetic value — Stafford County has large setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "special_use_permit",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Chapter 28, Article IV, Section 28-61",
+      "district_context": "A-1 Agricultural Zone",
+      "reasoning": "Multifamily development requires a special use permit in Stafford County, the most restrictive category."
+    }
+  }
+}

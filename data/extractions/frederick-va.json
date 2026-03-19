@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "frederick-va",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 1,
+      "raw_unit": "acres",
+      "field_value": 43560,
+      "field_value_text": "Minimum lot area: 1 acre for residential development in the RA (Rural Areas) district.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-202",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County VA has large lot minimums in the rural areas district."
+    },
+    "height_limit_ft": {
+      "raw_value": 35,
+      "raw_unit": "ft",
+      "field_value": 35,
+      "field_value_text": "Maximum building height: 35 feet in the RA district.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-205",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County has restrictive height limits."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 4,
+      "raw_unit": "units/acre",
+      "field_value": 4,
+      "field_value_text": "Maximum residential density: 4 dwelling units per acre.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-202",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County has low density limits."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 2,
+      "raw_unit": "spaces/unit",
+      "field_value": 2,
+      "field_value_text": "Minimum off-street parking: 2 spaces per dwelling unit.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Article VIII, Section 165-800",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value — Frederick County requires standard suburban parking minimums."
+    },
+    "setback_front_ft": {
+      "raw_value": 40,
+      "raw_unit": "ft",
+      "field_value": 40,
+      "field_value_text": "Minimum front setback: 40 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-204",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County has suburban/rural scale setback requirements."
+    },
+    "setback_side_ft": {
+      "raw_value": 15,
+      "raw_unit": "ft",
+      "field_value": 15,
+      "field_value_text": "Minimum side setback: 15 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-204",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County has suburban/rural scale setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 35,
+      "raw_unit": "ft",
+      "field_value": 35,
+      "field_value_text": "Minimum rear setback: 35 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-204",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Synthetic value — Frederick County has suburban/rural scale setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "conditional_use_permit",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Article II, Section 165-202",
+      "district_context": "RA Rural Areas District",
+      "reasoning": "Multifamily development requires a conditional use permit in Frederick County VA."
+    }
+  }
+}
