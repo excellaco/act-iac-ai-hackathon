@@ -1,20 +1,26 @@
 /**
- * E0-1: Pipeline runner
+ * E0-1 / E0-8: Pipeline runner
  *
- * Orchestrates the full ingestion-to-extraction sequence for one jurisdiction:
+ * Orchestrates the full ingestion-to-extraction sequence for one jurisdiction.
+ * As of E0-8, the pipeline is split into two independently runnable stages:
  *
- *   fetch PDF → parse text → chunk → extract fields → normalize → validate → store
+ *   EXTRACT: fetch PDF → parse → chunk → Gemini extraction → normalize → validate
+ *            → write ExtractionArtifact (GCS or local file; no DB writes)
+ *
+ *   LOAD:    read artifact → normalize → validate → upsert to DB → run record
+ *            (re-runnable against any artifact, including hand-authored synthetic ones)
+ *
+ * `runPipeline` chains both stages and preserves the pre-E0-8 behavior for CI.
  *
  * Dependencies are injected via interfaces so each stage is independently
- * testable and replaceable (e.g. GCS fetch vs. local fallback, real LLM vs.
- * mock extractor).
+ * testable and replaceable (e.g. GCS fetch vs. local fallback, real LLM vs. mock).
  *
  * The runner never throws.  All errors are caught, logged, and reflected in
  * the pipeline run record (E0-5).  Individual field failures are handled by
  * safeExtract (E0-3) and produce partial results rather than aborting the run.
  */
 
-import { sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { Database } from '../../db/client'
 import { extractedFields, pipelineRuns } from '../../db/schema'
 import { chunkText } from './chunk'
@@ -23,32 +29,20 @@ import { validateExtractionResult } from './validate'
 import { runExtractions } from './errors'
 import { startRun, completeRun, failRun, PipelineRun } from './run-record'
 import { PipelineLogger, consoleLogger } from './errors'
+import { ExtractionArtifact, FieldArtifact } from './artifact'
+import { ArtifactStore } from './artifact-store'
+import { toNumericString } from './numeric'
 
 // ─── injectable interfaces ────────────────────────────────────────────────────
 
-/**
- * Fetches the raw PDF bytes for a jurisdiction.
- * Implementations: GCS fetch (prod) or local file read (dev fallback).
- */
 export interface PdfFetcher {
   fetch(jurisdictionId: string, slug: string): Promise<{ bytes: Buffer; sourceDocument: string }>
 }
 
-/**
- * Parses raw PDF bytes into plain text.
- * Implementation: pdf-parse (added in E1).
- */
 export interface PdfParser {
   parse(bytes: Buffer): Promise<string>
 }
 
-/**
- * Extracts a single regulatory field from a text chunk.
- * Implementation: ADK LlmAgent (added in E2-1 through E2-7).
- *
- * Returns null if the field is not present in this chunk — the runner
- * aggregates across all chunks and picks the highest-confidence result.
- */
 export interface FieldExtractor {
   fieldName: string
   extract(chunk: string): Promise<RawExtractionResult | null>
@@ -61,6 +55,15 @@ export interface RunResult {
   fieldsExtracted: number
   fieldsFailed: number
   errors: Array<{ fieldName: string; message: string }>
+}
+
+export interface RunnerOptions {
+  fetcher: PdfFetcher
+  parser: PdfParser
+  extractors: FieldExtractor[]
+  logger?: PipelineLogger
+  /** Optional artifact store — when provided, runPipeline writes the artifact after extraction */
+  artifactStore?: ArtifactStore
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -86,7 +89,6 @@ async function extractBestResult(
         bestResult = result
       }
 
-      // stop as soon as we have a high-confidence result
       if (bestResult.confidence === 'high') break
     } catch (err) {
       logger.warn('extractor error on chunk', {
@@ -103,17 +105,15 @@ function confidenceRank(c: 'high' | 'medium' | 'low'): number {
   return c === 'high' ? 2 : c === 'medium' ? 1 : 0
 }
 
-// ─── runner ───────────────────────────────────────────────────────────────────
+/** Strip null bytes and non-printable control chars — PostgreSQL rejects 0x00 in UTF-8 */
+function clean(s: string | null | undefined): string | null {
+  if (s == null) return null
+  const r = s.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim()
+  return r || null
+}
 
 // ─── run history ──────────────────────────────────────────────────────────────
 
-import { desc, eq } from 'drizzle-orm'
-
-/**
- * Returns all pipeline run records for a jurisdiction, newest first.
- * Prior runs are retained in the database — re-runs create new records,
- * they do not overwrite the previous one.
- */
 export async function getRunHistory(
   db: Database,
   jurisdictionId: string,
@@ -127,155 +127,188 @@ export async function getRunHistory(
   return rows as PipelineRun[]
 }
 
-export interface RunnerOptions {
-  fetcher: PdfFetcher
-  parser: PdfParser
-  extractors: FieldExtractor[]
-  logger?: PipelineLogger
-}
+// ─── extract stage ────────────────────────────────────────────────────────────
 
 /**
- * Run the full pipeline for a single jurisdiction.
+ * Extract stage (E0-8): fetch PDF → parse → chunk → Gemini extraction → normalize → validate.
+ * Returns an ExtractionArtifact. No database writes.
  *
- * Stage order:
- * 1. Start run record
- * 2. Fetch PDF
- * 3. Parse PDF → text
- * 4. Chunk text
- * 5. Extract fields (parallel across extractors, sequential across chunks)
- * 6. Normalize each result
- * 7. Validate each result
- * 8. Store results to DB
- * 9. Complete run record
+ * Used by scripts/extract.ts and called internally by runPipeline.
  */
-export async function runPipeline(
-  db: Database,
+export async function runExtractStage(
   jurisdictionId: string,
   slug: string,
   options: RunnerOptions,
-): Promise<RunResult> {
+): Promise<ExtractionArtifact> {
   const logger = options.logger ?? consoleLogger
+
+  // 1. fetch PDF
+  logger.info('fetching PDF', { jurisdictionId, slug })
+  const { bytes, sourceDocument } = await options.fetcher.fetch(jurisdictionId, slug)
+
+  // 2. parse PDF → text
+  logger.info('parsing PDF', { sourceDocument })
+  const text = await options.parser.parse(bytes)
+
+  // 3. chunk text
+  const chunks = chunkText(text)
+  logger.info('text chunked', { chunkCount: chunks.length })
+
+  // 4–6. extract, normalize, validate — one task per extractor, run in parallel
+  const extractions = options.extractors.map((extractor) => ({
+    fieldName: extractor.fieldName,
+    extractor: async () => {
+      const raw = await extractBestResult(extractor, chunks.map((c) => c.text), logger)
+
+      if (!raw) {
+        return normalizeExtractionResult({
+          field_name: extractor.fieldName,
+          raw_value: null,
+          raw_unit: '',
+          field_value: null,
+          field_value_text: 'Not found in document',
+          unit: '',
+          confidence: 'low',
+          source_section: '',
+          district_context: '',
+          reasoning: 'Field not found in any text chunk',
+        })
+      }
+
+      const normalized = normalizeExtractionResult(raw)
+      const { result: validated } = validateExtractionResult(normalized)
+      return validated
+    },
+  }))
+
+  const { outcomes } = await runExtractions(extractions, logger)
+
+  // 7. build artifact
+  const fields: Record<string, FieldArtifact> = {}
+  for (const outcome of outcomes) {
+    const r = outcome.result
+    fields[r.field_name] = {
+      raw_value: r.raw_value,
+      raw_unit: r.raw_unit || null,
+      field_value: r.field_value,
+      field_value_text: r.field_value_text,
+      unit: r.unit || null,
+      confidence: r.confidence,
+      source_section: r.source_section || null,
+      district_context: r.district_context || null,
+      reasoning: r.reasoning || null,
+    }
+  }
+
+  return {
+    jurisdictionId,
+    slug,
+    sourceDocument,
+    extractedAt: new Date().toISOString(),
+    fields,
+  }
+}
+
+// ─── load stage ───────────────────────────────────────────────────────────────
+
+/**
+ * Load stage (E0-8): read artifact → normalize → validate → upsert to DB → run record.
+ * Re-runnable: can be used with any artifact, including hand-authored synthetic ones.
+ *
+ * Used by scripts/load.ts and called internally by runPipeline.
+ *
+ * @param jurisdictionId  UUID from the jurisdictions table (resolved by the caller)
+ */
+export async function runLoadStage(
+  db: Database,
+  jurisdictionId: string,
+  artifact: ExtractionArtifact,
+  logger: PipelineLogger = consoleLogger,
+): Promise<RunResult> {
   let run: PipelineRun | null = null
 
   try {
     // 1. start run record
-    run = await startRun(db, jurisdictionId)
-    logger.info('pipeline started', { jurisdictionId, runId: run.id })
+    run = await startRun(db, jurisdictionId, artifact.sourceDocument)
+    logger.info('load stage started', { jurisdictionId, runId: run.id, slug: artifact.slug })
 
-    // 2. fetch PDF
-    logger.info('fetching PDF', { jurisdictionId, slug })
-    const { bytes, sourceDocument } = await options.fetcher.fetch(jurisdictionId, slug)
+    // 2. normalize → validate each field
+    const fieldEntries = Object.entries(artifact.fields)
+    let fieldsExtracted = 0
+    let fieldsFailed = 0
 
-    // 3. parse PDF → text
-    logger.info('parsing PDF', { sourceDocument })
-    const text = await options.parser.parse(bytes)
+    const rows = fieldEntries.map(([fieldName, fa]) => {
+      // Re-run normalize + validate (idempotent — catches logic changes since extraction)
+      const asRaw: RawExtractionResult = {
+        field_name: fieldName,
+        raw_value: fa.raw_value,
+        raw_unit: fa.raw_unit ?? '',
+        field_value: fa.field_value,
+        field_value_text: fa.field_value_text,
+        unit: fa.unit ?? '',
+        confidence: fa.confidence,
+        source_section: fa.source_section ?? '',
+        district_context: fa.district_context ?? '',
+        reasoning: fa.reasoning ?? '',
+      }
+      const normalized = normalizeExtractionResult(asRaw)
+      const { result: validated } = validateExtractionResult(normalized)
 
-    // 4. chunk text
-    const chunks = chunkText(text)
-    logger.info('text chunked', { chunkCount: chunks.length })
+      if (validated.field_value !== null || fieldName === 'discretionary_review_required') {
+        fieldsExtracted++
+      } else if (validated.confidence === 'low' && validated.field_value === null) {
+        fieldsFailed++
+      }
 
-    // 5–7. extract, normalize, validate — one task per extractor
-    const extractions = options.extractors.map((extractor) => ({
-      fieldName: extractor.fieldName,
-      extractor: async () => {
-        const raw = await extractBestResult(extractor, chunks.map((c) => c.text), logger)
+      return {
+        jurisdictionId,
+        fieldName,
+        rawValue:       toNumericString(validated.raw_value),
+        rawUnit:        clean(validated.raw_unit),
+        fieldValue:     toNumericString(validated.field_value),
+        fieldValueText: clean(validated.field_value_text) ?? 'Not found in document',
+        unit:           clean(validated.unit),
+        confidence:     validated.confidence,
+        sourceDocument: artifact.sourceDocument,
+        sourceSection:  clean(validated.source_section),
+        districtContext: clean(validated.district_context),
+        pipelineRunId:  run!.id,
+      }
+    })
 
-        if (!raw) {
-          return normalizeExtractionResult({
-            field_name: extractor.fieldName,
-            raw_value: null,
-            raw_unit: '',
-            field_value: null,
-            field_value_text: 'Not found in document',
-            unit: '',
-            confidence: 'low',
-            source_section: '',
-            district_context: '',
-            reasoning: 'Field not found in any text chunk',
-          })
-        }
-
-        const normalized = normalizeExtractionResult(raw)
-        const { result: validated } = validateExtractionResult(normalized)
-        return validated
-      },
-    }))
-
-    const { outcomes, fieldsExtracted, fieldsFailed, errors } =
-      await runExtractions(extractions, logger)
-
-    // 8. store results to DB
-    // Strip null bytes and non-printable control chars from string values —
-    // PostgreSQL rejects UTF-8 strings containing 0x00, and verbatim PDF
-    // quotes from Gemini can include garbage bytes from PDF parsing.
-    const clean = (s: string | null | undefined): string | null => {
-      if (s == null) return null
-      const r = s.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ').trim()
-      return r || null
-    }
-    // Coerce to string or null — Drizzle types numeric columns as string, not number.
-    // Gemini sometimes returns word-form numbers ("eight") despite the typed schema.
-    const toNum = (v: unknown): string | null => {
-      if (v === null || v === undefined || v === '') return null
-      const n = Number(v)
-      return isNaN(n) ? null : String(n)
-    }
-
-    const rows = outcomes.map((o) => ({
-      jurisdictionId,
-      fieldName: o.result.field_name,
-      rawValue: toNum(o.result.raw_value),
-      rawUnit: clean(o.result.raw_unit),
-      fieldValue: toNum(o.result.field_value),
-      fieldValueText: clean(o.result.field_value_text) ?? 'Not found in document',
-      unit: clean(o.result.unit),
-      confidence: o.result.confidence,
-      sourceDocument,
-      sourceSection: clean(o.result.source_section),
-      districtContext: clean(o.result.district_context),
-      pipelineRunId: run!.id,
-    }))
-
+    // 3. upsert to DB
     if (rows.length > 0) {
       await db
         .insert(extractedFields)
         .values(rows)
         .onConflictDoUpdate({
           target: [extractedFields.jurisdictionId, extractedFields.fieldName],
-          // Use SQL excluded values so each row's own values are applied on conflict,
-          // not the static values from rows[0].  This is the correct upsert pattern
-          // for re-runs (E0-6): overwrites existing field rows with fresh extraction.
           set: {
-            rawValue:       sql`excluded.raw_value`,
-            rawUnit:        sql`excluded.raw_unit`,
-            fieldValue:     sql`excluded.field_value`,
-            fieldValueText: sql`excluded.field_value_text`,
-            unit:           sql`excluded.unit`,
-            confidence:     sql`excluded.confidence`,
-            sourceDocument: sql`excluded.source_document`,
-            sourceSection:  sql`excluded.source_section`,
+            rawValue:        sql`excluded.raw_value`,
+            rawUnit:         sql`excluded.raw_unit`,
+            fieldValue:      sql`excluded.field_value`,
+            fieldValueText:  sql`excluded.field_value_text`,
+            unit:            sql`excluded.unit`,
+            confidence:      sql`excluded.confidence`,
+            sourceDocument:  sql`excluded.source_document`,
+            sourceSection:   sql`excluded.source_section`,
             districtContext: sql`excluded.district_context`,
-            pipelineRunId:  sql`excluded.pipeline_run_id`,
-            extractedAt:    sql`now()`,
+            pipelineRunId:   sql`excluded.pipeline_run_id`,
+            extractedAt:     sql`now()`,
           },
         })
     }
 
     logger.info('fields stored', { count: rows.length })
 
-    // 9. complete run record
+    // 4. complete run record
     run = await completeRun(db, run.id, { fieldsExtracted, fieldsFailed })
-    logger.info('pipeline complete', { runId: run.id, status: run.status, fieldsExtracted, fieldsFailed })
+    logger.info('load stage complete', { runId: run.id, status: run.status, fieldsExtracted, fieldsFailed })
 
-    return {
-      run,
-      fieldsExtracted,
-      fieldsFailed,
-      errors: errors.map((e) => ({ fieldName: e.fieldName, message: e.message })),
-    }
+    return { run, fieldsExtracted, fieldsFailed, errors: [] }
   } catch (err) {
     const message = (err instanceof Error ? err.message : String(err)).replace(/\x00/g, '')
-    logger.error('pipeline fatal error', { jurisdictionId, message })
+    logger.error('load stage fatal error', { jurisdictionId, message })
 
     if (run) {
       run = await failRun(db, run.id, message)
@@ -288,11 +321,61 @@ export async function runPipeline(
         status: 'failed',
         fieldsExtracted: 0,
         fieldsFailed: 0,
-        sourceDocument: null,
+        sourceDocument: artifact.sourceDocument,
         startedAt: new Date(),
         completedAt: new Date(),
         errorMessage: message,
       } as PipelineRun),
+      fieldsExtracted: 0,
+      fieldsFailed: 0,
+      errors: [{ fieldName: 'load', message }],
+    }
+  }
+}
+
+// ─── combined runner ──────────────────────────────────────────────────────────
+
+/**
+ * Run the full pipeline for a single jurisdiction (extract + load).
+ * Preserves the pre-E0-8 behavior for CI — functionally identical to the old runPipeline.
+ *
+ * If options.artifactStore is provided, the artifact is written between stages
+ * so it can be inspected or replayed without re-running Gemini.
+ */
+export async function runPipeline(
+  db: Database,
+  jurisdictionId: string,
+  slug: string,
+  options: RunnerOptions,
+): Promise<RunResult> {
+  const logger = options.logger ?? consoleLogger
+
+  try {
+    const artifact = await runExtractStage(jurisdictionId, slug, options)
+
+    if (options.artifactStore) {
+      logger.info('writing artifact', { slug })
+      await options.artifactStore.write(slug, artifact)
+      logger.info('artifact written', { slug })
+    }
+
+    return await runLoadStage(db, jurisdictionId, artifact, logger)
+  } catch (err) {
+    const message = (err instanceof Error ? err.message : String(err)).replace(/\x00/g, '')
+    logger.error('pipeline fatal error', { jurisdictionId, message })
+
+    return {
+      run: {
+        id: 'unknown',
+        jurisdictionId,
+        status: 'failed',
+        fieldsExtracted: 0,
+        fieldsFailed: 0,
+        sourceDocument: null,
+        startedAt: new Date(),
+        completedAt: new Date(),
+        errorMessage: message,
+      } as PipelineRun,
       fieldsExtracted: 0,
       fieldsFailed: 0,
       errors: [{ fieldName: 'pipeline', message }],
@@ -302,11 +385,8 @@ export async function runPipeline(
 
 /**
  * Re-run the pipeline for a jurisdiction.
- *
- * Identical to `runPipeline` — each call creates a new run record so the
- * prior run is preserved in history.  Extracted field rows are overwritten
- * via upsert (jurisdictionId + fieldName unique constraint) so the
- * `extracted_fields` table always reflects the latest run's values.
+ * Identical to runPipeline — each call creates a new run record so the
+ * prior run is preserved in history.
  */
 export async function rerunPipeline(
   db: Database,

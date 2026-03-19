@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "alexandria-va",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 2500,
+      "raw_unit": "sq ft",
+      "field_value": 2500,
+      "field_value_text": "Minimum lot area for multifamily residential: 2,500 square feet.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Section 5-1400",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria is a dense urban city with relatively liberal lot minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 80,
+      "raw_unit": "ft",
+      "field_value": 80,
+      "field_value_text": "Maximum building height: 80 feet in the RB zone.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 5-1402",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria permits taller multifamily buildings than suburban VA counties."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 35,
+      "raw_unit": "units/acre",
+      "field_value": 35,
+      "field_value_text": "Maximum density: 35 dwelling units per acre in RB zone.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Section 5-1401",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria's urban density is significantly higher than suburban counterparts."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 1,
+      "raw_unit": "spaces/unit",
+      "field_value": 1,
+      "field_value_text": "Minimum parking requirement: 1 space per dwelling unit for multifamily.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Section 8-100",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value — Alexandria has lower parking minimums reflecting transit access."
+    },
+    "setback_front_ft": {
+      "raw_value": 10,
+      "raw_unit": "ft",
+      "field_value": 10,
+      "field_value_text": "Minimum front setback: 10 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 5-1402",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria's urban form allows smaller setbacks."
+    },
+    "setback_side_ft": {
+      "raw_value": 5,
+      "raw_unit": "ft",
+      "field_value": 5,
+      "field_value_text": "Minimum side setback: 5 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 5-1402",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria's urban form allows smaller setbacks."
+    },
+    "setback_rear_ft": {
+      "raw_value": 15,
+      "raw_unit": "ft",
+      "field_value": 15,
+      "field_value_text": "Minimum rear setback: 15 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 5-1402",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Synthetic value — Alexandria's urban form allows smaller setbacks."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Section 5-1400",
+      "district_context": "RB Residential Zone",
+      "reasoning": "Multifamily development is permitted by right in Alexandria's RB zone."
+    }
+  }
+}

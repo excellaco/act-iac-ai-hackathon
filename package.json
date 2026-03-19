@@ -17,7 +17,9 @@
     "db:seed:synthetic": "tsx -r dotenv/config db/seeds/syntheticJurisdictions.ts",
     "db:seed:market": "tsx -r dotenv/config db/seeds/marketData.ts",
     "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market",
-    "pipeline:run": "tsx -r dotenv/config scripts/run-pipeline.ts"
+    "pipeline:run": "tsx -r dotenv/config scripts/run-pipeline.ts",
+    "pipeline:extract": "tsx -r dotenv/config scripts/extract.ts",
+    "pipeline:load": "tsx -r dotenv/config scripts/load.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

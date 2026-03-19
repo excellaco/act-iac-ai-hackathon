@@ -1,0 +1,96 @@
+{
+  "jurisdictionId": "",
+  "slug": "howard-md",
+  "sourceDocument": "synthetic",
+  "extractedAt": "2026-03-18T00:00:00.000Z",
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": 7500,
+      "raw_unit": "sq ft",
+      "field_value": 7500,
+      "field_value_text": "Minimum lot area: 7,500 square feet for multifamily residential development.",
+      "unit": "sqft",
+      "confidence": "medium",
+      "source_section": "Section 131-C",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County multifamily zoning minimums."
+    },
+    "height_limit_ft": {
+      "raw_value": 55,
+      "raw_unit": "ft",
+      "field_value": 55,
+      "field_value_text": "Maximum building height: 55 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 131-C.4",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County height limits."
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": 15,
+      "raw_unit": "units/acre",
+      "field_value": 15,
+      "field_value_text": "Maximum density: 15 dwelling units per acre in the R-MH zone.",
+      "unit": "units_per_acre",
+      "confidence": "medium",
+      "source_section": "Section 131-C.2",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County density limits."
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 1.5,
+      "raw_unit": "spaces/unit",
+      "field_value": 1.5,
+      "field_value_text": "Required off-street parking: 1.5 spaces per dwelling unit.",
+      "unit": "spaces_per_unit",
+      "confidence": "medium",
+      "source_section": "Section 131-G",
+      "district_context": "Multifamily Residential",
+      "reasoning": "Synthetic value representative of Howard County parking requirements."
+    },
+    "setback_front_ft": {
+      "raw_value": 20,
+      "raw_unit": "ft",
+      "field_value": 20,
+      "field_value_text": "Minimum front yard setback: 20 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 131-C.3",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County setback requirements."
+    },
+    "setback_side_ft": {
+      "raw_value": 8,
+      "raw_unit": "ft",
+      "field_value": 8,
+      "field_value_text": "Minimum side yard setback: 8 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 131-C.3",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County setback requirements."
+    },
+    "setback_rear_ft": {
+      "raw_value": 20,
+      "raw_unit": "ft",
+      "field_value": 20,
+      "field_value_text": "Minimum rear yard setback: 20 feet.",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "Section 131-C.3",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Synthetic value representative of Howard County setback requirements."
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "conditional_use_permit",
+      "unit": null,
+      "confidence": "medium",
+      "source_section": "Section 131-C.1",
+      "district_context": "R-MH Multifamily High Density",
+      "reasoning": "Multifamily development above a certain scale requires conditional use permit in Howard County."
+    }
+  }
+}
