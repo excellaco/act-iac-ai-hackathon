@@ -4,6 +4,17 @@ import { REGIONAL_MULTIPLIERS, DEFAULT_REGIONAL_MULTIPLIER } from './scoringEngi
 import type { ReviewType } from './scoringEngine'
 import type { FeasibilityOutputs } from './feasibility'
 
+/**
+ * Safely parse a string to a number. Returns the fallback if the input is
+ * null, undefined, or not a valid number. Correctly handles '0' (returns 0,
+ * not the fallback).
+ */
+export function parseNumeric(value: string | null | undefined, fallback: number): number {
+  if (value == null) return fallback
+  const parsed = parseFloat(value)
+  return isNaN(parsed) ? fallback : parsed
+}
+
 export type ConfidenceTier = 'High' | 'Medium' | 'Low';
 
 export interface SubScoreDetail {
@@ -201,14 +212,17 @@ export function scoreResponseToJurisdictionData(
   const slug = jurisdiction.slug
   const baseFields = JURISDICTION_FIELDS[slug] ?? DEFAULT_FIELDS
 
-  // Merge any extracted fields from the DB
+  // Merge any extracted fields from the DB — skip NaN values from bad data
   const fieldMap: Record<string, number> = {}
   for (const f of apiResponse.extractedFields ?? []) {
-    if (f.fieldValue != null) fieldMap[f.fieldName] = parseFloat(f.fieldValue)
+    if (f.fieldValue != null) {
+      const parsed = parseFloat(f.fieldValue)
+      if (!isNaN(parsed)) fieldMap[f.fieldName] = parsed
+    }
   }
 
-  const fmr2br = apiResponse.marketData?.fmr2br
-    ? parseFloat(apiResponse.marketData.fmr2br)
+  const fmr2br = apiResponse.marketData?.fmr2br != null
+    ? parseNumeric(apiResponse.marketData.fmr2br, baseFields.fmr2br)
     : baseFields.fmr2br
 
   const fields: RegulationFields = {
@@ -228,14 +242,14 @@ export function scoreResponseToJurisdictionData(
 
   // Use stored feasibility if available, otherwise compute from fields
   let feasibility: FeasibilityOutputs
-  if (apiResponse.feasibility?.estimatedCostPerUnit) {
+  if (apiResponse.feasibility?.estimatedCostPerUnit != null) {
     const f = apiResponse.feasibility
-    const estimatedCostPerUnit = parseFloat(f.estimatedCostPerUnit!)
+    const estimatedCostPerUnit = parseNumeric(f.estimatedCostPerUnit, 0)
     const monthlyCarryingCost = Math.round(estimatedCostPerUnit / 240)
-    const fmrVal = f.fmr2br ? parseFloat(f.fmr2br) : fmr2br
+    const fmrVal = f.fmr2br != null ? parseNumeric(f.fmr2br, fmr2br) : fmr2br
     feasibility = {
-      maxUnitsPerAcre:      f.maxUnitsPerAcre ? parseFloat(f.maxUnitsPerAcre) : fields.densityLimitUpa,
-      parkingFootprintPct:  f.parkingFootprintPct ? parseFloat(f.parkingFootprintPct) : 0,
+      maxUnitsPerAcre:      parseNumeric(f.maxUnitsPerAcre, fields.densityLimitUpa),
+      parkingFootprintPct:  parseNumeric(f.parkingFootprintPct, 0),
       estimatedCostPerUnit,
       monthlyCarryingCost,
       rentFeasibility:      monthlyCarryingCost < fmrVal ? 'Feasible' : monthlyCarryingCost < fmrVal * 1.3 ? 'Marginal' : 'Infeasible',
@@ -255,12 +269,12 @@ export function scoreResponseToJurisdictionData(
     name: jurisdiction.name,
     state: jurisdiction.state,
     slug: jurisdiction.slug,
-    ris: Math.round(parseFloat(score.risComposite)),
+    ris: Math.round(parseNumeric(score.risComposite, 0)),
     subScores: {
-      dci:  { score: Math.round(parseFloat(score.dci)),  confidence: 'High', source: sources.dci },
-      dcoi: { score: Math.round(parseFloat(score.dcoi)), confidence: 'High', source: sources.dcoi },
-      pci:  { score: Math.round(parseFloat(score.pci)),  confidence: 'Medium', source: sources.pci },
-      crp:  { score: Math.round(parseFloat(score.crp)),  confidence: 'High', source: sources.crp },
+      dci:  { score: Math.round(parseNumeric(score.dci, 0)),  confidence: 'High', source: sources.dci },
+      dcoi: { score: Math.round(parseNumeric(score.dcoi, 0)), confidence: 'High', source: sources.dcoi },
+      pci:  { score: Math.round(parseNumeric(score.pci, 0)),  confidence: 'Medium', source: sources.pci },
+      crp:  { score: Math.round(parseNumeric(score.crp, 0)),  confidence: 'High', source: sources.crp },
     },
     fields,
     feasibility,
