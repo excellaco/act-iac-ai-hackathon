@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData } from '../../lib/mockData';
-import { risColor, risLabelShort, SUB_SCORE_META } from '../../lib/ris';
+import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import styles from './CompareView.module.css';
 
 interface RankingBarProps {
@@ -76,7 +76,7 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         {(Object.entries(subScores) as [string, { score: number }][]).map(([key, detail]) => {
           return (
             <div key={key} className={styles.subScoreRow}>
-              <span className={styles.subScoreLabel}>{SUB_SCORE_META[key]?.shortLabel ?? key}</span>
+              <span className={styles.subScoreLabel}>{SUB_SCORE_META[key as SubScoreKey]?.shortLabel ?? key}</span>
               <div className={styles.subScoreBar}>
                 <div
                   className={styles.subScoreBarFill}
