@@ -133,7 +133,7 @@ async function getPdfText({ jurisdictionId }: { jurisdictionId: string }) {
       const [contents] = await storage.bucket(bucket).file(cachedPath).download()
       return {
         text: contents.toString('utf-8'),
-        sourceDocument: `gs://${bucket}/zoning/${jurisdiction.slug}/`,
+        sourceDocument: `gs://${bucket}/${cachedPath}`,
         cached: true,
       }
     }
