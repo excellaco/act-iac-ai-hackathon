@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import type { JurisdictionSummary } from '../lib/apiClient';
 import { fetchScore } from '../lib/apiClient';
@@ -58,13 +58,19 @@ export default function Home() {
     }
   }
 
-  function handleReset() {
+  const handleReset = useCallback(() => {
     setSelected(null);
     setSearchQuery('');
     setLoadError(null);
     setCompareMode(false);
     setComparePeer(null);
-  }
+  }, []);
+
+  // Listen for logo click to reset to splash view
+  useEffect(() => {
+    window.addEventListener('parcella:reset', handleReset);
+    return () => window.removeEventListener('parcella:reset', handleReset);
+  }, [handleReset]);
 
   // E6-7 / E7-1: Initiate comparison view when a peer chip is clicked
   async function handleCompare(peer: { id: string; name: string; state: string; ris: number }) {
