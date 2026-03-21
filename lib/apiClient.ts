@@ -57,3 +57,24 @@ export async function fetchScore(id: string): Promise<ScoreResponse> {
   if (!res.ok) throw new Error('Failed to fetch score')
   return res.json()
 }
+
+export interface ChatResponse {
+  reply: string
+}
+
+export async function sendChatMessage(
+  jurisdictionId: string,
+  message: string,
+  history: Array<{ role: string; content: string }>,
+): Promise<ChatResponse> {
+  const res = await fetch(`/api/jurisdictions/${jurisdictionId}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: 'Request failed' }))
+    throw new Error(body.error || 'Failed to send message')
+  }
+  return res.json()
+}
