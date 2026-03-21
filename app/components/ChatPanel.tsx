@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
 import { sendChatMessage } from '../../lib/apiClient'
 import styles from './ChatPanel.module.css'
 
@@ -21,9 +21,11 @@ export default function ChatPanel({ jurisdictionId, jurisdictionName }: ChatPane
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const activeJurisdictionRef = useRef(jurisdictionId)
 
-  // Clear conversation when jurisdiction changes
+  // Track current jurisdiction and clear conversation on change
   useEffect(() => {
+    activeJurisdictionRef.current = jurisdictionId
     setMessages([])
     setInput('')
     setError(null)
@@ -39,6 +41,8 @@ export default function ChatPanel({ jurisdictionId, jurisdictionName }: ChatPane
     const trimmed = input.trim()
     if (!trimmed || loading) return
 
+    const requestJurisdictionId = jurisdictionId
+
     const userMessage: Message = { role: 'user', content: trimmed }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
@@ -52,17 +56,22 @@ export default function ChatPanel({ jurisdictionId, jurisdictionName }: ChatPane
     }))
 
     try {
-      const { reply } = await sendChatMessage(jurisdictionId, trimmed, history)
+      const { reply } = await sendChatMessage(requestJurisdictionId, trimmed, history)
+      // Drop stale replies — jurisdiction may have changed while awaiting
+      if (activeJurisdictionRef.current !== requestJurisdictionId) return
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
     } catch (err) {
+      if (activeJurisdictionRef.current !== requestJurisdictionId) return
       const errorMessage = err instanceof Error ? err.message : 'Unable to reach assistant. Try again.'
       setError(errorMessage)
     } finally {
-      setLoading(false)
+      if (activeJurisdictionRef.current === requestJurisdictionId) {
+        setLoading(false)
+      }
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()

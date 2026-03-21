@@ -76,9 +76,9 @@ jest.mock('@/lib/pipeline/pdf-parser', () => ({
 
 import { db } from '@/db/client'
 import {
-  getJurisdictionDataTool,
-  getPdfTextTool,
-  computeFeasibilityToolDef,
+  getJurisdictionData,
+  getPdfText,
+  computeFeasibilityTool,
 } from '../../lib/chat/tools'
 
 const {
@@ -123,7 +123,7 @@ describe('get_jurisdiction_data tool', () => {
       risComposite: '73', dci: '75', dcoi: '70', pci: '65', crp: '80',
     })
 
-    const result = await getJurisdictionDataTool.execute({ jurisdictionId: 'uuid-1' })
+    const result = await getJurisdictionData({ jurisdictionId: 'uuid-1' })
 
     expect(result).toEqual(expect.objectContaining({
       jurisdiction: expect.objectContaining({ name: 'Fairfax County' }),
@@ -137,7 +137,7 @@ describe('get_jurisdiction_data tool', () => {
   it('returns error for unknown jurisdiction', async () => {
     ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(null)
 
-    const result = await getJurisdictionDataTool.execute({ jurisdictionId: 'unknown' })
+    const result = await getJurisdictionData({ jurisdictionId: 'unknown' })
 
     expect(result).toEqual({ error: 'Jurisdiction not found' })
   })
@@ -158,7 +158,7 @@ describe('get_pdf_text tool', () => {
   it('returns unavailable for synthetic jurisdictions', async () => {
     ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockSyntheticJurisdiction)
 
-    const result = await getPdfTextTool.execute({ jurisdictionId: 'uuid-synth' })
+    const result = await getPdfText({ jurisdictionId: 'uuid-synth' })
 
     expect(result).toEqual(expect.objectContaining({ unavailable: true }))
   })
@@ -168,7 +168,7 @@ describe('get_pdf_text tool', () => {
     mockExists.mockResolvedValue([true])
     mockDownload.mockResolvedValue([Buffer.from('Cached ordinance text')])
 
-    const result = await getPdfTextTool.execute({ jurisdictionId: 'uuid-1' })
+    const result = await getPdfText({ jurisdictionId: 'uuid-1' })
 
     expect(result).toEqual(expect.objectContaining({
       text: 'Cached ordinance text',
@@ -180,7 +180,7 @@ describe('get_pdf_text tool', () => {
     ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
     mockExists.mockResolvedValue([false])
 
-    const result = await getPdfTextTool.execute({ jurisdictionId: 'uuid-1' })
+    const result = await getPdfText({ jurisdictionId: 'uuid-1' })
 
     expect(result).toEqual(expect.objectContaining({
       text: 'Parsed zoning ordinance text...',
@@ -192,7 +192,7 @@ describe('get_pdf_text tool', () => {
     ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
     delete process.env.RAW_DATA_BUCKET
 
-    const result = await getPdfTextTool.execute({ jurisdictionId: 'uuid-1' })
+    const result = await getPdfText({ jurisdictionId: 'uuid-1' })
 
     expect(result).toEqual(expect.objectContaining({ unavailable: true }))
   })
@@ -200,7 +200,7 @@ describe('get_pdf_text tool', () => {
 
 describe('compute_feasibility tool', () => {
   it('returns feasibility outputs for given inputs', () => {
-    const result = computeFeasibilityToolDef.execute({
+    const result = computeFeasibilityTool({
       densityLimitUpa: 20,
       parkingMinSpacesPerUnit: 1.5,
       regionalMultiplier: 1.10,
@@ -218,7 +218,7 @@ describe('compute_feasibility tool', () => {
   })
 
   it('produces internally consistent results', () => {
-    const result = computeFeasibilityToolDef.execute({
+    const result = computeFeasibilityTool({
       densityLimitUpa: 12,
       parkingMinSpacesPerUnit: 2.0,
       regionalMultiplier: 1.12,

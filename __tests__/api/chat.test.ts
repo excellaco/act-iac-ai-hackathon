@@ -115,6 +115,39 @@ describe('POST /api/jurisdictions/[id]/chat', () => {
     expect(body.error).toBe('Message is required and must be non-empty')
   })
 
+  it('returns 400 for message exceeding max length', async () => {
+    const longMessage = 'a'.repeat(4001)
+    const { req, params } = makeRequest('uuid-1', { message: longMessage })
+    const res = await POST(req, { params })
+
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/4000 characters/)
+  })
+
+  it('sanitizes history — strips invalid entries', async () => {
+    ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
+    ;(runChat as jest.Mock).mockResolvedValue('Response')
+
+    const history = [
+      { role: 'user', content: 'Valid' },
+      { role: 'invalid-role', content: 'Bad role' },
+      { role: 'model', content: 123 }, // non-string content
+      null,
+      { role: 'model', content: 'Also valid' },
+    ]
+
+    const { req, params } = makeRequest('uuid-1', { message: 'Hi', history })
+    const res = await POST(req, { params })
+
+    expect(res.status).toBe(200)
+    // Only the two valid entries should pass through
+    expect(runChat).toHaveBeenCalledWith('uuid-1', 'Hi', [
+      { role: 'user', content: 'Valid' },
+      { role: 'model', content: 'Also valid' },
+    ])
+  })
+
   it('returns 500 when runChat throws', async () => {
     ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
     ;(runChat as jest.Mock).mockRejectedValue(new Error('Vertex AI error'))

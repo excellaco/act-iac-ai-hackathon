@@ -24,7 +24,7 @@ import { Storage } from '@google-cloud/storage'
 
 // ── get_jurisdiction_data ────────────────────────────────────────────────────
 
-async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: string }) {
+export async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: string }) {
   const jurisdiction = await db.query.jurisdictions.findFirst({
     where: eq(jurisdictions.id, jurisdictionId),
   })
@@ -101,7 +101,7 @@ export const getJurisdictionDataTool = new FunctionTool({
 
 // ── get_pdf_text ─────────────────────────────────────────────────────────────
 
-async function getPdfText({ jurisdictionId }: { jurisdictionId: string }) {
+export async function getPdfText({ jurisdictionId }: { jurisdictionId: string }) {
   const jurisdiction = await db.query.jurisdictions.findFirst({
     where: eq(jurisdictions.id, jurisdictionId),
   })
@@ -141,12 +141,32 @@ async function getPdfText({ jurisdictionId }: { jurisdictionId: string }) {
     // Cache miss or read error — fall through to parse
   }
 
-  // Fetch and parse the PDF
-  const fetcher = new GcsFetcher(bucket)
-  const { bytes, sourceDocument } = await fetcher.fetch(jurisdictionId, jurisdiction.slug)
+  // Fetch and parse the PDF — errors degrade gracefully so the agent
+  // can still answer from extracted fields even if the PDF is missing.
+  let bytes: Buffer
+  let sourceDocument: string
+  try {
+    const fetcher = new GcsFetcher(bucket)
+    const result = await fetcher.fetch(jurisdictionId, jurisdiction.slug)
+    bytes = result.bytes
+    sourceDocument = result.sourceDocument
+  } catch (err) {
+    return {
+      unavailable: true,
+      reason: `Could not fetch the zoning ordinance PDF: ${err instanceof Error ? err.message : 'unknown error'}`,
+    }
+  }
 
-  const parser = new PdfParserImpl()
-  const text = await parser.parse(bytes)
+  let text: string
+  try {
+    const parser = new PdfParserImpl()
+    text = await parser.parse(bytes)
+  } catch (err) {
+    return {
+      unavailable: true,
+      reason: `Could not parse the zoning ordinance PDF: ${err instanceof Error ? err.message : 'unknown error'}`,
+    }
+  }
 
   // Cache the parsed text for subsequent requests
   try {
@@ -172,7 +192,7 @@ export const getPdfTextTool = new FunctionTool({
 
 // ── compute_feasibility ──────────────────────────────────────────────────────
 
-function computeFeasibilityTool(inputs: {
+export function computeFeasibilityTool(inputs: {
   densityLimitUpa: number
   parkingMinSpacesPerUnit: number
   regionalMultiplier: number
