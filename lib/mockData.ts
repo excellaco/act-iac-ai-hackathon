@@ -6,13 +6,16 @@ import type { FeasibilityOutputs } from './feasibility'
 
 /**
  * Safely parse a string to a number. Returns the fallback if the input is
- * null, undefined, or not a valid number. Correctly handles '0' (returns 0,
- * not the fallback).
+ * null, undefined, empty, or not a valid number. Uses Number() rather than
+ * parseFloat() for strict conversion — "12abc" returns the fallback, not 12.
+ * Correctly handles '0' (returns 0, not the fallback).
  */
 export function parseNumeric(value: string | null | undefined, fallback: number): number {
   if (value == null) return fallback
-  const parsed = parseFloat(value)
-  return isNaN(parsed) ? fallback : parsed
+  const trimmed = value.trim()
+  if (trimmed === '') return fallback
+  const parsed = Number(trimmed)
+  return Number.isNaN(parsed) ? fallback : parsed
 }
 
 export type ConfidenceTier = 'High' | 'Medium' | 'Low';
@@ -240,11 +243,17 @@ export function scoreResponseToJurisdictionData(
     fmr2br,
   }
 
-  // Use stored feasibility if available, otherwise compute from fields
+  // Use stored feasibility if the core value (estimatedCostPerUnit) is present
+  // and parsable. If the stored value is present but unparsable (e.g., "N/A"),
+  // fall through to recompute from valid field data rather than producing bogus
+  // results like monthlyCarryingCost=0 → "Feasible".
   let feasibility: FeasibilityOutputs
-  if (apiResponse.feasibility?.estimatedCostPerUnit != null) {
-    const f = apiResponse.feasibility
-    const estimatedCostPerUnit = parseNumeric(f.estimatedCostPerUnit, 0)
+  const storedCost = apiResponse.feasibility?.estimatedCostPerUnit != null
+    ? Number(apiResponse.feasibility.estimatedCostPerUnit.trim())
+    : NaN
+  if (!Number.isNaN(storedCost)) {
+    const f = apiResponse.feasibility!
+    const estimatedCostPerUnit = storedCost
     const monthlyCarryingCost = Math.round(estimatedCostPerUnit / 240)
     const fmrVal = f.fmr2br != null ? parseNumeric(f.fmr2br, fmr2br) : fmr2br
     feasibility = {
