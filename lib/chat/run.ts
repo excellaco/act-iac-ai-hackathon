@@ -2,7 +2,7 @@
  * Chat orchestration — runs the ADK agent for a single user turn.
  *
  * Each API request creates a fresh InMemoryRunner. Conversation history
- * is injected into the system instruction so the agent sees prior turns
+ * is embedded into the user message content so the agent sees prior turns
  * without needing to reconstruct ADK session events (which would require
  * replaying tool calls). This keeps the API fully stateless.
  */
