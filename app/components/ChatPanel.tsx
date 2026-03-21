@@ -78,7 +78,12 @@ export default function ChatPanel({ jurisdictionId, jurisdictionName }: ChatPane
         tabIndex={0}
         aria-expanded={expanded}
         aria-label="Toggle chat panel"
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpanded((prev) => !prev) }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setExpanded((prev) => !prev)
+          }
+        }}
       >
         <div className={styles.chatHeaderLeft}>
           <span className={styles.chatTitle}>
