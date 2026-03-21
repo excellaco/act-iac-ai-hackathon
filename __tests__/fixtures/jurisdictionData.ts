@@ -1,9 +1,23 @@
 /**
  * Shared test fixtures for JurisdictionData used by component tests.
  * Based on the Fairfax and Arlington mock data from lib/mockData.ts.
+ *
+ * All fixtures are deep-frozen to catch accidental prop mutation in tests.
+ * If a component writes to a frozen prop, the test throws immediately rather
+ * than silently passing with corrupted data.
  */
 import type { JurisdictionData } from '../../lib/mockData'
 import type { FeasibilityOutputs } from '../../lib/feasibility'
+
+function deepFreeze<T extends object>(obj: T): T {
+  Object.freeze(obj)
+  for (const value of Object.values(obj)) {
+    if (value !== null && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value)
+    }
+  }
+  return obj
+}
 
 const fairfaxFeasibility: FeasibilityOutputs = {
   maxUnitsPerAcre: 12,
@@ -23,7 +37,7 @@ const arlingtonFeasibility: FeasibilityOutputs = {
   fmr2br: 2280,
 }
 
-export const FAIRFAX: JurisdictionData = {
+export const FAIRFAX: JurisdictionData = deepFreeze({
   id: 'uuid-fairfax',
   name: 'Fairfax County',
   state: 'VA',
@@ -50,9 +64,9 @@ export const FAIRFAX: JurisdictionData = {
     fmr2br: 2280,
   },
   feasibility: fairfaxFeasibility,
-}
+})
 
-export const ARLINGTON: JurisdictionData = {
+export const ARLINGTON: JurisdictionData = deepFreeze({
   id: 'uuid-arlington',
   name: 'Arlington County',
   state: 'VA',
@@ -79,9 +93,9 @@ export const ARLINGTON: JurisdictionData = {
     fmr2br: 2280,
   },
   feasibility: arlingtonFeasibility,
-}
+})
 
-export const LOUDOUN: JurisdictionData = {
+export const LOUDOUN: JurisdictionData = deepFreeze({
   id: 'uuid-loudoun',
   name: 'Loudoun County',
   state: 'VA',
@@ -115,4 +129,4 @@ export const LOUDOUN: JurisdictionData = {
     rentFeasibility: 'Feasible',
     fmr2br: 2280,
   },
-}
+})

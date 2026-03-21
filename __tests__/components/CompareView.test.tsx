@@ -65,16 +65,22 @@ describe('CompareView', () => {
     expect(rank2Parent).toHaveTextContent('Arlington County')
   })
 
-  it('ranking bar sort does not mutate the jurisdictions array', async () => {
-    const jurisdictions = [FAIRFAX, ARLINGTON]
-    const originalOrder = [...jurisdictions]
-
-    render(<CompareView initial={jurisdictions[0]} initialPeer={jurisdictions[1]} onBack={mockOnBack} />)
+  it('ranking bar reorders by score but comparison cards keep original order', async () => {
+    // Arlington (43) is passed as initial, Fairfax (73) as peer.
+    // Ranking bar should show Fairfax #1 (most restrictive), Arlington #2.
+    // But the comparison cards should stay in [initial, peer] order.
+    render(<CompareView initial={ARLINGTON} initialPeer={FAIRFAX} onBack={mockOnBack} />)
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
 
-    // The original array must not be reordered
-    expect(jurisdictions[0]).toBe(originalOrder[0])
-    expect(jurisdictions[1]).toBe(originalOrder[1])
+    // Ranking bar: sorted by RIS descending
+    const rankItems = screen.getAllByText(/#[12]/)
+    const rank1Parent = rankItems[0].closest('[class*="rankItem"]')
+    expect(rank1Parent).toHaveTextContent('Fairfax County')
+
+    // Comparison cards: still in [initial, peer] order (Arlington first)
+    const removeButtons = screen.getAllByRole('button', { name: /Remove/ })
+    expect(removeButtons[0]).toHaveAttribute('aria-label', 'Remove Arlington County')
+    expect(removeButtons[1]).toHaveAttribute('aria-label', 'Remove Fairfax County')
   })
 
   it('does not show ranking bar with only one jurisdiction', async () => {
