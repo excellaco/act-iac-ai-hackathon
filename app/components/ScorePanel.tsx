@@ -2,33 +2,13 @@
 
 import { useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
+import { risColor, risLabel, SUB_SCORE_META } from '../../lib/ris';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
 import FeasibilityPanel from './FeasibilityPanel';
 import WhatIfPanel from './WhatIfPanel';
 import ComparePeers from './ComparePeers';
 import styles from './ScorePanel.module.css';
-
-const SUB_SCORE_LABELS: Record<string, { label: string; description: string }> = {
-  dci:  { label: 'Density Constraint Index',           description: 'Measures restrictions on lot size, height, density, and setbacks.' },
-  dcoi: { label: 'Development Cost Impact',            description: 'Estimates cost burden from parking requirements and regional construction costs.' },
-  pci:  { label: 'Permitting Complexity Indicator',    description: 'Reflects permit volume and whether multifamily housing requires discretionary approval.' },
-  crp:  { label: 'Comparative Restrictiveness',        description: 'Ranks this jurisdiction within a peer comparison set of 10 jurisdictions.' },
-};
-
-// BuPu palette matching the choropleth map (ChoroplethMap.tsx).
-// Uses the darker half of the BuPu scale for text/border contrast on white.
-function risColor(score: number): string {
-  if (score >= 70) return '#045a8d';
-  if (score >= 40) return '#2b8cbe';
-  return '#74a9cf';
-}
-
-function risLabel(score: number): string {
-  if (score >= 70) return 'High Restrictiveness';
-  if (score >= 40) return 'Moderate Restrictiveness';
-  return 'Low Restrictiveness';
-}
 
 interface Props {
   jurisdiction: JurisdictionData;
@@ -101,7 +81,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       {/* Sub-score accordions */}
       <div className={styles.accordions}>
         {(Object.entries(subScores) as [keyof typeof subScores, typeof subScores[keyof typeof subScores]][]).map(([key, detail]) => {
-          const { label, description } = SUB_SCORE_LABELS[key];
+          const { label, description } = SUB_SCORE_META[key];
           return (
             <details key={key} className={styles.accordion}>
               <summary className={styles.accordionSummary}>
