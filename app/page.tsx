@@ -98,7 +98,7 @@ export default function Home() {
         <div className={selected ? styles.searchShellCompact : styles.searchShellHero}>
           {!selected && !loading && (
             <div className={styles.heroCopy}>
-              <h1 className={styles.heading}>Parcela</h1>
+              <h1 className={styles.heading}>Parcella</h1>
               <p className={`${styles.subheading} ${styles.heroSubheading}`}>
                 Understand the regulatory barriers to housing in your jurisdiction.
               </p>

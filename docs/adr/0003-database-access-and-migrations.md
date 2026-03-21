@@ -2,13 +2,13 @@
 
 **Status:** Accepted
 **Date:** 2026-03-17
-**Deciders:** Parcela Hackathon Team
+**Deciders:** Parcella Hackathon Team
 
 ---
 
 ## Context
 
-The Parcela platform uses Cloud SQL (PostgreSQL) as its primary datastore. Before implementation could begin, the team needed to make four related decisions:
+The Parcella platform uses Cloud SQL (PostgreSQL) as its primary datastore. Before implementation could begin, the team needed to make four related decisions:
 
 1. How to manage and version the database schema
 2. How developers connect to a database locally without requiring GCP credentials

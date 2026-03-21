@@ -37,7 +37,7 @@ describe('Home', () => {
   it('renders the heading before the search in the DOM', async () => {
     render(<Home />);
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled());
-    const heading = screen.getByRole('heading', { name: 'Parcela' });
+    const heading = screen.getByRole('heading', { name: 'Parcella' });
     const searchInput = screen.getByPlaceholderText('Find your county or municipality');
     expect(heading.compareDocumentPosition(searchInput) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

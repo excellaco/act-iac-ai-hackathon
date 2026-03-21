@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Parcela",
+  title: "Parcella",
   description: "Understand the regulatory barriers to housing in your jurisdiction.",
   icons: {
     icon: "/favicon.ico",
@@ -34,7 +34,7 @@ export default function RootLayout({
         <header className="app-header">
           <Link href="/" className="app-logo-link">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/parcela-logo.svg" alt="Parcela — return to home" height="28" className="app-logo" />
+            <img src="/parcella-logo.svg" alt="Parcella — return to home" height="28" className="app-logo" />
           </Link>
           <nav className="app-nav">
             <span className="app-tagline">Housing Regulatory Impact Simulator</span>

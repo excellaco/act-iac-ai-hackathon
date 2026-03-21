@@ -1,6 +1,6 @@
-# Parcela — Data Sources
+# Parcella — Data Sources
 
-This document lists every public data source used by the Parcela platform, covering where to find it, what format it comes in, which backlog stories consume it, and exactly which fields to extract.
+This document lists every public data source used by the Parcella platform, covering where to find it, what format it comes in, which backlog stories consume it, and exactly which fields to extract.
 
 All data must be publicly accessible. No proprietary MLS or private transaction data is used.
 

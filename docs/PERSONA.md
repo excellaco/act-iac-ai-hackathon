@@ -1,4 +1,4 @@
-# Parcela — User Persona
+# Parcella — User Persona
 
 ## Valentina Reyes
 ### Housing Policy Analyst, Fairfax County Department of Planning & Development
@@ -12,17 +12,17 @@ Valentina (Val) is a mid-career housing policy analyst at a large suburban count
 
 Her day-to-day work involves researching housing policy options, preparing briefings for elected officials, and analyzing the regulatory environment to support grant applications and policy proposals. She regularly needs to make the case for zoning reform to colleagues, department leadership, and county supervisors who may be skeptical or politically cautious.
 
-Val operates in a multi-stakeholder environment. Zoning changes in jurisdictions like Fairfax and Arlington have required years of public process — community meetings, board votes, and press coverage. The outputs she produces with Parcela may end up in a council presentation, a grant application, a memo to the Board of Supervisors, a public-facing FAQ, or a quote to a reporter. The tool needs to produce results she can hand off with confidence — not just to fellow planners, but to audiences without technical training.
+Val operates in a multi-stakeholder environment. Zoning changes in jurisdictions like Fairfax and Arlington have required years of public process — community meetings, board votes, and press coverage. The outputs she produces with Parcella may end up in a council presentation, a grant application, a memo to the Board of Supervisors, a public-facing FAQ, or a quote to a reporter. The tool needs to produce results she can hand off with confidence — not just to fellow planners, but to audiences without technical training.
 
 ---
 
 ## Goals
 
-Val's primary goal when using Parcela is to **build a defensible, data-backed case** that she can present to decision-makers without it being dismissed as opinion or advocacy.
+Val's primary goal when using Parcella is to **build a defensible, data-backed case** that she can present to decision-makers without it being dismissed as opinion or advocacy.
 
 Critically, she is not always advocating for a single direction. Fairfax County has deliberately chosen a different approach to zoning reform than Arlington and Alexandria (which eliminated single-family-only zoning). Val may be making the case for reform, explaining why Fairfax's approach is appropriate given local conditions, or helping leadership understand what other jurisdictions have done. **Parcela must support any of these conversations — not steer them.**
 
-A secondary goal is **speed**. Zoning reform studies — like Fairfax's four-year zMOD process — are slow by design, involving public hearings, board deliberations, and iterative analysis. Val often needs to answer a policy question in hours, not months. Parcela compresses the analytical phase: instead of commissioning a months-long comparative study to answer "how does our parking minimum compare to peers?", she can have a defensible answer before her next meeting.
+A secondary goal is **speed**. Zoning reform studies — like Fairfax's four-year zMOD process — are slow by design, involving public hearings, board deliberations, and iterative analysis. Val often needs to answer a policy question in hours, not months. Parcella compresses the analytical phase: instead of commissioning a months-long comparative study to answer "how does our parking minimum compare to peers?", she can have a defensible answer before her next meeting.
 
 Specifically she wants to:
 
@@ -48,7 +48,7 @@ Specifically she wants to:
 
 ## What Success Looks Like
 
-Val opens Parcela before a departmental meeting on parking reform. She searches for Fairfax County, reviews the RIS score, and sees that parking minimums are the single largest contributor to the Development Cost Impact sub-score. She adds Arlington and Loudoun for comparison and sees that Fairfax is significantly more restrictive on parking than both. She runs a what-if simulation reducing parking minimums from 2 spaces/unit to 1 space/unit and sees the estimated cost per unit drop by $18,000 and the RIS score fall from 74 to 61.
+Val opens Parcella before a departmental meeting on parking reform. She searches for Fairfax County, reviews the RIS score, and sees that parking minimums are the single largest contributor to the Development Cost Impact sub-score. She adds Arlington and Loudoun for comparison and sees that Fairfax is significantly more restrictive on parking than both. She runs a what-if simulation reducing parking minimums from 2 spaces/unit to 1 space/unit and sees the estimated cost per unit drop by $18,000 and the RIS score fall from 74 to 61.
 
 She exports nothing — taking a screenshot, noting the data sources cited on the panel, and walking into the meeting with a clear, specific, defensible number. When someone asks "where does that figure come from?" she can point to the HUD FMR data and BLS/BEA construction cost inputs cited in the score panel and explain exactly how the estimate was derived.
 
@@ -104,4 +104,4 @@ Parcela's output will be read by people who were not in the room when Val ran th
 - **Plain language for a non-specialist audience:** Terms like DCI, DCOI, and CRP must be explained in plain language in the UI — not just defined, but explained in terms of what they mean for housing development. Val's supervisor and the Board member who sees her slide deck should be able to read the score panel and understand what they're looking at without a planning degree.
 - **Outputs that travel:** Screenshots, copy-paste to PowerPoint, and council memos are how Parcela's outputs reach decision-makers. Every number in the UI should be self-contained — source, confidence, and plain-language explanation visible in the same view, not buried in a modal.
 - **Cause and effect must be visible:** The what-if simulation must make it obvious that changing the independent variable (e.g., parking minimum) changed the dependent variable (cost per unit, RIS score). The delta should be prominent and stated in plain terms.
-- **Speed is a feature:** Val's alternative to Parcela is a months-long comparative study or a multi-year process like zMOD. The tool's value is partly in compressing that timeline. Load times, interaction friction, and anything that slows the path from "search" to "defensible answer" directly undercuts the core use case.
+- **Speed is a feature:** Val's alternative to Parcella is a months-long comparative study or a multi-year process like zMOD. The tool's value is partly in compressing that timeline. Load times, interaction friction, and anything that slows the path from "search" to "defensible answer" directly undercuts the core use case.

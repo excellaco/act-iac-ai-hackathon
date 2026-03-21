@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-03-18
-**Deciders:** Parcela Hackathon Team (decision reached in design sync, March 18, 2026; documented in issue #95)
+**Deciders:** Parcella Hackathon Team (decision reached in design sync, March 18, 2026; documented in issue #95)
 
 ---
 
@@ -23,7 +23,7 @@ The team evaluated three candidate libraries before starting implementation of E
 
 ## Decision
 
-We will use **Leaflet** via `react-leaflet` for all map rendering in Parcela.
+We will use **Leaflet** via `react-leaflet` for all map rendering in Parcella.
 
 **Color palettes:**
 - **Primary:** BuPu (blue-purple), 5 stops — for absolute RIS score shading on all jurisdiction views.
@@ -37,11 +37,11 @@ The 5-stop BuPu scale stops should reflect meaningful categorical distinctions i
 
 ### Library choice: Leaflet over Mapbox and react-simple-maps
 
-- **Proven in the zoning atlas domain:** Leaflet (and its predecessor) was used in the Connecticut Zoning Atlas — the project that preceded the Virginia Zoning Atlas and established the NZA methodology. This provides direct validation that Leaflet is sufficient for the choropleth use case Parcela requires.
+- **Proven in the zoning atlas domain:** Leaflet (and its predecessor) was used in the Connecticut Zoning Atlas — the project that preceded the Virginia Zoning Atlas and established the NZA methodology. This provides direct validation that Leaflet is sufficient for the choropleth use case Parcella requires.
 - **No API key required:** Mapbox GL JS requires a Mapbox account and API key, with usage metered against a free tier (~50,000 map loads/month). Leaflet uses OpenStreetMap tiles by default — no key, no usage limits, no billing risk during the demo.
 - **Lower implementation complexity for MVP:** Mapbox provides higher visual fidelity and smoother pan/zoom but requires more setup (style definitions, data-driven expressions, GL context management). Leaflet's GeoJSON overlay approach for choropleth shading is simpler and sufficient for the demo's interactivity requirements.
 - **Open source with active ecosystem:** `react-leaflet` v4 provides React component wrappers for Leaflet, keeping the implementation consistent with the Next.js/React application stack (ADR-0001).
-- **Tool positioning:** The team agreed that Parcela should be designed as complementary to — not a replacement for — the GIS platforms Val already uses. A production-quality tile-based map is not a differentiator for Parcela's value proposition; the RIS score panel and what-if simulation are. Investing in Mapbox polish does not improve demo impact relative to the effort cost.
+- **Tool positioning:** The team agreed that Parcella should be designed as complementary to — not a replacement for — the GIS platforms Val already uses. A production-quality tile-based map is not a differentiator for Parcella's value proposition; the RIS score panel and what-if simulation are. Investing in Mapbox polish does not improve demo impact relative to the effort cost.
 
 ### Primary palette: BuPu (blue-purple)
 
@@ -71,7 +71,7 @@ The 5-stop BuPu scale stops should reflect meaningful categorical distinctions i
 - Highest visual quality; tile-based with smooth zoom; satellite and street basemap options.
 - Requires a Mapbox API key and has usage-based billing on the free tier.
 - Supports county-level fill layers with data-driven color expressions.
-- Ruled out due to API key requirement (billing risk for demo), higher implementation complexity, and the team's assessment that Mapbox's visual quality advantages are not a differentiator for Parcela's value proposition at MVP scope.
+- Ruled out due to API key requirement (billing risk for demo), higher implementation complexity, and the team's assessment that Mapbox's visual quality advantages are not a differentiator for Parcella's value proposition at MVP scope.
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2025-03-14  
-**Deciders:** Parcela Hackathon Team
+**Deciders:** Parcella Hackathon Team
 
 ---
 

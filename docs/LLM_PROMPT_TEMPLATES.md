@@ -1,4 +1,4 @@
-# Parcela — LLM Extraction Prompt Templates
+# Parcella — LLM Extraction Prompt Templates
 
 This document defines the prompt templates used by the ADK `LlmAgent` instances in the extraction pipeline (Epic E2). Each agent extracts one regulatory field from a zoning ordinance text chunk and returns a structured JSON response including a confidence tier.
 
