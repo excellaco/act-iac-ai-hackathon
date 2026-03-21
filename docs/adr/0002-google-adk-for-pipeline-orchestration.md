@@ -2,13 +2,13 @@
 
 **Status:** Accepted  
 **Date:** 2025-03-14  
-**Deciders:** Parcela Hackathon Team
+**Deciders:** Parcella Hackathon Team
 
 ---
 
 ## Context
 
-The Parcela platform requires an ingestion and extraction pipeline (Epic E0) that takes unstructured zoning code PDFs and produces structured, scored regulatory data. This pipeline has multiple sequential stages (fetch → parse → chunk → extract → validate → store), involves multiple LLM calls per jurisdiction, and must handle partial failures gracefully without corrupting downstream scores.
+The Parcella platform requires an ingestion and extraction pipeline (Epic E0) that takes unstructured zoning code PDFs and produces structured, scored regulatory data. This pipeline has multiple sequential stages (fetch → parse → chunk → extract → validate → store), involves multiple LLM calls per jurisdiction, and must handle partial failures gracefully without corrupting downstream scores.
 
 The team evaluated whether to implement this pipeline as a simple script, a workflow framework, or an agent-based system.
 

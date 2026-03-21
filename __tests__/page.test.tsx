@@ -37,7 +37,7 @@ describe('Home', () => {
   it('renders the heading before the search in the DOM', async () => {
     render(<Home />);
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled());
-    const heading = screen.getByRole('heading', { name: 'Parcela' });
+    const heading = screen.getByRole('heading', { name: 'Parcella' });
     const searchInput = screen.getByPlaceholderText('Find your county or municipality');
     expect(heading.compareDocumentPosition(searchInput) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -109,6 +109,98 @@ describe('Home', () => {
     } finally {
       consoleError.mockRestore();
     }
+  });
+
+  it('typing in the search clears a previous load error', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (fetchScore as jest.Mock)
+      .mockResolvedValueOnce(mockScoreResponse)
+      .mockRejectedValueOnce(new Error('boom'));
+
+    try {
+      render(<Home />);
+      const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+
+      // Load Fairfax successfully
+      fireEvent.focus(searchInput);
+      await waitFor(() => screen.getByText('Fairfax County'));
+      fireEvent.mouseDown(screen.getByText('Fairfax County'));
+      await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+
+      // Select Arlington — this will fail
+      fireEvent.change(searchInput, { target: { value: 'arling' } });
+      const searchResults = searchInput.parentElement as HTMLElement;
+      await waitFor(() => expect(within(searchResults).getByText('Arlington County')).toBeInTheDocument());
+      fireEvent.mouseDown(within(searchResults).getByText('Arlington County'));
+      await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+
+      // Typing should clear the error
+      fireEvent.change(searchInput, { target: { value: 'fa' } });
+      await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('shows an error when the score response contains no score data', async () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    (fetchScore as jest.Mock).mockResolvedValueOnce({
+      jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax', dataType: 'real' },
+      score: null,
+      extractedFields: [],
+    });
+
+    try {
+      render(<Home />);
+      fireEvent.focus(screen.getByPlaceholderText('Find your county or municipality'));
+      await waitFor(() => screen.getByText('Fairfax County'));
+      fireEvent.mouseDown(screen.getByText('Fairfax County'));
+      await waitFor(() =>
+        expect(screen.getByRole('alert')).toHaveTextContent('Failed to load jurisdiction score. Try again.')
+      );
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('enters compare mode when a peer chip is clicked', async () => {
+    render(<Home />);
+    const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+
+    // Select Fairfax to load the score panel
+    fireEvent.focus(searchInput);
+    await waitFor(() => screen.getByText('Fairfax County'));
+    fireEvent.mouseDown(screen.getByText('Fairfax County'));
+    await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+
+    // Wait for ComparePeers to load and display a peer chip
+    await waitFor(() => screen.getByTitle('Compare with Arlington County, VA'));
+    fireEvent.click(screen.getByTitle('Compare with Arlington County, VA'));
+
+    // CompareView should now be rendered
+    await waitFor(() =>
+      expect(screen.getByText('← Back to score panel')).toBeInTheDocument()
+    );
+  });
+
+  it('returns to score panel when back button is clicked in compare mode', async () => {
+    render(<Home />);
+    const searchInput = screen.getByPlaceholderText('Find your county or municipality');
+
+    fireEvent.focus(searchInput);
+    await waitFor(() => screen.getByText('Fairfax County'));
+    fireEvent.mouseDown(screen.getByText('Fairfax County'));
+    await waitFor(() => expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument());
+
+    await waitFor(() => screen.getByTitle('Compare with Arlington County, VA'));
+    fireEvent.click(screen.getByTitle('Compare with Arlington County, VA'));
+    await waitFor(() => expect(screen.getByText('← Back to score panel')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('← Back to score panel'));
+    await waitFor(() =>
+      expect(screen.queryByText('← Back to score panel')).not.toBeInTheDocument()
+    );
+    expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument();
   });
 
   it('shows disclaimer in score panel', async () => {

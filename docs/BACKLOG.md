@@ -1,4 +1,4 @@
-# Parcela — Product Backlog (MVP)
+# Parcella — Product Backlog (MVP)
 
 **Hackathon Timeline:** 2 weeks
 **Demo Scope:** 2–3 contrasting municipalities (e.g., Fairfax, Arlington, Loudoun counties, VA)
@@ -144,7 +144,7 @@
 | E9-4 | Cloud deployment (demo-ready hosted URL) | P1 | 3 | Done |
 | E9-5 | Synthetic seed dataset of ~7 additional jurisdictions to expand the CRP peer comparison set | Seed data covers ~7 plausible US jurisdictions with realistic but fabricated regulatory field values and scores; loaded into DB alongside real data; all synthetic records flagged with `data_type: synthetic` and labeled "Illustrative data" in UI attribution. **Rationale:** CRP requires a meaningful peer comparison set to produce a statistically useful percentile. With only 3 real jurisdictions the score collapses to a rank of 1/2/3. A synthetic peer set expands this to ~10 jurisdictions, making CRP meaningful for the demo while real data is limited by the two-week timeline. This is common practice in hackathon demos and is defensible as long as synthetic data is clearly labeled. | P0 | 2 | Done |
 | E9-9 | As a developer, I need the zoning ordinance PDFs stored in GCS and the pipeline updated to fetch from GCS so that large files (~90MB) are accessible without being committed to Git | Terraform config in `infra/` provisions `parcela-490518-raw-data` GCS bucket with IAM binding for pipeline service account; pipeline fetches PDFs from GCS at runtime via `RAW_DATA_BUCKET` env var; local `data/raw/zoning/` folder retained as dev fallback when `RAW_DATA_BUCKET` is unset; `infra.yml` GitHub Actions workflow runs `terraform plan` on PRs and `terraform apply` on manual dispatch; deploy pipeline fails fast with clear error if bucket is not accessible. **See also:** #73 (E1-1a) — PDF upload. | P0 | 3 | Done |
-| E9-10 | As a product team, I need a Parcela logo and favicon so that the application has a recognizable brand identity in the browser and on the demo screen | Logo designed and exported in SVG and PNG formats (at minimum 512×512px); favicon generated in `.ico` and `192×192` / `512×512` PNG sizes; favicon placed in `public/` and referenced in Next.js `app/layout.tsx` metadata; logo visible in the app header; deployed to Cloud Run with no broken asset references. | P1 | 2 | |
+| E9-10 | As a product team, I need a Parcella logo and favicon so that the application has a recognizable brand identity in the browser and on the demo screen | Logo designed and exported in SVG and PNG formats (at minimum 512×512px); favicon generated in `.ico` and `192×192` / `512×512` PNG sizes; favicon placed in `public/` and referenced in Next.js `app/layout.tsx` metadata; logo visible in the app header; deployed to Cloud Run with no broken asset references. | P1 | 2 | |
 
 ---
 

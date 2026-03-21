@@ -2,14 +2,14 @@
 
 **Status:** Accepted
 **Date:** 2026-03-18
-**Deciders:** Parcela Hackathon Team
+**Deciders:** Parcella Hackathon Team
 **Related:** E0-8, Issue #102
 
 ---
 
 ## Context
 
-The Parcela extraction pipeline runs in a single pass: fetch PDF → parse → chunk → call Gemini for each field → normalize → validate → write to DB. This architecture has two practical problems that surfaced during development:
+The Parcella extraction pipeline runs in a single pass: fetch PDF → parse → chunk → call Gemini for each field → normalize → validate → write to DB. This architecture has two practical problems that surfaced during development:
 
 1. **Long feedback loops on DB failures.** A bug in the DB write layer (e.g. a numeric column receiving a word-form value like `"eight"`, or a PostgreSQL encoding error from control characters in a verbatim quote) requires a full ~20-minute re-run of the Gemini extraction to verify the fix. The extraction itself is correct; only the persistence layer is broken.
 

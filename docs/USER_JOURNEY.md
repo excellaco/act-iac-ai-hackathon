@@ -1,4 +1,4 @@
-# Parcela — MVP User Journey
+# Parcella — MVP User Journey
 
 ## Persona
 **Primary:** City/County Policy Maker
@@ -11,7 +11,7 @@
 ## Journey Flow
 
 ### Step 1 — Search for a Jurisdiction
-- User arrives at the Parcela home screen
+- User arrives at the Parcella home screen
 - A prominent search bar is centered on screen: *"Find your county or municipality"*
 - A national choropleth heat map is visible in the background as context, shaded by Regulatory Impact Score (RIS)
 - The map is not the primary interaction — it provides orientation, not navigation

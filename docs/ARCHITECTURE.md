@@ -1,4 +1,4 @@
-# Parcela — Architecture
+# Parcella — Architecture
 
 ## System Overview
 

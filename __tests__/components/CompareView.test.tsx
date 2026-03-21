@@ -145,4 +145,28 @@ describe('CompareView', () => {
     expect(screen.getByText('2 spaces/unit')).toBeInTheDocument()
     expect(screen.getByText(/special use permit/i)).toBeInTheDocument()
   })
+
+  it('filters AddCard dropdown options by search query', async () => {
+    render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+
+    const searchInput = screen.getByPlaceholderText('Search jurisdictions…')
+    fireEvent.change(searchInput, { target: { value: 'loudoun' } })
+
+    await waitFor(() => expect(screen.getByText('Loudoun County, VA')).toBeInTheDocument())
+    expect(screen.queryByText('Arlington County, VA')).not.toBeInTheDocument()
+  })
+
+  it('adds a jurisdiction card when an AddCard dropdown result is selected', async () => {
+    render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+
+    fireEvent.change(screen.getByPlaceholderText('Search jurisdictions…'), {
+      target: { value: 'loudoun' },
+    })
+    await waitFor(() => screen.getByText('Loudoun County, VA'))
+    fireEvent.click(screen.getByText('Loudoun County, VA'))
+
+    await waitFor(() => expect(fetchScore).toHaveBeenCalledWith('uuid-loudoun'))
+  })
 })

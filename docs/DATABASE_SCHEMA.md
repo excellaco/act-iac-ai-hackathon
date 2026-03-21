@@ -1,6 +1,6 @@
-# Parcela — Database Schema
+# Parcella — Database Schema
 
-This document defines the Cloud SQL (PostgreSQL) schema for the Parcela platform. All tables are created and owned by the backend API (E9). The ingestion pipeline writes to `jurisdictions`, `extracted_fields`, and `pipeline_runs`. The scoring engine reads from those tables and writes to `ris_scores`. The API serves from all tables.
+This document defines the Cloud SQL (PostgreSQL) schema for the Parcella platform. All tables are created and owned by the backend API (E9). The ingestion pipeline writes to `jurisdictions`, `extracted_fields`, and `pipeline_runs`. The scoring engine reads from those tables and writes to `ris_scores`. The API serves from all tables.
 
 > **Table creation order:** Due to foreign key dependencies, tables must be created in this order: `jurisdictions` → `pipeline_runs` → `extracted_fields` → `market_data` → `ris_scores` → `feasibility_outputs`.
 

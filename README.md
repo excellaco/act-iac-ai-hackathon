@@ -1,4 +1,4 @@
-# Parcela — Zoning Land Use Policy Impact Simulator
+# Parcella — Zoning Land Use Policy Impact Simulator
 
 An AI-powered housing regulatory and development feasibility intelligence platform built for the ACT-IAC AI Hackathon.
 
