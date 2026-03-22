@@ -44,6 +44,7 @@ export const extractedFields = pgTable('extracted_fields', {
   confidence: confidenceTier('confidence').notNull(),
   sourceDocument: text('source_document'),
   sourceSection: text('source_section'),
+  sourcePage: integer('source_page'),
   districtContext: text('district_context'),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
   extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),

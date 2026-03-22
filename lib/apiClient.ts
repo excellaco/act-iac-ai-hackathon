@@ -29,9 +29,12 @@ export interface ScoreResponse {
   extractedFields: Array<{
     fieldName: string
     fieldValue: string | null
+    fieldValueText: string | null
     unit: string | null
     confidence: 'high' | 'medium' | 'low'
     sourceDocument: string | null
+    sourceSection: string | null
+    sourcePage: number | null
   }>
   feasibility: {
     maxUnitsPerAcre: string | null

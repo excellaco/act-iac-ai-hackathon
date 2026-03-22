@@ -20,7 +20,8 @@
     "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market && npm run db:seed:feasibility",
     "pipeline:run": "tsx -r dotenv/config scripts/run-pipeline.ts",
     "pipeline:extract": "tsx -r dotenv/config scripts/extract.ts",
-    "pipeline:load": "tsx -r dotenv/config scripts/load.ts"
+    "pipeline:load": "tsx -r dotenv/config scripts/load.ts",
+    "pipeline:page-resolve": "tsx -r dotenv/config scripts/page-resolve.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

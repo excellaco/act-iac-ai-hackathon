@@ -10,6 +10,16 @@
  * Synthetic jurisdictions use hand-authored artifacts — no PDF or Gemini call needed.
  */
 
+/** One page of a parsed PDF — used by the page-resolve stage to find source page numbers. */
+export interface ParsedPage {
+  /** 1-indexed page number */
+  page: number
+  /** Extracted text content of this page */
+  text: string
+}
+
+export type ParsedPagesArtifact = ParsedPage[]
+
 export interface FieldArtifact {
   /** Raw value as returned by the LLM, in the unit as written in the ordinance */
   raw_value: number | null

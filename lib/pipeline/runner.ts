@@ -29,7 +29,7 @@ import { validateExtractionResult } from './validate'
 import { runExtractions } from './errors'
 import { startRun, completeRun, failRun, PipelineRun } from './run-record'
 import { PipelineLogger, consoleLogger } from './errors'
-import { ExtractionArtifact, FieldArtifact } from './artifact'
+import { ExtractionArtifact, FieldArtifact, ParsedPage } from './artifact'
 import { ArtifactStore } from './artifact-store'
 import { toNumericString } from './numeric'
 
@@ -40,7 +40,7 @@ export interface PdfFetcher {
 }
 
 export interface PdfParser {
-  parse(bytes: Buffer): Promise<string>
+  parse(bytes: Buffer): Promise<{ text: string; pages: ParsedPage[] }>
 }
 
 export interface FieldExtractor {
@@ -146,9 +146,9 @@ export async function runExtractStage(
   logger.info('fetching PDF', { jurisdictionId, slug })
   const { bytes, sourceDocument } = await options.fetcher.fetch(jurisdictionId, slug)
 
-  // 2. parse PDF → text
+  // 2. parse PDF → text + per-page index
   logger.info('parsing PDF', { sourceDocument })
-  const text = await options.parser.parse(bytes)
+  const { text, pages } = await options.parser.parse(bytes)
 
   // 3. chunk text
   const chunks = chunkText(text)
@@ -200,13 +200,21 @@ export async function runExtractStage(
     }
   }
 
-  return {
+  const artifact: ExtractionArtifact = {
     jurisdictionId,
     slug,
     sourceDocument,
     extractedAt: new Date().toISOString(),
     fields,
   }
+
+  // Write parsed pages to store so the page-resolve stage can find source page numbers
+  if (options.artifactStore) {
+    logger.info('writing parsed pages', { slug, pageCount: pages.length })
+    await options.artifactStore.writePages(slug, pages)
+  }
+
+  return artifact
 }
 
 // ─── load stage ───────────────────────────────────────────────────────────────

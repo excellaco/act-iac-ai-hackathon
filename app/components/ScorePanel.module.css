@@ -261,3 +261,57 @@
   line-height: 1.5;
   font-style: italic;
 }
+
+/* Citation list in sub-score accordions */
+.citationList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.citationItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: #fafaf9;
+  border: 1px solid #e7e5e4;
+  border-radius: 6px;
+}
+
+.citationFieldLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #57534e;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.citationQuote {
+  font-size: 12px;
+  color: #1c1917;
+  font-style: italic;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.viewSourceBtn {
+  align-self: flex-start;
+  margin-top: 4px;
+  background: none;
+  border: 1px solid #a8a29e;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #44403c;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.viewSourceBtn:hover {
+  background: #f5f5f4;
+  border-color: #78716c;
+}

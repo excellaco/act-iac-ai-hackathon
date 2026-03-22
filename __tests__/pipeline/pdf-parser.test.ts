@@ -8,12 +8,12 @@ jest.mock('pdf-parse', () =>
 import pdfParse from 'pdf-parse'
 
 describe('PdfParserImpl', () => {
-  it('returns extracted text from pdf-parse', async () => {
+  it('returns extracted text and pages from pdf-parse', async () => {
     const parser = new PdfParserImpl()
     const bytes = Buffer.from('%PDF-1.4 fake')
-    const text = await parser.parse(bytes)
-    expect(text).toBe('extracted text content from PDF')
-    expect(pdfParse).toHaveBeenCalledWith(bytes)
+    const result = await parser.parse(bytes)
+    expect(result.text).toBe('extracted text content from PDF')
+    expect(Array.isArray(result.pages)).toBe(true)
   })
 
   it('propagates errors from pdf-parse', async () => {

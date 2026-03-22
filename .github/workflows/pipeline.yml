@@ -12,6 +12,7 @@ on:
           - run
           - extract
           - load
+          - page-resolve
       jurisdiction:
         description: 'Jurisdiction to process (leave blank for all 3)'
         required: false

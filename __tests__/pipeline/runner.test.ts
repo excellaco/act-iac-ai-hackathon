@@ -51,7 +51,7 @@ function makeFetcher(text = SAMPLE_TEXT): PdfFetcher {
 }
 
 function makeParser(text = SAMPLE_TEXT): PdfParser {
-  return { parse: jest.fn().mockResolvedValue(text) }
+  return { parse: jest.fn().mockResolvedValue({ text, pages: [] }) }
 }
 
 function makeExtractor(fieldName: string, result: RawExtractionResult | null): FieldExtractor {

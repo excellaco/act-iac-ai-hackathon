@@ -11,13 +11,15 @@
 import { Storage } from '@google-cloud/storage'
 import fs from 'fs/promises'
 import path from 'path'
-import { ExtractionArtifact } from './artifact'
+import { ExtractionArtifact, ParsedPagesArtifact } from './artifact'
 
 // ─── interface ────────────────────────────────────────────────────────────────
 
 export interface ArtifactStore {
   read(slug: string): Promise<ExtractionArtifact>
   write(slug: string, artifact: ExtractionArtifact): Promise<void>
+  readPages(slug: string): Promise<ParsedPagesArtifact>
+  writePages(slug: string, pages: ParsedPagesArtifact): Promise<void>
 }
 
 // ─── local implementation ─────────────────────────────────────────────────────
@@ -44,6 +46,27 @@ export class LocalArtifactStore implements ArtifactStore {
     await fs.mkdir(this.dir, { recursive: true })
     const filePath = path.join(this.dir, `${slug}.json`)
     await fs.writeFile(filePath, JSON.stringify(artifact, null, 2), 'utf-8')
+  }
+
+  async readPages(slug: string): Promise<ParsedPagesArtifact> {
+    const filePath = path.join(this.dir, `${slug}.pages.json`)
+    try {
+      const contents = await fs.readFile(filePath, 'utf-8')
+      return JSON.parse(contents) as ParsedPagesArtifact
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(
+          `No parsed-pages artifact at ${filePath} — run \`npm run pipeline:extract ${slug}\` first`,
+        )
+      }
+      throw err
+    }
+  }
+
+  async writePages(slug: string, pages: ParsedPagesArtifact): Promise<void> {
+    await fs.mkdir(this.dir, { recursive: true })
+    const filePath = path.join(this.dir, `${slug}.pages.json`)
+    await fs.writeFile(filePath, JSON.stringify(pages, null, 2), 'utf-8')
   }
 }
 
@@ -76,6 +99,32 @@ export class GcsArtifactStore implements ArtifactStore {
     const storage = new Storage()
     const file = storage.bucket(this.bucket).file(this.gcsPath(slug))
     await file.save(JSON.stringify(artifact, null, 2), { contentType: 'application/json' })
+  }
+
+  private gcsPagesPath(slug: string): string {
+    return `zoning/${slug}/extractions/parsed-pages.json`
+  }
+
+  async readPages(slug: string): Promise<ParsedPagesArtifact> {
+    const storage = new Storage()
+    const file = storage.bucket(this.bucket).file(this.gcsPagesPath(slug))
+    try {
+      const [contents] = await file.download()
+      return JSON.parse(contents.toString('utf-8')) as ParsedPagesArtifact
+    } catch (err) {
+      if ((err as { code?: number }).code === 404) {
+        throw new Error(
+          `No parsed-pages artifact at gs://${this.bucket}/${this.gcsPagesPath(slug)} — run \`npm run pipeline:extract ${slug}\` first`,
+        )
+      }
+      throw err
+    }
+  }
+
+  async writePages(slug: string, pages: ParsedPagesArtifact): Promise<void> {
+    const storage = new Storage()
+    const file = storage.bucket(this.bucket).file(this.gcsPagesPath(slug))
+    await file.save(JSON.stringify(pages, null, 2), { contentType: 'application/json' })
   }
 }
 
