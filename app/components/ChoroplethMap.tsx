@@ -134,6 +134,18 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
     setZoomedOut(false);
   }, []);
 
+  // ── National view: full US heat map ───────────────────────────────────────
+
+  const handleNationalView = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    removeRegionalLayer();
+    restoreStatesLayer();
+
+    map.setView([38, -97], 4, { animate: true, duration: 0.8 });
+  }, []);
+
   // ── Map initialization ────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -318,6 +330,9 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
             <>
               <button className={styles.mapButton} onClick={handleZoomToCounty} aria-label="Zoom in to selected county">
                 Zoom to County
+              </button>
+              <button className={styles.mapButton} onClick={handleNationalView} aria-label="Zoom out to national heat map">
+                National View
               </button>
               <button className={styles.mapButton} onClick={onReset} aria-label="Clear selection and return to home">
                 Clear Selection
