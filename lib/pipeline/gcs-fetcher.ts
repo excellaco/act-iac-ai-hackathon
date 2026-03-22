@@ -37,11 +37,15 @@ export class GcsFetcher implements PdfFetcher {
 
   async fetch(_jurisdictionId: string, slug: string): Promise<{ bytes: Buffer; sourceDocument: string }> {
     const prefix = `zoning/${slug}/`
-    const [files] = await this.storage.bucket(this.bucket).getFiles({ prefix })
+    const [allFiles] = await this.storage.bucket(this.bucket).getFiles({ prefix })
+
+    // Filter to PDF files only — the prefix may match non-PDF objects like
+    // extraction artifacts stored under zoning/{slug}/extractions/
+    const files = allFiles.filter((f) => f.name.toLowerCase().endsWith('.pdf'))
 
     if (files.length === 0) {
       throw new Error(
-        `GcsFetcher: no files found at gs://${this.bucket}/${prefix}. ` +
+        `GcsFetcher: no PDF files found at gs://${this.bucket}/${prefix}. ` +
         'Upload the zoning ordinance PDF per infra/README.md.',
       )
     }

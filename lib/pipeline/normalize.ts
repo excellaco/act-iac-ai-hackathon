@@ -101,7 +101,19 @@ function normalizeDensityLimit(
     }
   }
   // sqft/unit — inverse of units/sqft
-  if (u === 'sqft/unit' || u === 'sq ft per unit' || u === 'square feet per unit') {
+  // Covers standard shorthand and the "lot area per dwelling unit" format used by
+  // some jurisdictions (e.g. Arlington County RA districts)
+  if (
+    u === 'sqft/unit' ||
+    u === 'sq ft per unit' ||
+    u === 'square feet per unit' ||
+    u === 'sq ft per dwelling unit' ||
+    u === 'sq. ft. per dwelling unit' ||
+    u === 'sqft per dwelling unit' ||
+    u === 'sqft/dwelling unit' ||
+    u === 'sq. ft./dwelling unit' ||
+    u === 'sq ft/dwelling unit'
+  ) {
     return { field_value: SQFT_PER_ACRE / raw_value, recognized: true }
   }
   return { field_value: raw_value, recognized: false }
