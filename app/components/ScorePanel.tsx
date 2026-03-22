@@ -72,7 +72,10 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         crp:  { score: activeZone.crp,  confidence: subScores.crp.confidence,  source: subScores.crp.source  },
       }
     : subScores;
-  const activeFields = activeZone ? { ...fields, ...activeZone.fields } : fields;
+  const activeFields = useMemo(
+    () => (activeZone ? { ...fields, ...activeZone.fields } : fields),
+    [activeZone, fields],
+  );
   const activeFeasibility = activeZone?.feasibility ?? feasibility;
 
   const zoneHeadline = selectedZoneCode === '__avg__'
