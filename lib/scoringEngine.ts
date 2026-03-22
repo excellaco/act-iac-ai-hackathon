@@ -16,6 +16,8 @@
  * (3 real VA/MD jurisdictions + 7 synthetic regional peers).
  */
 
+import { computeRIS } from './scoring'
+
 // ── helpers ───────────────────────────────────────────────────────────────
 
 function clamp(value: number, min: number, max: number): number {
@@ -275,7 +277,10 @@ export function computeZoneRIS(
   const dci  = computeDCI(dciInputs)
   const dcoi = computeDCOI(dcoiInputs)
   const pci  = computePCI(pciInputs)
-  const risComposite = Math.round((dci + dcoi + pci) / 3)
+  // CRP is unknown until averageZoneRIS runs; use 0 as placeholder so the
+  // formula stays consistent with computeRIS — callers must call averageZoneRIS
+  // to get the final risComposite with CRP filled in.
+  const risComposite = computeRIS({ dci, dcoi, pci, crp: 0 })
 
   return {
     zoneCode,
@@ -313,19 +318,22 @@ export function averageZoneRIS(
     dci = Math.round(all.reduce((s, z) => s + z.dci, 0) / all.length)
     dcoi = Math.round(all.reduce((s, z) => s + z.dcoi, 0) / all.length)
     pci = Math.round(all.reduce((s, z) => s + z.pci, 0) / all.length)
-    risComposite = Math.round((dci + dcoi + pci) / 3)
   } else {
     dci  = Math.round(scoredZones.reduce((s, z) => s + z.dci,  0) / scoredZones.length)
     dcoi = Math.round(scoredZones.reduce((s, z) => s + z.dcoi, 0) / scoredZones.length)
     pci  = Math.round(scoredZones.reduce((s, z) => s + z.pci,  0) / scoredZones.length)
-    risComposite = Math.round((dci + dcoi + pci) / 3)
   }
 
   // CRP is always computed at jurisdiction level after averaging
   const crp = computeCRP({ dci, dcoi, pci, slug })
+  risComposite = computeRIS({ dci, dcoi, pci, crp })
 
-  // Back-fill CRP into each zone result
-  const filledZoneScores = zoneScores.map((z) => ({ ...z, crp }))
+  // Back-fill CRP and recompute risComposite for each zone using the weighted formula
+  const filledZoneScores = zoneScores.map((z) => ({
+    ...z,
+    crp,
+    risComposite: computeRIS({ dci: z.dci, dcoi: z.dcoi, pci: z.pci, crp }),
+  }))
 
   return {
     zoneScores: filledZoneScores,

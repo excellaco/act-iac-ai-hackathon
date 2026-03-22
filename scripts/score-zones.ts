@@ -108,9 +108,15 @@ async function scoreJurisdiction(jurisdictionId: string, slug: string): Promise<
     const classification = fields[0].multifamilyClassification
     const zoneName = fields[0].zoneName ?? null
 
-    // Only score primary and permitted zones
+    // Only score primary and permitted zones.
+    // 'limited' and 'none' zones are stored in zone_extracted_fields (for
+    // completeness and chat agent access) but excluded from zone_ris_scores
+    // because they don't contribute to the jurisdiction-level RIS average.
+    // The score API returns all zone_ris_scores rows; the ZoneSelector lists
+    // only scored zones. This is intentional — zones with no multifamily
+    // allowance don't affect housing supply capacity and should not dilute the score.
     if (classification !== 'primary' && classification !== 'permitted') {
-      console.log(`   ○ ${zoneCode} (${classification}) — not scored`)
+      console.log(`   ○ ${zoneCode} (${classification}) — not scored (limited/none zones excluded from RIS)`)
       continue
     }
 

@@ -2,7 +2,7 @@
 // extension on Cloud SQL PostgreSQL. Enable it once with:
 //   CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp, unique } from 'drizzle-orm/pg-core'
+import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp, unique, index } from 'drizzle-orm/pg-core'
 
 export const confidenceTier = pgEnum('confidence_tier', ['high', 'medium', 'low'])
 export const pipelineStatus = pgEnum('pipeline_status', ['running', 'completed', 'failed', 'partial'])
@@ -115,7 +115,10 @@ export const zoneExtractedFields = pgTable('zone_extracted_fields', {
   sourcePage: integer('source_page'),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
   extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [unique().on(t.jurisdictionId, t.zoneCode, t.fieldName)])
+}, (t) => [
+  unique().on(t.jurisdictionId, t.zoneCode, t.fieldName),
+  index('zone_extracted_fields_jurisdiction_idx').on(t.jurisdictionId),
+])
 
 export const zoneRisScores = pgTable('zone_ris_scores', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -130,4 +133,7 @@ export const zoneRisScores = pgTable('zone_ris_scores', {
   crp: numeric('crp', { precision: 5, scale: 2 }).notNull(),
   scoredAt: timestamp('scored_at', { withTimezone: true }).notNull().defaultNow(),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
-}, (t) => [unique().on(t.jurisdictionId, t.zoneCode)])
+}, (t) => [
+  unique().on(t.jurisdictionId, t.zoneCode),
+  index('zone_ris_scores_jurisdiction_idx').on(t.jurisdictionId),
+])

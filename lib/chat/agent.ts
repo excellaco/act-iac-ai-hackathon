@@ -29,6 +29,8 @@ Zone classifications:
 - "limited"   — multifamily is capped, conditional, or ADU-only
 - "none"      — no multifamily permitted
 
+Note: only "primary" and "permitted" zones are scored and appear in availableZones. "limited" and "none" zones are excluded from scoring because they do not contribute to housing supply capacity. If a user asks about a missing zone, explain this.
+
 ## How to respond
 - When answering questions about specific ordinance language (e.g., "What does the code say about ADUs?", "What are the setback requirements?"), use get_pdf_text to access the source document, then cite the relevant section (e.g., "per §8102.04" or "Section 6.4.3").
 - When answering questions about scores or metrics (e.g., "Why is the parking score high?"), use get_jurisdiction_data first to get the numbers, then explain them.

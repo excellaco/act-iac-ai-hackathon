@@ -21,7 +21,7 @@ import { runExtractStage } from '../lib/pipeline/runner'
 import { GcsFetcher } from '../lib/pipeline/gcs-fetcher'
 import { LocalFetcher } from '../lib/pipeline/local-fetcher'
 import { PdfParserImpl } from '../lib/pipeline/pdf-parser'
-import { buildExtractors } from '../lib/extractors/index'
+import { buildZoneAwareExtractors } from '../lib/extractors/index'
 import { buildArtifactStore } from '../lib/pipeline/artifact-store'
 
 const ALL_JURISDICTION_IDS = ['fairfax_va', 'arlington_va', 'loudoun_va']
@@ -34,7 +34,7 @@ async function main() {
 
   const fetcher = process.env.RAW_DATA_BUCKET ? new GcsFetcher() : new LocalFetcher()
   const parser = new PdfParserImpl()
-  const extractors = buildExtractors()
+  const extractors = buildZoneAwareExtractors()
   const store = buildArtifactStore()
 
   console.log(`\nParcela — extract stage`)
@@ -74,8 +74,11 @@ async function main() {
 
       const fieldCount = Object.keys(artifact.fields).length
       const highConf = Object.values(artifact.fields).filter((f) => f.confidence === 'high').length
+      const zoneCount = artifact.zoneFields?.length ?? 0
+      const zoneCodeCount = new Set(artifact.zoneFields?.map((z) => z.zone_code) ?? []).size
       console.log(`   fields extracted: ${fieldCount}`)
       console.log(`   high confidence:  ${highConf}`)
+      console.log(`   zone fields:      ${zoneCount} (${zoneCodeCount} zones)`)
       console.log(`   artifact written: ${jur.slug}.json`)
     } catch (err) {
       console.error(`   ✗ extract failed: ${err instanceof Error ? err.message : String(err)}`)

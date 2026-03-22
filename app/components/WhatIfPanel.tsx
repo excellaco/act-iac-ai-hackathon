@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { RegulationFields } from '../../lib/mockData';
 import type { FeasibilityOutputs } from '../../lib/feasibility';
 import { computeAllSubScores } from '../../lib/scoringEngine';
@@ -151,6 +151,17 @@ export default function WhatIfPanel({
     minLotSizeSqft:          fields.minLotSizeSqft,
     setbackFrontFt:          fields.setbackFrontFt,
   });
+
+  // Reset sliders when the underlying fields change (e.g. zone selection changes)
+  useEffect(() => {
+    setSliderValues({
+      parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+      heightLimitFt:           fields.heightLimitFt,
+      densityLimitUpa:         fields.densityLimitUpa,
+      minLotSizeSqft:          fields.minLotSizeSqft,
+      setbackFrontFt:          fields.setbackFrontFt,
+    });
+  }, [fields]);
 
   // E8-3 / E8-4: Compute simulated scores and feasibility from slider values
   const { simulatedRis, simulatedFeasibility, risDelta } = useMemo(() => {

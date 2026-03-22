@@ -110,17 +110,19 @@ describe('GET /api/jurisdictions/[id]/score', () => {
     // Sequence of db.select calls in the route:
     //   1st: extractedFields (jurisdiction-level) → []
     //   2nd: zoneRisScores → [mockZoneRow]
-    //   3rd: zoneExtractedFields for RA6-15 → [{fieldName: 'density_limit_units_per_acre', fieldValue: '72'}]
+    //   3rd (batch): zoneExtractedFields → [{fieldName: 'density_limit_units_per_acre', fieldValue: '72'}]
+    //   4th (batch): feasibilityOutputs → [zone feasibility row]
     ;(db.select as jest.Mock)
       .mockReturnValueOnce(makeSelectMock([]))
       .mockReturnValueOnce(makeSelectMock([mockZoneRow]))
-      .mockReturnValueOnce(makeSelectMock([{ fieldName: 'density_limit_units_per_acre', fieldValue: '72' }]))
-    ;(db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue({
-      maxUnitsPerAcre: 72,
-      parkingFootprintPct: 27.3,
-      estimatedCostPerUnit: 219_500,
-      fmr2br: 2280,
-    })
+      .mockReturnValueOnce(makeSelectMock([{ fieldName: 'density_limit_units_per_acre', fieldValue: '72', zoneCode: 'RA6-15' }]))
+      .mockReturnValueOnce(makeSelectMock([{
+        zoneCode: 'RA6-15',
+        maxUnitsPerAcre: 72,
+        parkingFootprintPct: 27.3,
+        estimatedCostPerUnit: 219_500,
+        fmr2br: 2280,
+      }]))
 
     const { req, params } = makeRequest('uuid-1')
     const res = await GET(req, { params })

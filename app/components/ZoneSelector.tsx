@@ -1,7 +1,6 @@
 'use client';
 
 import type { ZoneScore } from '../../lib/mockData';
-import { risColor } from '../../lib/ris';
 import styles from './ZoneSelector.module.css';
 
 export interface ZoneSelectorProps {
