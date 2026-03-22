@@ -42,6 +42,13 @@ export interface RegulationFields {
   fmr2br: number
 }
 
+export interface FieldCitation {
+  fieldValueText: string | null
+  sourceSection: string | null
+  sourcePage: number | null
+  sourceDocument: string | null
+}
+
 export interface JurisdictionData {
   id: string;
   name: string;
@@ -56,6 +63,8 @@ export interface JurisdictionData {
   };
   fields: RegulationFields;
   feasibility: FeasibilityOutputs;
+  /** Citation metadata keyed by field name (e.g. "min_lot_size_sqft") */
+  citations: Record<string, FieldCitation>;
 }
 
 // ── Per-jurisdiction regulatory field baselines ───────────────────────────
@@ -172,6 +181,7 @@ function buildJurisdiction(
     },
     fields,
     feasibility,
+    citations: {},
   }
 }
 
@@ -217,10 +227,17 @@ export function scoreResponseToJurisdictionData(
 
   // Merge any extracted fields from the DB — skip NaN values from bad data
   const fieldMap: Record<string, number> = {}
+  const citations: Record<string, FieldCitation> = {}
   for (const f of apiResponse.extractedFields ?? []) {
     if (f.fieldValue != null) {
       const parsed = parseFloat(f.fieldValue)
       if (!isNaN(parsed)) fieldMap[f.fieldName] = parsed
+    }
+    citations[f.fieldName] = {
+      fieldValueText: (f as { fieldValueText?: string | null }).fieldValueText ?? null,
+      sourceSection: (f as { sourceSection?: string | null }).sourceSection ?? null,
+      sourcePage: (f as { sourcePage?: number | null }).sourcePage ?? null,
+      sourceDocument: f.sourceDocument ?? null,
     }
   }
 
@@ -287,5 +304,6 @@ export function scoreResponseToJurisdictionData(
     },
     fields,
     feasibility,
+    citations,
   }
 }

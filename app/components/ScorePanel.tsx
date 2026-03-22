@@ -2,25 +2,53 @@
 
 import { useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
-import { risColor, risLabel, SUB_SCORE_META } from '../../lib/ris';
+import { risColor, risLabel, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
 import FeasibilityPanel from './FeasibilityPanel';
 import WhatIfPanel from './WhatIfPanel';
 import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
+import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
+
+/** Extracted fields that contribute to each sub-score */
+const SUB_SCORE_FIELDS: Record<SubScoreKey, string[]> = {
+  dci:  ['min_lot_size_sqft', 'height_limit_ft', 'density_limit_units_per_acre', 'setback_front_ft', 'setback_side_ft', 'setback_rear_ft'],
+  dcoi: ['parking_min_spaces_per_unit'],
+  pci:  ['discretionary_review_required'],
+  crp:  [],
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  min_lot_size_sqft:             'Min. lot size',
+  height_limit_ft:               'Height limit',
+  density_limit_units_per_acre:  'Density limit',
+  setback_front_ft:              'Front setback',
+  setback_side_ft:               'Side setback',
+  setback_rear_ft:               'Rear setback',
+  parking_min_spaces_per_unit:   'Parking minimum',
+  discretionary_review_required: 'Discretionary review',
+}
 
 interface Props {
   jurisdiction: JurisdictionData;
   onCompare: (peer: { id: string; name: string; state: string; ris: number }) => void;
 }
 
+interface PdfModalState {
+  fieldName: string;
+  sourcePage: number | null;
+  sourceSection: string | null;
+  fieldValueText: string | null;
+}
+
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
-  const { name, state, ris, subScores, fields, feasibility } = jurisdiction;
+  const { name, state, ris, subScores, fields, feasibility, citations } = jurisdiction;
   const color = risColor(ris);
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
+  const [pdfModal, setPdfModal] = useState<PdfModalState | null>(null);
 
   return (
     <aside className={styles.panel}>
@@ -99,6 +127,35 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                 <p className={styles.source}>
                   <span className={styles.sourceLabel}>Source:</span> {detail.source}
                 </p>
+                {SUB_SCORE_FIELDS[key].length > 0 && (
+                  <ul className={styles.citationList}>
+                    {SUB_SCORE_FIELDS[key].map((fieldName) => {
+                      const citation = citations?.[fieldName];
+                      const hasSource = citation?.sourcePage != null || citation?.sourceSection;
+                      return (
+                        <li key={fieldName} className={styles.citationItem}>
+                          <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                          {citation?.fieldValueText && citation.fieldValueText !== 'Not found in document' && (
+                            <span className={styles.citationQuote}>&ldquo;{citation.fieldValueText}&rdquo;</span>
+                          )}
+                          {hasSource && (
+                            <button
+                              className={styles.viewSourceBtn}
+                              onClick={() => setPdfModal({
+                                fieldName,
+                                sourcePage: citation.sourcePage ?? null,
+                                sourceSection: citation.sourceSection ?? null,
+                                fieldValueText: citation.fieldValueText ?? null,
+                              })}
+                            >
+                              View source
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             </details>
           );
@@ -123,6 +180,16 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
+      )}
+
+      {pdfModal && (
+        <PdfModal
+          jurisdictionId={jurisdiction.id}
+          sourcePage={pdfModal.sourcePage}
+          sourceSection={pdfModal.sourceSection}
+          fieldValueText={pdfModal.fieldValueText}
+          onClose={() => setPdfModal(null)}
+        />
       )}
     </aside>
   );

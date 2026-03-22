@@ -36,6 +36,13 @@
       "when": 1773805094100,
       "tag": "0004_swift_archangel",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774148762527,
+      "tag": "0005_broken_ares",
+      "breakpoints": true
     }
   ]
 }
