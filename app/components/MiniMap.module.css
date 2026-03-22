@@ -1,0 +1,5 @@
+.miniMap {
+  width: 100%;
+  height: 420px;
+  pointer-events: none;
+}
