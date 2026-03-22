@@ -61,7 +61,7 @@ export async function runChat(
       event.author,
       event.partial,
       isFinalResponse(event),
-      JSON.stringify(event.content?.parts?.map((p: Record<string, unknown>) => Object.keys(p))),
+      JSON.stringify(event.content?.parts?.map((p) => Object.keys(p as object))),
     )
     if (isFinalResponse(event)) {
       const parts = event.content?.parts
