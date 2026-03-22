@@ -13,9 +13,6 @@
  * Chainable after pipeline:load to produce fully scored zone data.
  */
 
-import { config } from 'dotenv'
-config({ path: '.env.local' })
-
 import { db } from '../db/client'
 import { jurisdictions, extractedFields, marketData, zoneExtractedFields, zoneRisScores, risScores, feasibilityOutputs } from '../db/schema'
 import { eq, and, sql } from 'drizzle-orm'
