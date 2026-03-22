@@ -60,12 +60,8 @@
   color: #4b5563;
 }
 
-/* Zoom-out / reset button — top-left corner */
-.resetButton {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 1000;
+/* Map control buttons — top-left corner */
+.mapButton {
   background: #fff;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -76,9 +72,19 @@
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
-.resetButton:hover {
+.mapButton:hover {
   background: #f9fafb;
   border-color: #9ca3af;
+}
+
+.mapControls {
+  position: absolute;
+  bottom: 72px;
+  left: 16px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
 }
