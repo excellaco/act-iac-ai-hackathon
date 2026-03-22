@@ -85,11 +85,22 @@ async function extractBestResult(
       const result = await extractor.extract(chunk)
       if (!result) continue
 
-      if (!bestResult || confidenceRank(result.confidence) > confidenceRank(bestResult.confidence)) {
+      // Prefer results that have a value over null results, even at lower confidence.
+      // A null result with high confidence means "I'm sure it's not in this chunk" —
+      // that should not stop the search before chunks with actual values are tried.
+      const resultHasValue = result.raw_value !== null || result.field_value_text?.trim()
+      const bestHasValue = bestResult && (bestResult.raw_value !== null || bestResult.field_value_text?.trim())
+
+      if (
+        !bestResult ||
+        (!bestHasValue && resultHasValue) ||
+        (bestHasValue === resultHasValue && confidenceRank(result.confidence) > confidenceRank(bestResult.confidence))
+      ) {
         bestResult = result
       }
 
-      if (bestResult.confidence === 'high') break
+      // Only stop early if we have a high-confidence result with an actual value
+      if (bestResult.confidence === 'high' && (bestResult.raw_value !== null || bestResult.field_value_text?.trim())) break
     } catch (err) {
       logger.warn('extractor error on chunk', {
         fieldName: extractor.fieldName,

@@ -253,6 +253,54 @@ describe('runPipeline', () => {
     expect(history[1].id).toBe('run-1')
   })
 
+  it('does not stop scanning when early chunk returns high-confidence null result', async () => {
+    // Root cause of Arlington issue: Gemini returns {raw_value: null, confidence: 'high'} for ToC
+    // chunks that mention district names but contain no actual standards. The old code treated
+    // this as a definitive high-confidence result and stopped scanning — never reaching the
+    // actual district standards sections in later chunks.
+    const highConfidenceNull: RawExtractionResult = {
+      field_name: 'density_limit_units_per_acre',
+      raw_value: null,
+      raw_unit: '',
+      field_value: null,
+      field_value_text: '',
+      unit: 'units_per_acre',
+      confidence: 'high',
+      source_section: 'Table of Contents',
+      district_context: 'RA14-26',
+      reasoning: 'The text is a table of contents entry mentioning RA14-26 district name; no density standards present',
+    }
+    const valuedResult = makeRawResult('density_limit_units_per_acre', 26, 'units/acre')
+    valuedResult.confidence = 'medium'
+
+    // chunk 0: high-confidence null (ToC); chunk 1: actual value
+    const extractor: FieldExtractor = {
+      fieldName: 'density_limit_units_per_acre',
+      extract: jest.fn()
+        .mockResolvedValueOnce(highConfidenceNull)
+        .mockResolvedValueOnce(valuedResult),
+    }
+    const db = makeDb()
+
+    // Need > 4000 tokens (~16000 chars) to force two chunks
+    const longText = 'Table of Contents\nRA14-26 District...........p.15\n'.repeat(600) +
+      '\n\nSection 14: RA14-26 Residential District\n' +
+      'Maximum density: 26 units/acre\n'.repeat(600)
+
+    await runPipeline(db, JURISDICTION_ID, 'test-slug', {
+      fetcher: makeFetcher(longText),
+      parser: makeParser(longText),
+      extractors: [extractor],
+      logger: silentLogger,
+    })
+
+    // Must have been called at least twice — the null high-confidence result should NOT stop the search
+    expect(extractor.extract).toHaveBeenCalledTimes(
+      (extractor.extract as jest.Mock).mock.calls.length,
+    )
+    expect((extractor.extract as jest.Mock).mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
   it('prefers high-confidence result over low-confidence across chunks', async () => {
     const lowResult = makeRawResult('height_limit_ft', 10, 'feet')
     lowResult.confidence = 'low'

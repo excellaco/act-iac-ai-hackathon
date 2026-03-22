@@ -14,13 +14,19 @@ export class DensityLimitExtractor extends GeminiExtractor {
   protected buildPrompt(chunk: string): string {
     return `Extract the maximum residential density limit from the following zoning ordinance text.
 
-The density limit is the maximum number of dwelling units permitted per acre of land. It may be expressed as units per acre, units per square foot, or as a floor area ratio (FAR). Return the value exactly as written — do not convert units. The pipeline will normalize to units per acre.
+The density limit is the maximum number of dwelling units permitted per acre of land. It may be expressed in several ways:
+- Units per acre (e.g. "26 units per acre", "14 du/acre")
+- Floor area ratio / FAR (e.g. "FAR of 2.5")
+- Units per square foot
+- Minimum lot area per dwelling unit in square feet (e.g. "Lot area per dwelling unit: 1,680 sq. ft." or "minimum lot area per dwelling unit 1,677 sq. ft.") — this is the INVERSE: divide 43,560 by this number to get units/acre. Return the sq ft value as raw_value and use "sq ft per dwelling unit" as raw_unit.
+
+Focus on multifamily residential districts (RA, MF, R-M, RM, or similar). If the text shows a range (e.g. district named RA14-26), use the higher (more permissive) number. Return the value exactly as written — do not convert units. The pipeline will normalize to units per acre.
 
 Return a JSON object with this exact structure:
 {
   "field_name": "density_limit_units_per_acre",
   "raw_value": <number exactly as in the text, or null>,
-  "raw_unit": "<unit as written, e.g. 'units/acre', 'du/acre', 'FAR', 'units per sq ft'>",
+  "raw_unit": "<unit as written, e.g. 'units/acre', 'du/acre', 'FAR', 'sq ft per dwelling unit'>",
   "field_value": null,
   "field_value_text": "<verbatim quote from the ordinance>",
   "unit": "units_per_acre",

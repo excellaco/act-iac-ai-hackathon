@@ -40,7 +40,7 @@ async function main() {
   console.log(`\nParcela — extract stage`)
   console.log(`Fetcher:  ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/raw/)'}`)
   console.log(`Artifact: ${process.env.RAW_DATA_BUCKET ? `GCS (zoning/{slug}/extractions/latest.json)` : 'local (data/extractions/)'}`)
-  console.log(`Model:    ${process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-001'}`)
+  console.log(`Model:    ${process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'}`)
   console.log(`Target:   ${targets.join(', ')}\n`)
 
   for (const jurisdictionId of targets) {

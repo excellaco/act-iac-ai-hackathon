@@ -46,7 +46,30 @@ describe('GcsFetcher', () => {
     mockGetFiles.mockResolvedValue([[]])
 
     const fetcher = new GcsFetcher('test-bucket')
-    await expect(fetcher.fetch('uuid-2', 'loudoun')).rejects.toThrow('no files found')
+    await expect(fetcher.fetch('uuid-2', 'loudoun')).rejects.toThrow('no PDF files found')
+  })
+
+  it('ignores non-PDF objects under the same prefix (e.g. extraction artifacts)', async () => {
+    const pdfContent = Buffer.from('%PDF-1.4 real')
+    const files = [
+      makeFile('zoning/arlington/aczo_2026.pdf', pdfContent),
+      makeFile('zoning/arlington/extractions/latest.json', Buffer.from('{}')),
+    ]
+    mockGetFiles.mockResolvedValue([files])
+
+    const fetcher = new GcsFetcher('test-bucket')
+    const result = await fetcher.fetch('uuid-4', 'arlington')
+
+    expect(result.bytes).toEqual(pdfContent)
+    expect(result.sourceDocument).toBe('gs://test-bucket/zoning/arlington/aczo_2026.pdf')
+  })
+
+  it('throws when only non-PDF files exist at the prefix', async () => {
+    const files = [makeFile('zoning/arlington/extractions/latest.json', Buffer.from('{}'))]
+    mockGetFiles.mockResolvedValue([files])
+
+    const fetcher = new GcsFetcher('test-bucket')
+    await expect(fetcher.fetch('uuid-5', 'arlington')).rejects.toThrow('no PDF files found')
   })
 
   it('passes the correct prefix to getFiles', async () => {

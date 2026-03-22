@@ -16,7 +16,7 @@
  */
 
 export const MAX_TOKENS = 4_000
-export const OVERLAP_TOKENS = 200
+export const OVERLAP_TOKENS = 500
 
 /** ~4 characters per token — conservative estimate for legal/ordinance prose */
 const CHARS_PER_TOKEN = 4
