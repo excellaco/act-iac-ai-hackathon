@@ -57,11 +57,12 @@ export async function runChat(
     userId: 'anonymous',
     newMessage: userContent,
   })) {
-    console.log('[chat] event author=%s partial=%s isFinal=%s parts=%s',
+    console.log('[chat] event author=%s partial=%s isFinal=%s content=%s actions=%s',
       event.author,
       event.partial,
       isFinalResponse(event),
-      JSON.stringify(event.content?.parts?.map((p) => Object.keys(p as object))),
+      JSON.stringify(event.content),
+      JSON.stringify(event.actions),
     )
     if (isFinalResponse(event)) {
       const parts = event.content?.parts
