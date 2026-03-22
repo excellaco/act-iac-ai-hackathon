@@ -8,6 +8,7 @@ import MethodologyModal from './MethodologyModal';
 import FeasibilityPanel from './FeasibilityPanel';
 import WhatIfPanel from './WhatIfPanel';
 import ComparePeers from './ComparePeers';
+import ChatPanel from './ChatPanel';
 import styles from './ScorePanel.module.css';
 
 interface Props {
@@ -109,6 +110,12 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
 
       {/* E6-7: Compare Peers */}
       <ComparePeers current={jurisdiction} onCompare={onCompare} />
+
+      {/* Chat panel — below Compare Peers */}
+      <ChatPanel
+        jurisdictionId={jurisdiction.id}
+        jurisdictionName={`${name}, ${state}`}
+      />
 
       <p className={styles.disclaimer}>
         This score measures regulatory constraint and does not recommend policy positions.

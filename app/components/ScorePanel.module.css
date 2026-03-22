@@ -1,7 +1,7 @@
 .panel {
   width: 380px;
   min-width: 320px;
-  height: 100vh;
+  height: calc(100vh - 48px);
   overflow-y: auto;
   background: #fff;
   border-left: 1px solid #e5e7eb;
