@@ -9,6 +9,25 @@ export interface JurisdictionSummary {
   risComposite: string | null
 }
 
+export interface ZoneScoreResponse {
+  zoneCode: string
+  zoneName: string | null
+  multifamilyClassification: 'primary' | 'permitted' | 'limited' | 'none'
+  dci: string
+  dcoi: string
+  pci: string
+  crp: string
+  risComposite: string
+  /** Partial extracted field values keyed by field name. */
+  fields: Record<string, string | null>
+  feasibility: {
+    maxUnitsPerAcre: string | null
+    parkingFootprintPct: string | null
+    estimatedCostPerUnit: string | null
+    fmr2br: string | null
+  } | null
+}
+
 export interface ScoreResponse {
   jurisdiction: {
     id: string
@@ -47,6 +66,8 @@ export interface ScoreResponse {
     permits5plus: number | null
     totalPermits: number | null
   } | null
+  /** Per-zone scores and field values (E2-155). Empty for synthetic jurisdictions. */
+  zoneScores: ZoneScoreResponse[]
 }
 
 export async function fetchJurisdictions(): Promise<JurisdictionSummary[]> {

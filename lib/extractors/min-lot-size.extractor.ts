@@ -1,13 +1,15 @@
 /**
- * E2-1: Minimum lot size extractor
+ * E2-1 / E2-155: Minimum lot size extractor
  *
  * Extracts min_lot_size_sqft from a zoning text chunk.
  * Returns raw_value in the unit as written; normalization (E0-7) converts to sqft.
+ * Extends MultiZoneGeminiExtractor to support per-zone extraction (E2-155).
  */
 
-import { GeminiExtractor } from './gemini-extractor'
+import { MultiZoneGeminiExtractor } from './multi-zone-gemini.extractor'
+import { DiscoveredZone } from './zone-discovery.extractor'
 
-export class MinLotSizeExtractor extends GeminiExtractor {
+export class MinLotSizeExtractor extends MultiZoneGeminiExtractor {
   readonly fieldName = 'min_lot_size_sqft'
 
   protected buildPrompt(chunk: string): string {
@@ -33,5 +35,15 @@ Leave field_value as null — it is populated by the normalization step after ex
 
 Text chunk:
 ${chunk}`
+  }
+
+  protected buildMultiZonePrompt(chunk: string, zones: DiscoveredZone[]): string {
+    return this.buildMultiZonePromptDefault(
+      chunk,
+      zones,
+      'The minimum lot size is the smallest land area required per lot or parcel. It may be in sq ft or acres.',
+      'sq ft',
+      'sqft',
+    )
   }
 }

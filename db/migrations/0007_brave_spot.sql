@@ -1,0 +1,2 @@
+CREATE INDEX "zone_extracted_fields_jurisdiction_idx" ON "zone_extracted_fields" USING btree ("jurisdiction_id");--> statement-breakpoint
+CREATE INDEX "zone_ris_scores_jurisdiction_idx" ON "zone_ris_scores" USING btree ("jurisdiction_id");

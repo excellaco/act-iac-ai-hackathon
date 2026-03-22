@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import ScorePanel from '../../app/components/ScorePanel'
-import { FAIRFAX } from '../fixtures/jurisdictionData'
+import { FAIRFAX, ARLINGTON_WITH_ZONES } from '../fixtures/jurisdictionData'
 
 describe('ScorePanel', () => {
   const mockOnCompare = jest.fn()
@@ -97,5 +97,47 @@ describe('ScorePanel', () => {
     render(<ScorePanel jurisdiction={FAIRFAX} onCompare={mockOnCompare} />)
     expect(screen.getByText('Development Feasibility')).toBeInTheDocument()
     expect(screen.getByText('Max Unit Yield')).toBeInTheDocument()
+  })
+})
+
+describe('ScorePanel — ZoneSelector (E2-155)', () => {
+  const mockOnCompare = jest.fn()
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('does not show zone selector when jurisdiction has no zones', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX} onCompare={mockOnCompare} />)
+    expect(screen.queryByRole('combobox', { name: 'Select zoning district' })).not.toBeInTheDocument()
+  })
+
+  it('shows zone selector when jurisdiction has zones', () => {
+    render(<ScorePanel jurisdiction={ARLINGTON_WITH_ZONES} onCompare={mockOnCompare} />)
+    expect(screen.getByRole('combobox', { name: 'Select zoning district' })).toBeInTheDocument()
+  })
+
+  it('defaults to the most permissive primary zone', () => {
+    render(<ScorePanel jurisdiction={ARLINGTON_WITH_ZONES} onCompare={mockOnCompare} />)
+    const select = screen.getByRole('combobox', { name: 'Select zoning district' }) as HTMLSelectElement
+    // RA6-15 is the primary zone and should be the default
+    expect(select.value).toBe('RA6-15')
+  })
+
+  it('updates the displayed RIS when a different zone is selected', () => {
+    render(<ScorePanel jurisdiction={ARLINGTON_WITH_ZONES} onCompare={mockOnCompare} />)
+
+    // Switch to R-10 (risComposite: 72)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Select zoning district' }), {
+      target: { value: 'R-10' },
+    })
+
+    // The score badge should update to 72 (multiple elements may contain this value)
+    expect(screen.getAllByText('72').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows "__avg__" option as "All zones (averaged)"', () => {
+    render(<ScorePanel jurisdiction={ARLINGTON_WITH_ZONES} onCompare={mockOnCompare} />)
+    expect(screen.getByRole('option', { name: 'All zones (averaged)' })).toBeInTheDocument()
   })
 })

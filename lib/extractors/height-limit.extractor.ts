@@ -1,14 +1,16 @@
 /**
- * E2-2: Height limit extractor
+ * E2-2 / E2-155: Height limit extractor
  *
  * Extracts height_limit_ft from a zoning text chunk.
  * Returns raw_value in the unit as written (ft, stories, meters);
  * normalization (E0-7) converts to feet.
+ * Extends MultiZoneGeminiExtractor to support per-zone extraction (E2-155).
  */
 
-import { GeminiExtractor } from './gemini-extractor'
+import { MultiZoneGeminiExtractor } from './multi-zone-gemini.extractor'
+import { DiscoveredZone } from './zone-discovery.extractor'
 
-export class HeightLimitExtractor extends GeminiExtractor {
+export class HeightLimitExtractor extends MultiZoneGeminiExtractor {
   readonly fieldName = 'height_limit_ft'
 
   protected buildPrompt(chunk: string): string {
@@ -34,5 +36,15 @@ Leave field_value as null — it is populated by the normalization step after ex
 
 Text chunk:
 ${chunk}`
+  }
+
+  protected buildMultiZonePrompt(chunk: string, zones: DiscoveredZone[]): string {
+    return this.buildMultiZonePromptDefault(
+      chunk,
+      zones,
+      'The height limit is the maximum building height, which may be in feet, stories, or meters. Return the value as written.',
+      'ft',
+      'ft',
+    )
   }
 }

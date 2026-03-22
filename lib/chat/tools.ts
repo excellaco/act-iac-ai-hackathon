@@ -15,8 +15,10 @@ import {
   risScores,
   feasibilityOutputs,
   marketData,
+  zoneExtractedFields,
+  zoneRisScores,
 } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { computeFeasibility } from '@/lib/feasibility'
 import { GcsFetcher } from '@/lib/pipeline/gcs-fetcher'
 import { PdfParserImpl } from '@/lib/pipeline/pdf-parser'
@@ -24,12 +26,72 @@ import { Storage } from '@google-cloud/storage'
 
 // ── get_jurisdiction_data ────────────────────────────────────────────────────
 
-export async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: string }) {
+export async function getJurisdictionData({
+  jurisdictionId,
+  zoneCode,
+}: {
+  jurisdictionId: string
+  zoneCode?: string
+}) {
   const jurisdiction = await db.query.jurisdictions.findFirst({
     where: eq(jurisdictions.id, jurisdictionId),
   })
   if (!jurisdiction) return { error: 'Jurisdiction not found' }
 
+  // Zone-specific data path (E2-155)
+  if (zoneCode) {
+    const zFields = await db
+      .select()
+      .from(zoneExtractedFields)
+      .where(and(eq(zoneExtractedFields.jurisdictionId, jurisdictionId), eq(zoneExtractedFields.zoneCode, zoneCode)))
+
+    const zScore = await db.query.zoneRisScores.findFirst({
+      where: and(eq(zoneRisScores.jurisdictionId, jurisdictionId), eq(zoneRisScores.zoneCode, zoneCode)),
+    })
+
+    const zFeasibility = await db.query.feasibilityOutputs.findFirst({
+      where: and(eq(feasibilityOutputs.jurisdictionId, jurisdictionId), eq(feasibilityOutputs.zoneCode, zoneCode)),
+    })
+
+    if (zFields.length === 0 && !zScore) {
+      // List available zones
+      const allZones = await db.select().from(zoneRisScores).where(eq(zoneRisScores.jurisdictionId, jurisdictionId))
+      return {
+        error: `Zone "${zoneCode}" not found for ${jurisdiction.displayName}.`,
+        availableZones: allZones.map((z) => ({ zoneCode: z.zoneCode, zoneName: z.zoneName, multifamilyClassification: z.multifamilyClassification })),
+      }
+    }
+
+    return {
+      jurisdiction: {
+        name: jurisdiction.name,
+        state: jurisdiction.state,
+        displayName: jurisdiction.displayName,
+        dataType: jurisdiction.dataType,
+      },
+      zone: {
+        zoneCode,
+        zoneName: zScore?.zoneName ?? null,
+        multifamilyClassification: zScore?.multifamilyClassification ?? null,
+      },
+      extractedFields: zFields.map((f) => ({
+        fieldName: f.fieldName,
+        fieldValue: f.fieldValue,
+        unit: f.unit,
+        confidence: f.confidence,
+        sourceSection: f.sourceSection,
+        fieldValueText: f.fieldValueText,
+      })),
+      risScore: zScore
+        ? { risComposite: zScore.risComposite, dci: zScore.dci, dcoi: zScore.dcoi, pci: zScore.pci, crp: zScore.crp }
+        : null,
+      feasibility: zFeasibility
+        ? { maxUnitsPerAcre: zFeasibility.maxUnitsPerAcre, parkingFootprintPct: zFeasibility.parkingFootprintPct, estimatedCostPerUnit: zFeasibility.estimatedCostPerUnit, fmr2br: zFeasibility.fmr2br }
+        : null,
+    }
+  }
+
+  // Jurisdiction-level (default) data path
   const score = await db.query.risScores.findFirst({
     where: eq(risScores.jurisdictionId, jurisdictionId),
   })
@@ -40,12 +102,18 @@ export async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: 
     .where(eq(extractedFields.jurisdictionId, jurisdictionId))
 
   const feasibility = await db.query.feasibilityOutputs.findFirst({
-    where: eq(feasibilityOutputs.jurisdictionId, jurisdictionId),
+    where: and(eq(feasibilityOutputs.jurisdictionId, jurisdictionId), eq(feasibilityOutputs.zoneCode, '__avg__')),
   })
 
   const market = await db.query.marketData.findFirst({
     where: eq(marketData.jurisdictionId, jurisdictionId),
   })
+
+  // List available zones for context
+  const availableZones = await db
+    .select()
+    .from(zoneRisScores)
+    .where(eq(zoneRisScores.jurisdictionId, jurisdictionId))
 
   return {
     jurisdiction: {
@@ -69,6 +137,7 @@ export async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: 
           dcoi: score.dcoi,
           pci: score.pci,
           crp: score.crp,
+          note: availableZones.length > 0 ? 'This is the unweighted average across all scored zones.' : undefined,
         }
       : null,
     feasibility: feasibility
@@ -86,15 +155,19 @@ export async function getJurisdictionData({ jurisdictionId }: { jurisdictionId: 
           totalPermits: market.totalPermits,
         }
       : null,
+    availableZones: availableZones.length > 0
+      ? availableZones.map((z) => ({ zoneCode: z.zoneCode, zoneName: z.zoneName, multifamilyClassification: z.multifamilyClassification, risComposite: z.risComposite }))
+      : undefined,
   }
 }
 
 export const getJurisdictionDataTool = new FunctionTool({
   name: 'get_jurisdiction_data',
   description:
-    'Returns extracted zoning fields, RIS scores, feasibility outputs, and market data for the jurisdiction. Use this to answer questions about specific metrics, scores, or regulatory values.',
+    'Returns extracted zoning fields, RIS scores, feasibility outputs, and market data for the jurisdiction. When zoneCode is provided, returns data for that specific zoning district (e.g. "R-30" or "RA6-15"). When absent, returns jurisdiction-level averaged values and lists available zones.',
   parameters: z.object({
     jurisdictionId: z.string().describe('The jurisdiction UUID'),
+    zoneCode: z.string().optional().describe('Optional: specific zone code (e.g. "R-30", "RA6-15"). Omit for jurisdiction-level averaged data.'),
   }),
   execute: getJurisdictionData,
 })

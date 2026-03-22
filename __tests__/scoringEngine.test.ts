@@ -4,6 +4,8 @@ import {
   computePCI,
   computeCRP,
   computeAllSubScores,
+  computeZoneRIS,
+  averageZoneRIS,
   type DciInputs,
   type PciInputs,
 } from '../lib/scoringEngine'
@@ -312,5 +314,136 @@ describe('computeAllSubScores', () => {
     expect(restrictive.dcoi).toBeGreaterThan(permissive.dcoi)
     expect(restrictive.pci).toBeGreaterThan(permissive.pci)
     expect(restrictive.crp).toBeGreaterThan(permissive.crp)
+  })
+})
+
+// ── E2-155: computeZoneRIS ──────────────────────────────────────────────────
+
+const BASE_FALLBACKS = {
+  minLotSizeSqft:          20_000,
+  heightLimitFt:           50,
+  densityLimitUpa:         20,
+  parkingMinSpacesPerUnit: 1.5,
+  setbackFrontFt:          20,
+  setbackSideFt:           10,
+  setbackRearFt:           20,
+  discretionaryReviewType: 'conditional-use-permit' as const,
+  permits5plus:            500,
+  totalPermits:            1000,
+  regionalMultiplier:      1.0,
+  fmr2br:                  1800,
+}
+
+const PCI_INPUTS: PciInputs = {
+  permits5plus:            500,
+  totalPermits:            1000,
+  discretionaryReviewType: 'conditional-use-permit',
+}
+
+describe('computeZoneRIS', () => {
+  it('returns a zone result with expected shape', () => {
+    const result = computeZoneRIS({}, BASE_FALLBACKS, PCI_INPUTS, 'R-30', 'Thirty DU/Acre', 'primary')
+    expect(result.zoneCode).toBe('R-30')
+    expect(result.zoneName).toBe('Thirty DU/Acre')
+    expect(result.multifamilyClassification).toBe('primary')
+    expect(result.dci).toBeGreaterThanOrEqual(0)
+    expect(result.dci).toBeLessThanOrEqual(100)
+    expect(result.dcoi).toBeGreaterThanOrEqual(0)
+    expect(result.pci).toBeGreaterThanOrEqual(0)
+    expect(result.crp).toBe(0) // set later by averageZoneRIS
+    expect(result.risComposite).toBeGreaterThanOrEqual(0)
+  })
+
+  it('uses zone fields over fallbacks when provided', () => {
+    const permissiveZone = computeZoneRIS(
+      { densityLimitUpa: 100, parkingMinSpacesPerUnit: 0 },
+      BASE_FALLBACKS,
+      PCI_INPUTS,
+      'R-100',
+      null,
+      'primary',
+    )
+    const restrictiveZone = computeZoneRIS(
+      { densityLimitUpa: 1, parkingMinSpacesPerUnit: 3 },
+      BASE_FALLBACKS,
+      PCI_INPUTS,
+      'R-1',
+      null,
+      'primary',
+    )
+    // Lower density + more parking = higher DCI + DCOI = more restrictive
+    expect(restrictiveZone.dci).toBeGreaterThan(permissiveZone.dci)
+    expect(restrictiveZone.dcoi).toBeGreaterThan(permissiveZone.dcoi)
+  })
+
+  it('falls back to jurisdiction values for missing zone fields', () => {
+    const withFallback = computeZoneRIS({}, BASE_FALLBACKS, PCI_INPUTS, 'X', null, 'primary')
+    const withExplicit = computeZoneRIS(
+      {
+        minLotSizeSqft:          BASE_FALLBACKS.minLotSizeSqft,
+        heightLimitFt:           BASE_FALLBACKS.heightLimitFt,
+        densityLimitUpa:         BASE_FALLBACKS.densityLimitUpa,
+        parkingMinSpacesPerUnit: BASE_FALLBACKS.parkingMinSpacesPerUnit,
+        setbackFrontFt:          BASE_FALLBACKS.setbackFrontFt,
+        setbackSideFt:           BASE_FALLBACKS.setbackSideFt,
+        setbackRearFt:           BASE_FALLBACKS.setbackRearFt,
+      },
+      BASE_FALLBACKS,
+      PCI_INPUTS,
+      'X',
+      null,
+      'primary',
+    )
+    expect(withFallback.dci).toBe(withExplicit.dci)
+    expect(withFallback.dcoi).toBe(withExplicit.dcoi)
+  })
+})
+
+// ── E2-155: averageZoneRIS ──────────────────────────────────────────────────
+
+describe('averageZoneRIS', () => {
+  const makeZone = (code: string, classification: 'primary' | 'permitted' | 'limited' | 'none', dci: number, dcoi: number, pci: number) =>
+    computeZoneRIS(
+      { densityLimitUpa: dci === 30 ? 50 : 10 },
+      BASE_FALLBACKS,
+      { ...PCI_INPUTS },
+      code,
+      null,
+      classification,
+    )
+
+  it('returns averaged sub-scores and fills crp into zone results', () => {
+    const z1 = computeZoneRIS({ densityLimitUpa: 50 }, BASE_FALLBACKS, PCI_INPUTS, 'Z1', null, 'primary')
+    const z2 = computeZoneRIS({ densityLimitUpa: 10 }, BASE_FALLBACKS, PCI_INPUTS, 'Z2', null, 'primary')
+
+    const { zoneScores: filled, averaged } = averageZoneRIS([z1, z2], 'test')
+
+    expect(averaged.dci).toBe(Math.round((z1.dci + z2.dci) / 2))
+    expect(averaged.dcoi).toBe(Math.round((z1.dcoi + z2.dcoi) / 2))
+    expect(filled.every((z) => z.crp === averaged.crp)).toBe(true)
+    expect(averaged.crp).toBeGreaterThanOrEqual(0)
+    expect(averaged.crp).toBeLessThanOrEqual(100)
+  })
+
+  it('excludes limited and none zones from the average', () => {
+    const primary  = computeZoneRIS({ densityLimitUpa: 50 }, BASE_FALLBACKS, PCI_INPUTS, 'P', null, 'primary')
+    const limited  = computeZoneRIS({ densityLimitUpa: 1  }, BASE_FALLBACKS, PCI_INPUTS, 'L', null, 'limited')
+
+    const { averaged } = averageZoneRIS([primary, limited], 'test')
+    // Averaged should match primary-only (limited excluded)
+    const { averaged: primaryOnly } = averageZoneRIS([primary], 'test')
+    expect(averaged.dci).toBe(primaryOnly.dci)
+  })
+
+  it('returns all zone scores in the filled array including limited/none', () => {
+    const primary = computeZoneRIS({}, BASE_FALLBACKS, PCI_INPUTS, 'P', null, 'primary')
+    const none    = computeZoneRIS({}, BASE_FALLBACKS, PCI_INPUTS, 'N', null, 'none')
+    const { zoneScores } = averageZoneRIS([primary, none], 'test')
+    expect(zoneScores).toHaveLength(2)
+  })
+
+  it('handles empty zone list gracefully', () => {
+    const { averaged } = averageZoneRIS([], 'test')
+    expect(averaged.risComposite).toBeGreaterThanOrEqual(0)
   })
 })

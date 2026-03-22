@@ -1,14 +1,16 @@
 /**
- * E2-3: Density limit extractor
+ * E2-3 / E2-155: Density limit extractor
  *
  * Extracts density_limit_units_per_acre from a zoning text chunk.
  * Returns raw_value in the unit as written (units/acre, FAR, etc.);
  * normalization (E0-7) converts to units per acre.
+ * Extends MultiZoneGeminiExtractor to support per-zone extraction (E2-155).
  */
 
-import { GeminiExtractor } from './gemini-extractor'
+import { MultiZoneGeminiExtractor } from './multi-zone-gemini.extractor'
+import { DiscoveredZone } from './zone-discovery.extractor'
 
-export class DensityLimitExtractor extends GeminiExtractor {
+export class DensityLimitExtractor extends MultiZoneGeminiExtractor {
   readonly fieldName = 'density_limit_units_per_acre'
 
   protected buildPrompt(chunk: string): string {
@@ -40,5 +42,15 @@ Leave field_value as null — it is populated by the normalization step after ex
 
 Text chunk:
 ${chunk}`
+  }
+
+  protected buildMultiZonePrompt(chunk: string, zones: DiscoveredZone[]): string {
+    return this.buildMultiZonePromptDefault(
+      chunk,
+      zones,
+      'The density limit is the maximum dwelling units per acre. It may be expressed as units/acre, FAR, or sq ft per dwelling unit.',
+      'units/acre',
+      'units_per_acre',
+    )
   }
 }

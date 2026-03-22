@@ -33,6 +33,7 @@ jest.mock('@/db/client', () => ({
       risScores:          { findFirst: jest.fn() },
       feasibilityOutputs: { findFirst: jest.fn() },
       marketData:         { findFirst: jest.fn() },
+      zoneRisScores:      { findFirst: jest.fn() },
     },
     select: jest.fn(),
   },
@@ -104,14 +105,18 @@ const mockSyntheticJurisdiction = {
   dataType: 'synthetic',
 }
 
+function makeSelectMock(rows: unknown[] = []) {
+  return {
+    from: jest.fn().mockReturnValue({
+      where: jest.fn().mockResolvedValue(rows),
+    }),
+  }
+}
+
 describe('get_jurisdiction_data tool', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(db.select as jest.Mock).mockReturnValue({
-      from: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue([]),
-      }),
-    })
+    ;(db.select as jest.Mock).mockReturnValue(makeSelectMock())
     ;(db.query.risScores.findFirst as jest.Mock).mockResolvedValue(null)
     ;(db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue(null)
     ;(db.query.marketData.findFirst as jest.Mock).mockResolvedValue(null)
@@ -140,6 +145,55 @@ describe('get_jurisdiction_data tool', () => {
     const result = await getJurisdictionData({ jurisdictionId: 'unknown' })
 
     expect(result).toEqual({ error: 'Jurisdiction not found' })
+  })
+
+  it('returns zone-specific data when zoneCode is provided', async () => {
+    ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
+
+    // Zone fields query returns extracted fields for the zone
+    ;(db.select as jest.Mock).mockReturnValueOnce(makeSelectMock([
+      { fieldName: 'density_limit_units_per_acre', fieldValue: '72', unit: 'units/acre', confidence: 'High', sourceSection: '§3.2', fieldValueText: '72 units per acre' },
+    ]))
+    // Zone RIS score
+    ;(db.query.zoneRisScores as unknown as { findFirst: jest.Mock }).findFirst.mockResolvedValue({
+      risComposite: '43', dci: '40', dcoi: '50', pci: '35', crp: '45',
+      zoneCode: 'RA6-15', zoneName: 'Residential Apartment', multifamilyClassification: 'primary',
+    })
+    ;(db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue({
+      maxUnitsPerAcre: 72, parkingFootprintPct: 27.3, estimatedCostPerUnit: 219_500, fmr2br: 2280,
+    })
+
+    const result = await getJurisdictionData({ jurisdictionId: 'uuid-1', zoneCode: 'RA6-15' })
+
+    expect(result).toEqual(expect.objectContaining({
+      zone: expect.objectContaining({ zoneCode: 'RA6-15', multifamilyClassification: 'primary' }),
+      extractedFields: expect.arrayContaining([
+        expect.objectContaining({ fieldName: 'density_limit_units_per_acre' }),
+      ]),
+      risScore: expect.objectContaining({ risComposite: '43' }),
+      feasibility: expect.objectContaining({ maxUnitsPerAcre: 72 }),
+    }))
+  })
+
+  it('returns error with available zones when unknown zoneCode is provided', async () => {
+    ;(db.query.jurisdictions.findFirst as jest.Mock).mockResolvedValue(mockJurisdiction)
+    // No fields found for unknown zone
+    ;(db.select as jest.Mock)
+      .mockReturnValueOnce(makeSelectMock([]))   // zoneExtractedFields → empty
+      .mockReturnValueOnce(makeSelectMock([      // allZones listing
+        { zoneCode: 'RA6-15', zoneName: 'Residential Apartment', multifamilyClassification: 'primary' },
+      ]))
+    ;(db.query.zoneRisScores as unknown as { findFirst: jest.Mock }).findFirst.mockResolvedValue(null)
+    ;(db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue(null)
+
+    const result = await getJurisdictionData({ jurisdictionId: 'uuid-1', zoneCode: 'XX-99' })
+
+    expect(result).toMatchObject({
+      error: expect.stringContaining('XX-99'),
+      availableZones: expect.arrayContaining([
+        expect.objectContaining({ zoneCode: 'RA6-15' }),
+      ]),
+    })
   })
 })
 

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import type { JurisdictionData } from '../../lib/mockData';
+import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
 import { risColor, risLabel, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import ZoneSelector from './ZoneSelector';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
 import FeasibilityPanel from './FeasibilityPanel';
@@ -43,27 +44,67 @@ interface PdfModalState {
   fieldValueText: string | null;
 }
 
+/** Find the most permissive zone to use as default (highest-density primary zone). */
+function defaultZoneCode(zones: ZoneScore[]): string | '__avg__' {
+  const primaryZones = zones.filter((z) => z.multifamilyClassification === 'primary');
+  const pool = primaryZones.length > 0 ? primaryZones : zones;
+  if (pool.length === 0) return '__avg__';
+  return pool.reduce((best, z) => (z.risComposite > best.risComposite ? z : best), pool[0]).zoneCode;
+}
+
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
-  const { name, state, ris, subScores, fields, feasibility, citations } = jurisdiction;
-  const color = risColor(ris);
+  const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
   const [pdfModal, setPdfModal] = useState<PdfModalState | null>(null);
+  const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(() => defaultZoneCode(zoneScores));
+
+  // Derive active fields/scores/feasibility from selected zone or jurisdiction average
+  const activeZone = selectedZoneCode !== '__avg__' ? zoneScores.find((z) => z.zoneCode === selectedZoneCode) : null;
+
+  const activeRis = activeZone?.risComposite ?? ris;
+  const activeSubScores = activeZone
+    ? {
+        dci:  { score: activeZone.dci,  confidence: subScores.dci.confidence,  source: subScores.dci.source  },
+        dcoi: { score: activeZone.dcoi, confidence: subScores.dcoi.confidence, source: subScores.dcoi.source },
+        pci:  { score: activeZone.pci,  confidence: subScores.pci.confidence,  source: subScores.pci.source  },
+        crp:  { score: activeZone.crp,  confidence: subScores.crp.confidence,  source: subScores.crp.source  },
+      }
+    : subScores;
+  const activeFields = activeZone ? { ...fields, ...activeZone.fields } : fields;
+  const activeFeasibility = activeZone?.feasibility ?? feasibility;
+
+  const zoneHeadline = selectedZoneCode === '__avg__'
+    ? `Regulatory Impact Score (avg. ${zoneScores.length} zones)`
+    : `Regulatory Impact Score — ${selectedZoneCode}`;
+
+  const activeColor = risColor(activeRis);
 
   return (
     <aside className={styles.panel}>
       <div className={styles.header}>
         <div>
           <h2 className={styles.jurisdictionName}>{name}, {state}</h2>
-          <p className={styles.risLabel} style={{ color }}>{risLabel(ris)}</p>
+          <p className={styles.risLabel} style={{ color: activeColor }}>{risLabel(activeRis)}</p>
         </div>
-        <div className={styles.risScore} style={{ borderColor: color, color }}>
-          {ris}
+        <div className={styles.risScore} style={{ borderColor: activeColor, color: activeColor }}>
+          {activeRis}
         </div>
       </div>
 
+      {zoneScores.length > 0 && (
+        <div className={styles.zoneSelectorWrapper}>
+          <ZoneSelector
+            zones={zoneScores}
+            selectedZoneCode={selectedZoneCode}
+            onChange={setSelectedZoneCode}
+            label="Zone"
+          />
+        </div>
+      )}
+
       <p className={styles.risDescription}>
-        Regulatory Impact Score — composite of density, cost, permitting, and peer comparison sub-scores.{' '}
+        {zoneHeadline} — composite of density, cost, permitting, and peer comparison sub-scores.{' '}
         <button className={styles.methodologyLink} onClick={() => setShowMethodology(true)}>
           About this score
         </button>
@@ -94,22 +135,23 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         {/* E8-2 / E8-3 / E8-4 / E8-5 / E8-6: What-If panel */}
         {whatIfEnabled && (
           <WhatIfPanel
-            baselineRis={ris}
+            baselineRis={activeRis}
             baselineSubScores={{
-              dci:  subScores.dci.score,
-              dcoi: subScores.dcoi.score,
-              pci:  subScores.pci.score,
-              crp:  subScores.crp.score,
+              dci:  activeSubScores.dci.score,
+              dcoi: activeSubScores.dcoi.score,
+              pci:  activeSubScores.pci.score,
+              crp:  activeSubScores.crp.score,
             }}
-            fields={fields}
-            baselineFeasibility={feasibility}
+            fields={activeFields}
+            baselineFeasibility={activeFeasibility}
+            zoneLabel={selectedZoneCode !== '__avg__' ? selectedZoneCode : undefined}
           />
         )}
       </div>
 
       {/* Sub-score accordions */}
       <div className={styles.accordions}>
-        {(Object.entries(subScores) as [keyof typeof subScores, typeof subScores[keyof typeof subScores]][]).map(([key, detail]) => {
+        {(Object.entries(activeSubScores) as [keyof typeof activeSubScores, typeof activeSubScores[keyof typeof activeSubScores]][]).map(([key, detail]) => {
           const { label, description } = SUB_SCORE_META[key];
           return (
             <details key={key} className={styles.accordion}>
@@ -163,7 +205,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       </div>
 
       {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
-      <FeasibilityPanel feasibility={feasibility} />
+      <FeasibilityPanel feasibility={activeFeasibility} />
 
       {/* E6-7: Compare Peers */}
       <ComparePeers current={jurisdiction} onCompare={onCompare} />
