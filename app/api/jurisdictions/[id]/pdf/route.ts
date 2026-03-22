@@ -44,9 +44,9 @@ export async function GET(
       // Production: stream from GCS
       const gcsPath = sourceDocument.replace(`gs://${bucket}/`, '')
       const storage = new Storage()
-      const [pdfBytes] = await storage.bucket(bucket).file(gcsPath).download()
+      const [pdfBuffer] = await storage.bucket(bucket).file(gcsPath).download()
 
-      return new NextResponse(pdfBytes, {
+      return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'inline',
@@ -58,7 +58,7 @@ export async function GET(
       const localPath = path.resolve(sourceDocument)
       const pdfBytes = fs.readFileSync(localPath)
 
-      return new NextResponse(pdfBytes, {
+      return new NextResponse(new Uint8Array(pdfBytes), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'inline',

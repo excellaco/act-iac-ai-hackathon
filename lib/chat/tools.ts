@@ -160,7 +160,7 @@ export async function getPdfText({ jurisdictionId }: { jurisdictionId: string })
   let text: string
   try {
     const parser = new PdfParserImpl()
-    text = await parser.parse(bytes)
+    text = (await parser.parse(bytes)).text
   } catch (err) {
     return {
       unavailable: true,

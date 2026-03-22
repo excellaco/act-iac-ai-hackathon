@@ -64,6 +64,7 @@ export const FAIRFAX: JurisdictionData = deepFreeze({
     fmr2br: 2280,
   },
   feasibility: fairfaxFeasibility,
+  citations: {},
 })
 
 export const ARLINGTON: JurisdictionData = deepFreeze({
@@ -93,6 +94,7 @@ export const ARLINGTON: JurisdictionData = deepFreeze({
     fmr2br: 2280,
   },
   feasibility: arlingtonFeasibility,
+  citations: {},
 })
 
 export const LOUDOUN: JurisdictionData = deepFreeze({
@@ -129,4 +131,5 @@ export const LOUDOUN: JurisdictionData = deepFreeze({
     rentFeasibility: 'Feasible',
     fmr2br: 2280,
   },
+  citations: {},
 })
