@@ -33,7 +33,8 @@ import { ExtractionArtifact, FieldArtifact, ParsedPage, ZoneFieldArtifact } from
 import { ArtifactStore } from './artifact-store'
 import { toNumericString } from './numeric'
 import { discoverZones } from '../../lib/extractors/zone-discovery.extractor'
-import { injectCanonicalZones } from '../../lib/extractors/multi-zone-gemini.extractor'
+import { injectCanonicalZones, injectLimiter } from '../../lib/extractors/multi-zone-gemini.extractor'
+import { createGeminiLimiter } from './gemini-concurrency'
 
 // ─── injectable interfaces ────────────────────────────────────────────────────
 
@@ -183,6 +184,9 @@ export async function runExtractStage(
   const chunks = chunkText(text)
   logger.info('text chunked', { chunkCount: chunks.length })
 
+  // Create one shared concurrency limiter for all Gemini calls in this run
+  const limiter = createGeminiLimiter()
+
   // 4–6. extract, normalize, validate — one task per extractor, run in parallel
   const extractions = options.extractors.map((extractor) => ({
     fieldName: extractor.fieldName,
@@ -210,7 +214,7 @@ export async function runExtractStage(
     },
   }))
 
-  const { outcomes } = await runExtractions(extractions, logger)
+  const { outcomes } = await runExtractions(extractions, logger, limiter)
 
   // 7. build artifact
   const fields: Record<string, FieldArtifact> = {}
@@ -241,11 +245,12 @@ export async function runExtractStage(
     try {
       logger.info('running zone discovery', { slug })
       const chunkTexts = chunks.map((c) => c.text)
-      const canonicalZones = await discoverZones(chunkTexts)
+      const canonicalZones = await discoverZones(chunkTexts, limiter)
       logger.info('zones discovered', { count: canonicalZones.length, slug })
 
       if (canonicalZones.length > 0) {
         injectCanonicalZones(zoneAwareExtractors, canonicalZones)
+        injectLimiter(zoneAwareExtractors, limiter)
 
         const zoneResults: import('./artifact').ZoneFieldArtifact[] = []
 

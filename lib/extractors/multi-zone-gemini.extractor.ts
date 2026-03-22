@@ -17,6 +17,7 @@ import { GeminiExtractor } from './gemini-extractor'
 import { ZoneRawResult } from '../pipeline/runner'
 import { DiscoveredZone, matchZoneCode } from './zone-discovery.extractor'
 import { RawExtractionResult } from '../pipeline/normalize'
+import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
 
 function confidenceRank(c: 'high' | 'medium' | 'low'): number {
   return c === 'high' ? 2 : c === 'medium' ? 1 : 0
@@ -54,10 +55,15 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
     for (const chunk of chunks) {
       let results: ZoneRawResult[]
       try {
-        const resp = await generativeModel.generateContent(
-          this.buildMultiZonePrompt(chunk, canonicalZones),
-        )
-        const text = resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
+        const callGemini = async () => {
+          const resp = await generativeModel.generateContent(
+            this.buildMultiZonePrompt(chunk, canonicalZones),
+          )
+          return resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
+        }
+        const text = await (this._limiter
+          ? this._limiter(() => withRetry(callGemini))
+          : withRetry(callGemini))
         const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
         results = JSON.parse(sanitized)
         if (!Array.isArray(results)) continue
@@ -109,6 +115,15 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
 
   getCanonicalZones(): DiscoveredZone[] {
     return this._canonicalZones
+  }
+
+  // ── Concurrency limiter injection ─────────────────────────────────────────
+
+  private _limiter?: GeminiLimiter
+
+  /** Called by the pipeline runner before extractAllZones() to inject the shared limiter. */
+  setLimiter(limiter: GeminiLimiter): void {
+    this._limiter = limiter
   }
 
   // ── Default multi-zone prompt for simple single-value fields ──────────────
@@ -178,6 +193,20 @@ export function injectCanonicalZones(
   for (const extractor of extractors) {
     if (isMultiZoneExtractor(extractor)) {
       extractor.setCanonicalZones(zones)
+    }
+  }
+}
+
+/**
+ * Inject the shared concurrency limiter into all multi-zone extractors.
+ */
+export function injectLimiter(
+  extractors: { extractAllZones?: unknown }[],
+  limiter: GeminiLimiter,
+): void {
+  for (const extractor of extractors) {
+    if (isMultiZoneExtractor(extractor)) {
+      extractor.setLimiter(limiter)
     }
   }
 }

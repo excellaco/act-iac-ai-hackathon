@@ -12,6 +12,7 @@
 import { VertexAI } from '@google-cloud/vertexai'
 import { FieldExtractor } from '../pipeline/runner'
 import { RawExtractionResult } from '../pipeline/normalize'
+import { withRetry } from '../pipeline/gemini-concurrency'
 
 const SYSTEM_PROMPT = `You are a zoning code analyst extracting specific regulatory requirements from municipal zoning ordinance text.
 
@@ -57,8 +58,10 @@ export abstract class GeminiExtractor implements FieldExtractor {
       },
     })
 
-    const result = await generativeModel.generateContent(this.buildPrompt(chunk))
-    const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text
+    const text = await withRetry(async () => {
+      const result = await generativeModel.generateContent(this.buildPrompt(chunk))
+      return result.response.candidates?.[0]?.content?.parts?.[0]?.text
+    })
 
     if (!text) return null
 

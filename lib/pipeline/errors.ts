@@ -15,6 +15,7 @@
  */
 
 import { NormalizedExtractionResult } from './normalize'
+import { GeminiLimiter } from './gemini-concurrency'
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -120,6 +121,7 @@ export async function safeExtract(
 export async function runExtractions(
   extractions: Array<{ fieldName: string; extractor: () => Promise<NormalizedExtractionResult> }>,
   logger: PipelineLogger = consoleLogger,
+  limiter?: GeminiLimiter,
 ): Promise<{
   outcomes: ExtractionOutcome[]
   fieldsExtracted: number
@@ -128,7 +130,9 @@ export async function runExtractions(
 }> {
   const outcomes = await Promise.all(
     extractions.map(({ fieldName, extractor }) =>
-      safeExtract(fieldName, extractor, logger),
+      limiter
+        ? limiter(() => safeExtract(fieldName, extractor, logger))
+        : safeExtract(fieldName, extractor, logger),
     ),
   )
 

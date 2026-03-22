@@ -10,6 +10,7 @@
  */
 
 import { VertexAI } from '@google-cloud/vertexai'
+import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
 
 export type MultifamilyClassification = 'primary' | 'permitted' | 'limited' | 'none'
 
@@ -64,7 +65,9 @@ function normalizeCode(code: string): string {
  * code, with higher-permission classifications winning on conflict (primary >
  * permitted > limited > none) since a later chunk may provide more context.
  */
-export async function discoverZones(chunks: string[]): Promise<DiscoveredZone[]> {
+const EARLY_EXIT_THRESHOLD = 10
+
+export async function discoverZones(chunks: string[], limiter?: GeminiLimiter): Promise<DiscoveredZone[]> {
   const project = process.env.GOOGLE_CLOUD_PROJECT ?? process.env.GCLOUD_PROJECT
   const location = process.env.GOOGLE_CLOUD_LOCATION ?? 'us-central1'
 
@@ -88,18 +91,31 @@ export async function discoverZones(chunks: string[]): Promise<DiscoveredZone[]>
   // canonical key → best result seen so far
   const byCode = new Map<string, DiscoveredZone>()
 
+  let consecutiveEmpty = 0
+
   for (const chunk of chunks) {
     let results: DiscoveredZone[]
     try {
-      const resp = await generativeModel.generateContent(buildDiscoveryPrompt(chunk))
-      const text = resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
+      const callGemini = async () => {
+        const resp = await generativeModel.generateContent(buildDiscoveryPrompt(chunk))
+        return resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
+      }
+      const text = await (limiter ? limiter(() => withRetry(callGemini)) : withRetry(callGemini))
       // Strip null bytes
       const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
       results = JSON.parse(sanitized)
-      if (!Array.isArray(results)) continue
+      if (!Array.isArray(results)) {
+        consecutiveEmpty++
+        if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
+        continue
+      }
     } catch {
+      consecutiveEmpty++
+      if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
       continue
     }
+
+    const sizeBeforeChunk = byCode.size
 
     for (const r of results) {
       if (!r.zone_code || !r.multifamily_classification) continue
@@ -116,6 +132,13 @@ export async function discoverZones(chunks: string[]): Promise<DiscoveredZone[]>
           multifamily_classification: r.multifamily_classification,
         })
       }
+    }
+
+    if (byCode.size === sizeBeforeChunk) {
+      consecutiveEmpty++
+      if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
+    } else {
+      consecutiveEmpty = 0
     }
   }
 
