@@ -40,7 +40,8 @@
 
 /* E7-3: Ranking bar */
 .rankingBar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 0;
   background: white;
   border: 1px solid #e5e7eb;

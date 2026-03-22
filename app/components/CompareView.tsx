@@ -5,7 +5,10 @@ import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData } from '../../lib/mockData';
 import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import dynamic from 'next/dynamic';
 import styles from './CompareView.module.css';
+
+const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
 
 interface RankingBarProps {
   jurisdictions: JurisdictionData[];
@@ -129,6 +132,8 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
           </span>
         </div>
       </div>
+
+      <MiniMap jurisdictionName={name} ris={ris} />
     </div>
   );
 }

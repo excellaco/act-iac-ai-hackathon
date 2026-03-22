@@ -53,9 +53,13 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    // Guard against HMR re-initialization — Leaflet attaches _leaflet_id to the container
+    if ((containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id) return;
 
     // Dynamic import to avoid SSR issues (CSS is imported globally in globals.css)
     import('leaflet').then((L) => {
+      if (!containerRef.current) return;
+      if ((containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id) return;
       // Fix default marker icon issue in Next.js
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
