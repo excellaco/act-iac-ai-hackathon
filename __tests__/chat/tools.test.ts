@@ -70,7 +70,7 @@ jest.mock('@/lib/pipeline/gcs-fetcher', () => ({
 
 jest.mock('@/lib/pipeline/pdf-parser', () => ({
   PdfParserImpl: jest.fn().mockImplementation(() => ({
-    parse: jest.fn().mockResolvedValue('Parsed zoning ordinance text...'),
+    parse: jest.fn().mockResolvedValue({ text: 'Parsed zoning ordinance text...', pages: [] }),
   })),
 }))
 
