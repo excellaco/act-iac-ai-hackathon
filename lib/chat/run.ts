@@ -1,7 +1,8 @@
 /**
  * Chat orchestration — runs the ADK agent for a single user turn.
  *
- * Each API request creates a fresh InMemoryRunner. Conversation history
+ * Each API request creates a fresh InMemoryRunner and uses runEphemeral,
+ * which manages its own throwaway session internally. Conversation history
  * is embedded into the user message content so the agent sees prior turns
  * without needing to reconstruct ADK session events (which would require
  * replaying tool calls). This keeps the API fully stateless.
@@ -30,11 +31,6 @@ export async function runChat(
 ): Promise<string> {
   const runner = new InMemoryRunner({ agent: zoningAgent })
 
-  const session = await runner.sessionService.createSession({
-    appName: 'parcela-chat',
-    userId: 'anonymous',
-  })
-
   // Build context message that includes jurisdiction ID and conversation history
   const contextParts: string[] = [
     `The user is asking about jurisdiction ID: ${jurisdictionId}`,
@@ -57,9 +53,8 @@ export async function runChat(
   const userContent = createUserContent(fullMessage)
 
   let reply = ''
-  for await (const event of runner.runAsync({
-    userId: session.userId,
-    sessionId: session.id,
+  for await (const event of runner.runEphemeral({
+    userId: 'anonymous',
     newMessage: userContent,
   })) {
     if (isFinalResponse(event)) {

@@ -2,13 +2,11 @@
  * @jest-environment node
  */
 
-const mockRunAsync = jest.fn()
-const mockCreateSession = jest.fn()
+const mockRunEphemeral = jest.fn()
 
 jest.mock('@google/adk', () => ({
   InMemoryRunner: jest.fn().mockImplementation(() => ({
-    sessionService: { createSession: mockCreateSession },
-    runAsync: mockRunAsync,
+    runEphemeral: mockRunEphemeral,
   })),
   isFinalResponse: jest.fn(),
 }))
@@ -30,10 +28,6 @@ import { runChat } from '../../lib/chat/run'
 describe('runChat', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockCreateSession.mockResolvedValue({
-      userId: 'anonymous',
-      id: 'session-1',
-    })
   })
 
   it('returns the final response text from the agent', async () => {
@@ -43,7 +37,7 @@ describe('runChat', () => {
     ;(isFinalResponse as jest.Mock).mockImplementation((e) => e === finalEvent)
 
     // Simulate async generator
-    mockRunAsync.mockImplementation(async function* () {
+    mockRunEphemeral.mockImplementation(async function* () {
       yield { content: { parts: [{ functionCall: {} }] } } // tool call event
       yield finalEvent
     })
@@ -58,7 +52,7 @@ describe('runChat', () => {
       content: { parts: [{ text: 'The setback is 25 feet.' }] },
     }
     ;(isFinalResponse as jest.Mock).mockImplementation((e) => e === finalEvent)
-    mockRunAsync.mockImplementation(async function* () {
+    mockRunEphemeral.mockImplementation(async function* () {
       yield finalEvent
     })
 
@@ -70,15 +64,15 @@ describe('runChat', () => {
     const reply = await runChat('uuid-1', 'What about setbacks?', history)
 
     expect(reply).toBe('The setback is 25 feet.')
-    // Verify the message passed to runAsync includes history context
-    const runAsyncCall = mockRunAsync.mock.calls[0][0]
-    expect(runAsyncCall.newMessage.parts[0].text).toContain('Conversation so far')
-    expect(runAsyncCall.newMessage.parts[0].text).toContain('What is the parking score?')
+    // Verify the message passed to runEphemeral includes history context
+    const call = mockRunEphemeral.mock.calls[0][0]
+    expect(call.newMessage.parts[0].text).toContain('Conversation so far')
+    expect(call.newMessage.parts[0].text).toContain('What is the parking score?')
   })
 
   it('returns fallback message when agent produces no text', async () => {
     ;(isFinalResponse as jest.Mock).mockReturnValue(false)
-    mockRunAsync.mockImplementation(async function* () {
+    mockRunEphemeral.mockImplementation(async function* () {
       yield { content: { parts: [] } }
     })
 
