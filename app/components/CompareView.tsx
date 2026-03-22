@@ -4,48 +4,12 @@ import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
-import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import { risColor, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import dynamic from 'next/dynamic';
 import ZoneSelector from './ZoneSelector';
 import styles from './CompareView.module.css';
 
 const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
-
-interface RankingBarProps {
-  jurisdictions: JurisdictionData[];
-}
-
-/** E7-3: Summary ranking bar */
-function RankingBar({ jurisdictions }: RankingBarProps) {
-  const sorted = [...jurisdictions].sort((a, b) => b.ris - a.ris);
-
-  return (
-    <div className={styles.rankingBar}>
-      {sorted.map((j, i) => (
-        <div key={j.id} className={styles.rankItem}>
-          <span className={styles.rankPos}>#{i + 1}</span>
-          <div className={styles.rankDetails}>
-            <span className={styles.rankName}>{j.name}</span>
-            <div className={styles.rankMeta}>
-              <span className={styles.rankScore} style={{ color: risColor(j.ris) }}>
-                {j.ris}
-              </span>
-              <span
-                className={styles.rankLabel}
-                style={{
-                  color: risColor(j.ris),
-                  background: risColor(j.ris) + '15',
-                }}
-              >
-                {risLabelShort(j.ris)} Restrictiveness
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /** Find the default zone: most permissive primary zone by risComposite. */
 function defaultZone(zones: ZoneScore[]): string | '__avg__' {
@@ -279,11 +243,6 @@ export default function CompareView({ initial, initialPeer, onBack }: CompareVie
         </button>
         <h2 className={styles.viewTitle}>Jurisdiction Comparison</h2>
       </div>
-
-      {/* E7-3: Ranking bar */}
-      {jurisdictions.length > 1 && (
-        <RankingBar jurisdictions={jurisdictions} />
-      )}
 
       {/* E7-1 / E7-2: Comparison cards grid */}
       <div className={styles.grid}>
