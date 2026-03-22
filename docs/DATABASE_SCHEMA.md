@@ -22,6 +22,7 @@ CREATE TABLE jurisdictions (
   fips_state    CHAR(2) NOT NULL,               -- e.g. "51"
   fips_county   CHAR(3) NOT NULL,               -- e.g. "059"
   display_name  TEXT NOT NULL,                  -- e.g. "Fairfax County, VA"
+  slug          TEXT NOT NULL UNIQUE,           -- e.g. "fairfax" — used for GCS paths and URL routing
   data_type     data_type NOT NULL DEFAULT 'real', -- 'real' or 'synthetic' (for CRP peer set)
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (fips_state, fips_county)
