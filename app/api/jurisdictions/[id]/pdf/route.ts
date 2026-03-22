@@ -12,6 +12,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+
+const PDF_HEADERS = {
+  'Content-Type': 'application/pdf',
+  'Content-Disposition': 'inline',
+  'Cache-Control': 'private, max-age=3600',
+}
 import { db } from '@/db/client'
 import { extractedFields } from '@/db/schema'
 import { and, eq, isNotNull } from 'drizzle-orm'
@@ -46,25 +52,13 @@ export async function GET(
       const storage = new Storage()
       const [pdfBuffer] = await storage.bucket(bucket).file(gcsPath).download()
 
-      return new NextResponse(new Uint8Array(pdfBuffer), {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': 'inline',
-          'Cache-Control': 'private, max-age=3600',
-        },
-      })
+      return new Response(new Uint8Array(pdfBuffer), { headers: PDF_HEADERS })
     } else {
       // Development: read from local filesystem
       const localPath = path.resolve(sourceDocument)
       const pdfBytes = fs.readFileSync(localPath)
 
-      return new NextResponse(new Uint8Array(pdfBytes), {
-        headers: {
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': 'inline',
-          'Cache-Control': 'private, max-age=3600',
-        },
-      })
+      return new Response(new Uint8Array(pdfBytes), { headers: PDF_HEADERS })
     }
   } catch {
     return NextResponse.json({ error: 'Failed to retrieve source PDF' }, { status: 500 })
