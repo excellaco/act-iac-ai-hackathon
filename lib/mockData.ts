@@ -49,6 +49,21 @@ export interface FieldCitation {
   sourceDocument: string | null
 }
 
+/** Per-zone regulatory data and scores (E2-155). */
+export interface ZoneScore {
+  zoneCode: string;
+  zoneName: string | null;
+  multifamilyClassification: 'primary' | 'permitted' | 'limited' | 'none';
+  dci: number;
+  dcoi: number;
+  pci: number;
+  crp: number;
+  risComposite: number;
+  /** Partial regulatory fields extracted for this zone. */
+  fields: Partial<RegulationFields>;
+  feasibility: FeasibilityOutputs | null;
+}
+
 export interface JurisdictionData {
   id: string;
   name: string;
@@ -65,6 +80,11 @@ export interface JurisdictionData {
   feasibility: FeasibilityOutputs;
   /** Citation metadata keyed by field name (e.g. "min_lot_size_sqft") */
   citations: Record<string, FieldCitation>;
+  /**
+   * Per-zone scores and field values (E2-155).
+   * Empty for synthetic jurisdictions and pre-zone data.
+   */
+  zoneScores: ZoneScore[];
 }
 
 // ── Per-jurisdiction regulatory field baselines ───────────────────────────
@@ -182,6 +202,7 @@ function buildJurisdiction(
     fields,
     feasibility,
     citations: {},
+    zoneScores: [],
   }
 }
 
@@ -211,6 +232,23 @@ export function scoreResponseToJurisdictionData(
       permits5plus: number | null
       totalPermits: number | null
     } | null
+    zoneScores?: Array<{
+      zoneCode: string
+      zoneName: string | null
+      multifamilyClassification: 'primary' | 'permitted' | 'limited' | 'none'
+      dci: string
+      dcoi: string
+      pci: string
+      crp: string
+      risComposite: string
+      fields: Record<string, string | null>
+      feasibility: {
+        maxUnitsPerAcre: string | null
+        parkingFootprintPct: string | null
+        estimatedCostPerUnit: string | null
+        fmr2br: string | null
+      } | null
+    }>
   }
 ): JurisdictionData | null {
   const { jurisdiction, score } = apiResponse
@@ -290,6 +328,55 @@ export function scoreResponseToJurisdictionData(
     })
   }
 
+  // Parse zone scores (E2-155)
+  const zoneScores: ZoneScore[] = (apiResponse.zoneScores ?? []).map((zs) => {
+    const zfmr2br = zs.feasibility?.fmr2br != null
+      ? parseNumeric(zs.feasibility.fmr2br, fmr2br)
+      : fmr2br
+
+    let zoneFeasibility: import('./feasibility').FeasibilityOutputs | null = null
+    const storedZoneCost = zs.feasibility?.estimatedCostPerUnit != null
+      ? Number(zs.feasibility.estimatedCostPerUnit)
+      : NaN
+    if (!Number.isNaN(storedZoneCost) && zs.feasibility) {
+      const zf = zs.feasibility
+      const monthlyCarryingCost = Math.round(storedZoneCost / 240)
+      zoneFeasibility = {
+        maxUnitsPerAcre:     parseNumeric(zf.maxUnitsPerAcre, 0),
+        parkingFootprintPct: parseNumeric(zf.parkingFootprintPct, 0),
+        estimatedCostPerUnit: storedZoneCost,
+        monthlyCarryingCost,
+        rentFeasibility: monthlyCarryingCost < zfmr2br ? 'Feasible' : monthlyCarryingCost < zfmr2br * 1.3 ? 'Marginal' : 'Infeasible',
+        fmr2br: zfmr2br,
+      }
+    }
+
+    // Build partial RegulationFields from zone field map
+    const zf = zs.fields
+    const zoneFieldsPartial: Partial<RegulationFields> = {
+      ...(zf['min_lot_size_sqft']           != null ? { minLotSizeSqft:          parseNumeric(zf['min_lot_size_sqft'], 0)           } : {}),
+      ...(zf['height_limit_ft']             != null ? { heightLimitFt:           parseNumeric(zf['height_limit_ft'], 0)             } : {}),
+      ...(zf['density_limit_units_per_acre'] != null ? { densityLimitUpa:         parseNumeric(zf['density_limit_units_per_acre'], 0) } : {}),
+      ...(zf['parking_min_spaces_per_unit'] != null ? { parkingMinSpacesPerUnit: parseNumeric(zf['parking_min_spaces_per_unit'], 0) } : {}),
+      ...(zf['setback_front_ft']            != null ? { setbackFrontFt:          parseNumeric(zf['setback_front_ft'], 0)            } : {}),
+      ...(zf['setback_side_ft']             != null ? { setbackSideFt:           parseNumeric(zf['setback_side_ft'], 0)             } : {}),
+      ...(zf['setback_rear_ft']             != null ? { setbackRearFt:           parseNumeric(zf['setback_rear_ft'], 0)             } : {}),
+    }
+
+    return {
+      zoneCode:                  zs.zoneCode,
+      zoneName:                  zs.zoneName,
+      multifamilyClassification: zs.multifamilyClassification,
+      dci:                       Math.round(parseNumeric(zs.dci, 0)),
+      dcoi:                      Math.round(parseNumeric(zs.dcoi, 0)),
+      pci:                       Math.round(parseNumeric(zs.pci, 0)),
+      crp:                       Math.round(parseNumeric(zs.crp, 0)),
+      risComposite:              Math.round(parseNumeric(zs.risComposite, 0)),
+      fields:                    zoneFieldsPartial,
+      feasibility:               zoneFeasibility,
+    }
+  })
+
   return {
     id: jurisdiction.id,
     name: jurisdiction.name,
@@ -305,5 +392,6 @@ export function scoreResponseToJurisdictionData(
     fields,
     feasibility,
     citations,
+    zoneScores,
   }
 }

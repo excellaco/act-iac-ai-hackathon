@@ -6,7 +6,7 @@
  * If a component writes to a frozen prop, the test throws immediately rather
  * than silently passing with corrupted data.
  */
-import type { JurisdictionData } from '../../lib/mockData'
+import type { JurisdictionData, ZoneScore } from '../../lib/mockData'
 import type { FeasibilityOutputs } from '../../lib/feasibility'
 
 function deepFreeze<T extends object>(obj: T): T {
@@ -65,6 +65,7 @@ export const FAIRFAX: JurisdictionData = deepFreeze({
   },
   feasibility: fairfaxFeasibility,
   citations: {},
+  zoneScores: [],
 })
 
 export const ARLINGTON: JurisdictionData = deepFreeze({
@@ -95,6 +96,33 @@ export const ARLINGTON: JurisdictionData = deepFreeze({
   },
   feasibility: arlingtonFeasibility,
   citations: {},
+  zoneScores: [],
+})
+
+/** Zone scores used in tests that exercise the ZoneSelector (E2-155). */
+export const ARLINGTON_ZONE_SCORES: ZoneScore[] = [
+  {
+    zoneCode: 'RA6-15',
+    zoneName: 'Residential Apartment',
+    multifamilyClassification: 'primary',
+    dci: 40, dcoi: 50, pci: 35, crp: 45, risComposite: 43,
+    fields: { densityLimitUpa: 72, heightLimitFt: 125, parkingMinSpacesPerUnit: 0.5 },
+    feasibility: { maxUnitsPerAcre: 72, parkingFootprintPct: 27.3, estimatedCostPerUnit: 219_500, monthlyCarryingCost: 915, rentFeasibility: 'Feasible', fmr2br: 2280 },
+  },
+  {
+    zoneCode: 'R-10',
+    zoneName: 'Single Family',
+    multifamilyClassification: 'limited',
+    dci: 80, dcoi: 60, pci: 70, crp: 65, risComposite: 72,
+    fields: { densityLimitUpa: 4, heightLimitFt: 35, parkingMinSpacesPerUnit: 2.0 },
+    feasibility: null,
+  },
+]
+
+/** Arlington with zone scores populated (for ZoneSelector tests). */
+export const ARLINGTON_WITH_ZONES: JurisdictionData = deepFreeze({
+  ...ARLINGTON,
+  zoneScores: ARLINGTON_ZONE_SCORES,
 })
 
 export const LOUDOUN: JurisdictionData = deepFreeze({
@@ -132,4 +160,5 @@ export const LOUDOUN: JurisdictionData = deepFreeze({
     fmr2br: 2280,
   },
   citations: {},
+  zoneScores: [],
 })

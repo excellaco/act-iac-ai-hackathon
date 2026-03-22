@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
-import type { JurisdictionData } from '../../lib/mockData';
+import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
 import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import dynamic from 'next/dynamic';
+import ZoneSelector from './ZoneSelector';
 import styles from './CompareView.module.css';
 
 const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
@@ -46,14 +47,34 @@ function RankingBar({ jurisdictions }: RankingBarProps) {
   );
 }
 
+/** Find the default zone: most permissive primary zone by risComposite. */
+function defaultZone(zones: ZoneScore[]): string | '__avg__' {
+  const primary = zones.filter((z) => z.multifamilyClassification === 'primary');
+  const pool = primary.length > 0 ? primary : zones;
+  if (pool.length === 0) return '__avg__';
+  return pool.reduce((best, z) => (z.risComposite > best.risComposite ? z : best), pool[0]).zoneCode;
+}
+
 interface CompareCardProps {
   jurisdiction: JurisdictionData;
   onRemove: () => void;
 }
 
 function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
-  const { name, state, ris, subScores } = jurisdiction;
-  const color = risColor(ris);
+  const { name, state, ris, subScores, zoneScores } = jurisdiction;
+  const [selectedZone, setSelectedZone] = useState<string | '__avg__'>(() => defaultZone(zoneScores));
+
+  const activeZone = selectedZone !== '__avg__' ? zoneScores.find((z) => z.zoneCode === selectedZone) : null;
+  const activeRis = activeZone?.risComposite ?? ris;
+  const activeSubScores = activeZone
+    ? { dci: activeZone.dci, dcoi: activeZone.dcoi, pci: activeZone.pci, crp: activeZone.crp }
+    : { dci: subScores.dci.score, dcoi: subScores.dcoi.score, pci: subScores.pci.score, crp: subScores.crp.score };
+  const activeDensity = activeZone?.fields?.densityLimitUpa ?? jurisdiction.fields.densityLimitUpa;
+  const activeHeight = activeZone?.fields?.heightLimitFt ?? jurisdiction.fields.heightLimitFt;
+  const activeParking = activeZone?.fields?.parkingMinSpacesPerUnit ?? jurisdiction.fields.parkingMinSpacesPerUnit;
+  const activeFeasibility = activeZone?.feasibility ?? jurisdiction.feasibility;
+
+  const color = risColor(activeRis);
 
   return (
     <div className={styles.card}>
@@ -62,12 +83,15 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
           <div className={styles.colorDot} style={{ background: color }} />
           <div>
             <h3 className={styles.cardName}>{name}</h3>
-            <p className={styles.cardState}>{state}</p>
+            <p className={styles.cardState}>
+              {state}
+              {selectedZone !== '__avg__' && <span className={styles.cardZoneSubtitle}> · {selectedZone}</span>}
+            </p>
           </div>
         </div>
         <div className={styles.cardHeaderRight}>
           <div className={styles.cardScore} style={{ borderColor: color, color }}>
-            {ris}
+            {activeRis}
           </div>
           <button className={styles.removeBtn} onClick={onRemove} aria-label={`Remove ${name}`}>
             ×
@@ -75,19 +99,25 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         </div>
       </div>
 
+      {zoneScores.length > 0 && (
+        <div className={styles.cardZoneSelector}>
+          <ZoneSelector zones={zoneScores} selectedZoneCode={selectedZone} onChange={setSelectedZone} />
+        </div>
+      )}
+
       <div className={styles.subScores}>
-        {(Object.entries(subScores) as [string, { score: number }][]).map(([key, detail]) => {
+        {(Object.entries(activeSubScores) as [string, number][]).map(([key, score]) => {
           return (
             <div key={key} className={styles.subScoreRow}>
               <span className={styles.subScoreLabel}>{SUB_SCORE_META[key as SubScoreKey]?.shortLabel ?? key}</span>
               <div className={styles.subScoreBar}>
                 <div
                   className={styles.subScoreBarFill}
-                  style={{ width: `${detail.score}%`, background: risColor(detail.score) }}
+                  style={{ width: `${score}%`, background: risColor(score) }}
                 />
               </div>
-              <span className={styles.subScoreValue} style={{ color: risColor(detail.score) }}>
-                {detail.score}
+              <span className={styles.subScoreValue} style={{ color: risColor(score) }}>
+                {score}
               </span>
             </div>
           );
@@ -97,15 +127,15 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
       <div className={styles.cardFields}>
         <div className={styles.fieldRow}>
           <span className={styles.fieldLabel}>Max density</span>
-          <span className={styles.fieldValue}>{jurisdiction.fields.densityLimitUpa} units/acre</span>
+          <span className={styles.fieldValue}>{activeDensity} units/acre</span>
         </div>
         <div className={styles.fieldRow}>
           <span className={styles.fieldLabel}>Height limit</span>
-          <span className={styles.fieldValue}>{jurisdiction.fields.heightLimitFt} ft</span>
+          <span className={styles.fieldValue}>{activeHeight} ft</span>
         </div>
         <div className={styles.fieldRow}>
           <span className={styles.fieldLabel}>Parking min.</span>
-          <span className={styles.fieldValue}>{jurisdiction.fields.parkingMinSpacesPerUnit} spaces/unit</span>
+          <span className={styles.fieldValue}>{activeParking} spaces/unit</span>
         </div>
         <div className={styles.fieldRow}>
           <span className={styles.fieldLabel}>Review type</span>
@@ -113,27 +143,31 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
             {jurisdiction.fields.discretionaryReviewType.replace(/-/g, ' ')}
           </span>
         </div>
-        <div className={styles.fieldRow}>
-          <span className={styles.fieldLabel}>Cost per unit</span>
-          <span className={styles.fieldValue}>
-            ${(jurisdiction.feasibility.estimatedCostPerUnit / 1000).toFixed(0)}K
-          </span>
-        </div>
-        <div className={styles.fieldRow}>
-          <span className={styles.fieldLabel}>Rent feasibility</span>
-          <span
-            className={styles.fieldValue}
-            style={{
-              color: jurisdiction.feasibility.rentFeasibility === 'Feasible' ? '#16a34a' :
-                     jurisdiction.feasibility.rentFeasibility === 'Marginal' ? '#d97706' : '#dc2626',
-            }}
-          >
-            {jurisdiction.feasibility.rentFeasibility}
-          </span>
-        </div>
+        {activeFeasibility && (
+          <>
+            <div className={styles.fieldRow}>
+              <span className={styles.fieldLabel}>Cost per unit</span>
+              <span className={styles.fieldValue}>
+                ${(activeFeasibility.estimatedCostPerUnit / 1000).toFixed(0)}K
+              </span>
+            </div>
+            <div className={styles.fieldRow}>
+              <span className={styles.fieldLabel}>Rent feasibility</span>
+              <span
+                className={styles.fieldValue}
+                style={{
+                  color: activeFeasibility.rentFeasibility === 'Feasible' ? '#16a34a' :
+                         activeFeasibility.rentFeasibility === 'Marginal' ? '#d97706' : '#dc2626',
+                }}
+              >
+                {activeFeasibility.rentFeasibility}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
-      <MiniMap key={`${name}-${ris}`} jurisdictionName={name} ris={ris} />
+      <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
     </div>
   );
 }

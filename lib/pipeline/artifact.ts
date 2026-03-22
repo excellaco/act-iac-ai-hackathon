@@ -37,6 +37,16 @@ export interface FieldArtifact {
   reasoning: string | null
 }
 
+/** One field value for a specific zone, as produced by multi-zone extraction. */
+export interface ZoneFieldArtifact extends FieldArtifact {
+  /** The regulatory field name (e.g. "density_limit_units_per_acre"). */
+  field_name: string
+  zone_code: string
+  zone_name: string | null
+  /** Multifamily permission classification for this zone. */
+  multifamily_classification: 'primary' | 'permitted' | 'limited' | 'none'
+}
+
 export interface ExtractionArtifact {
   /** UUID of the jurisdiction in the database */
   jurisdictionId: string
@@ -48,4 +58,10 @@ export interface ExtractionArtifact {
   extractedAt: string
   /** One entry per field name (e.g. "min_lot_size_sqft", "height_limit_ft") */
   fields: Record<string, FieldArtifact>
+  /**
+   * Per-zone field values — one entry per (zone_code, field_name) pair.
+   * Present only when multi-zone extraction ran (E2-155).
+   * Absent for synthetic jurisdictions and pre-E2-155 artifacts.
+   */
+  zoneFields?: ZoneFieldArtifact[]
 }

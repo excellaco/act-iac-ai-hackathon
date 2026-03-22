@@ -1,11 +1,16 @@
+/**
+ * @deprecated Scores for real jurisdictions are now computed by scripts/score-zones.ts
+ * (E2-155). Running score-zones.ts will overwrite these seeded values with
+ * pipeline-extracted per-zone and averaged scores. This file is retained for
+ * local dev bootstrapping only — do not add new score values here.
+ */
 import { db } from '../client'
 import { jurisdictions, risScores } from '../schema'
 import { eq } from 'drizzle-orm'
 import { computeRIS } from '../../lib/scoring'
 
 // RIS scores for the 3 real demo jurisdictions (Fairfax, Arlington, Loudoun).
-// These mirror the mock data in lib/mockData.ts and will be replaced by
-// pipeline-extracted values once E2/E3 stories are complete.
+// DEPRECATED: Run scripts/score-zones.ts instead.
 const REAL_SCORES: Record<string, { dci: number; dcoi: number; pci: number; crp: number }> = {
   'Fairfax County, VA':   { dci: 75, dcoi: 70, pci: 65, crp: 80 },
   'Arlington County, VA': { dci: 40, dcoi: 50, pci: 35, crp: 45 },

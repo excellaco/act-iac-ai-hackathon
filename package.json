@@ -21,7 +21,8 @@
     "pipeline:run": "tsx -r dotenv/config scripts/run-pipeline.ts",
     "pipeline:extract": "tsx -r dotenv/config scripts/extract.ts",
     "pipeline:load": "tsx -r dotenv/config scripts/load.ts",
-    "pipeline:page-resolve": "tsx -r dotenv/config scripts/page-resolve.ts"
+    "pipeline:page-resolve": "tsx -r dotenv/config scripts/page-resolve.ts",
+    "score:zones": "tsx -r dotenv/config scripts/score-zones.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

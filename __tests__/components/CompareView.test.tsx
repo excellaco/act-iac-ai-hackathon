@@ -6,7 +6,7 @@ jest.mock('../../lib/apiClient', () => ({
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import CompareView from '../../app/components/CompareView'
 import { fetchJurisdictions, fetchScore } from '../../lib/apiClient'
-import { FAIRFAX, ARLINGTON, LOUDOUN } from '../fixtures/jurisdictionData'
+import { FAIRFAX, ARLINGTON, LOUDOUN, ARLINGTON_WITH_ZONES } from '../fixtures/jurisdictionData'
 
 // Mock API responses for AddCard
 const mockJurisdictionList = [
@@ -168,5 +168,53 @@ describe('CompareView', () => {
     fireEvent.click(screen.getByText('Loudoun County, VA'))
 
     await waitFor(() => expect(fetchScore).toHaveBeenCalledWith('uuid-loudoun'))
+  })
+})
+
+describe('CompareView — ZoneSelector per card (E2-155)', () => {
+  const mockOnBack = jest.fn()
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (fetchJurisdictions as jest.Mock).mockResolvedValue([]);
+    (fetchScore as jest.Mock).mockResolvedValue({})
+  })
+
+  it('does not show zone selector in card for jurisdiction with no zones', async () => {
+    render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+    expect(screen.queryByRole('combobox', { name: 'Select zoning district' })).not.toBeInTheDocument()
+  })
+
+  it('shows zone selector in card for jurisdiction with zones', async () => {
+    render(<CompareView initial={ARLINGTON_WITH_ZONES} onBack={mockOnBack} />)
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+    expect(screen.getByRole('combobox', { name: 'Select zoning district' })).toBeInTheDocument()
+  })
+
+  it('each card has an independent zone selector', async () => {
+    render(<CompareView initial={ARLINGTON_WITH_ZONES} initialPeer={FAIRFAX} onBack={mockOnBack} />)
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+
+    // Only Arlington (which has zones) should show a zone selector
+    const selectors = screen.getAllByRole('combobox', { name: 'Select zoning district' })
+    expect(selectors).toHaveLength(1)
+  })
+
+  it('changing zone selection in one card does not affect other cards', async () => {
+    render(
+      <CompareView initial={ARLINGTON_WITH_ZONES} initialPeer={ARLINGTON_WITH_ZONES} onBack={mockOnBack} />
+    )
+    await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
+
+    const [firstSelect] = screen.getAllByRole('combobox', { name: 'Select zoning district' }) as HTMLSelectElement[]
+
+    // Change first card to R-10
+    fireEvent.change(firstSelect, { target: { value: 'R-10' } })
+    expect(firstSelect.value).toBe('R-10')
+
+    // Second card should still be on its default (RA6-15 — primary zone)
+    const [, secondSelect] = screen.getAllByRole('combobox', { name: 'Select zoning district' }) as HTMLSelectElement[]
+    expect(secondSelect.value).toBe('RA6-15')
   })
 })

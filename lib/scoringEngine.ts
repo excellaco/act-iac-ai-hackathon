@@ -220,3 +220,115 @@ export function computeAllSubScores(inputs: AllScoringInputs): ComputedSubScores
   const crp  = computeCRP({ dci, dcoi, pci, slug: inputs.slug })
   return { dci, dcoi, pci, crp }
 }
+
+// ── E2-155: Per-zone scoring ───────────────────────────────────────────────
+
+export interface ZoneRISResult {
+  zoneCode: string
+  zoneName: string | null
+  multifamilyClassification: 'primary' | 'permitted' | 'limited' | 'none'
+  dci: number
+  dcoi: number
+  /** PCI is jurisdiction-level (no per-zone permit data) — inherited from fallback. */
+  pci: number
+  /** CRP computed after averaging all zones — set to 0 until averageZoneRIS runs. */
+  crp: number
+  risComposite: number
+}
+
+/**
+ * E2-155: Compute RIS for a single zone.
+ *
+ * Zone-level scoring uses the zone's own field values for DCI and DCOI.
+ * PCI uses jurisdiction-level values (no per-zone permit data exists).
+ * CRP is computed at jurisdiction level after averaging all zones.
+ *
+ * @param zoneFields  Partial inputs from zone-extracted fields
+ * @param fallbacks   Jurisdiction-level values used for any missing zone fields
+ * @param pciInputs   Jurisdiction-level PCI inputs (permit data + review type)
+ * @param zoneCode    Zone identifier
+ * @param zoneName    Optional zone display name
+ * @param classification  Zone multifamily classification
+ */
+export function computeZoneRIS(
+  zoneFields: Partial<DciInputs & DcoiInputs>,
+  fallbacks: AllScoringInputs,
+  pciInputs: PciInputs,
+  zoneCode: string,
+  zoneName: string | null,
+  classification: 'primary' | 'permitted' | 'limited' | 'none',
+): ZoneRISResult {
+  const dciInputs: DciInputs = {
+    minLotSizeSqft:   zoneFields.minLotSizeSqft   ?? fallbacks.minLotSizeSqft,
+    heightLimitFt:    zoneFields.heightLimitFt     ?? fallbacks.heightLimitFt,
+    densityLimitUpa:  zoneFields.densityLimitUpa   ?? fallbacks.densityLimitUpa,
+    setbackFrontFt:   zoneFields.setbackFrontFt    ?? fallbacks.setbackFrontFt,
+    setbackSideFt:    zoneFields.setbackSideFt     ?? fallbacks.setbackSideFt,
+    setbackRearFt:    zoneFields.setbackRearFt     ?? fallbacks.setbackRearFt,
+  }
+
+  const dcoiInputs: DcoiInputs = {
+    parkingMinSpacesPerUnit: zoneFields.parkingMinSpacesPerUnit ?? fallbacks.parkingMinSpacesPerUnit,
+    regionalMultiplier:      fallbacks.regionalMultiplier, // always jurisdiction-level
+  }
+
+  const dci  = computeDCI(dciInputs)
+  const dcoi = computeDCOI(dcoiInputs)
+  const pci  = computePCI(pciInputs)
+  const risComposite = Math.round((dci + dcoi + pci) / 3)
+
+  return {
+    zoneCode,
+    zoneName,
+    multifamilyClassification: classification,
+    dci,
+    dcoi,
+    pci,
+    crp: 0, // set by averageZoneRIS after all zones are scored
+    risComposite,
+  }
+}
+
+/**
+ * E2-155: Compute the unweighted average RIS across primary and permitted zones,
+ * compute jurisdiction-level CRP from the averaged sub-scores, and return both
+ * the per-zone results (with CRP filled in) and the jurisdiction-level average.
+ *
+ * Only 'primary' and 'permitted' zones are included in the average.
+ * 'limited' and 'none' zones are returned in the array but excluded from averaging.
+ */
+export function averageZoneRIS(
+  zoneScores: ZoneRISResult[],
+  slug?: string,
+): { zoneScores: ZoneRISResult[]; averaged: { dci: number; dcoi: number; pci: number; crp: number; risComposite: number } } {
+  const scoredZones = zoneScores.filter(
+    (z) => z.multifamilyClassification === 'primary' || z.multifamilyClassification === 'permitted',
+  )
+
+  let dci: number, dcoi: number, pci: number, risComposite: number
+
+  if (scoredZones.length === 0) {
+    // No scoreable zones — fall back to simple average of all zones
+    const all = zoneScores.length > 0 ? zoneScores : [{ dci: 50, dcoi: 50, pci: 50, risComposite: 50 }]
+    dci = Math.round(all.reduce((s, z) => s + z.dci, 0) / all.length)
+    dcoi = Math.round(all.reduce((s, z) => s + z.dcoi, 0) / all.length)
+    pci = Math.round(all.reduce((s, z) => s + z.pci, 0) / all.length)
+    risComposite = Math.round((dci + dcoi + pci) / 3)
+  } else {
+    dci  = Math.round(scoredZones.reduce((s, z) => s + z.dci,  0) / scoredZones.length)
+    dcoi = Math.round(scoredZones.reduce((s, z) => s + z.dcoi, 0) / scoredZones.length)
+    pci  = Math.round(scoredZones.reduce((s, z) => s + z.pci,  0) / scoredZones.length)
+    risComposite = Math.round((dci + dcoi + pci) / 3)
+  }
+
+  // CRP is always computed at jurisdiction level after averaging
+  const crp = computeCRP({ dci, dcoi, pci, slug })
+
+  // Back-fill CRP into each zone result
+  const filledZoneScores = zoneScores.map((z) => ({ ...z, crp }))
+
+  return {
+    zoneScores: filledZoneScores,
+    averaged: { dci, dcoi, pci, crp, risComposite },
+  }
+}

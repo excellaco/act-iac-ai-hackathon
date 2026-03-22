@@ -7,6 +7,7 @@ import { pgTable, pgEnum, uuid, text, char, numeric, integer, timestamp, unique 
 export const confidenceTier = pgEnum('confidence_tier', ['high', 'medium', 'low'])
 export const pipelineStatus = pgEnum('pipeline_status', ['running', 'completed', 'failed', 'partial'])
 export const dataType = pgEnum('data_type', ['real', 'synthetic'])
+export const multifamilyClassification = pgEnum('multifamily_classification', ['primary', 'permitted', 'limited', 'none'])
 
 export const jurisdictions = pgTable('jurisdictions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -83,7 +84,9 @@ export const marketData = pgTable('market_data', {
 
 export const feasibilityOutputs = pgTable('feasibility_outputs', {
   id: uuid('id').primaryKey().defaultRandom(),
-  jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id).unique(),
+  jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id),
+  /** Zone code for per-zone feasibility; '__avg__' for jurisdiction-level averaged row. */
+  zoneCode: text('zone_code').notNull().default('__avg__'),
   maxUnitsPerAcre: numeric('max_units_per_acre', { precision: 8, scale: 2 }),
   parkingFootprintPct: numeric('parking_footprint_pct', { precision: 5, scale: 2 }),
   costPerSqft: numeric('cost_per_sqft', { precision: 8, scale: 2 }),
@@ -93,4 +96,38 @@ export const feasibilityOutputs = pgTable('feasibility_outputs', {
   rentFeasibilityRatio: numeric('rent_feasibility_ratio', { precision: 6, scale: 3 }),
   scoredAt: timestamp('scored_at', { withTimezone: true }).notNull().defaultNow(),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
-})
+}, (t) => [unique().on(t.jurisdictionId, t.zoneCode)])
+
+export const zoneExtractedFields = pgTable('zone_extracted_fields', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id),
+  zoneCode: text('zone_code').notNull(),
+  zoneName: text('zone_name'),
+  multifamilyClassification: multifamilyClassification('multifamily_classification').notNull(),
+  fieldName: text('field_name').notNull(),
+  rawValue: numeric('raw_value'),
+  rawUnit: text('raw_unit'),
+  fieldValue: numeric('field_value'),
+  fieldValueText: text('field_value_text'),
+  unit: text('unit'),
+  confidence: confidenceTier('confidence').notNull(),
+  sourceSection: text('source_section'),
+  sourcePage: integer('source_page'),
+  pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
+  extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [unique().on(t.jurisdictionId, t.zoneCode, t.fieldName)])
+
+export const zoneRisScores = pgTable('zone_ris_scores', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  jurisdictionId: uuid('jurisdiction_id').notNull().references(() => jurisdictions.id),
+  zoneCode: text('zone_code').notNull(),
+  zoneName: text('zone_name'),
+  multifamilyClassification: multifamilyClassification('multifamily_classification').notNull(),
+  risComposite: numeric('ris_composite', { precision: 5, scale: 2 }).notNull(),
+  dci: numeric('dci', { precision: 5, scale: 2 }).notNull(),
+  dcoi: numeric('dcoi', { precision: 5, scale: 2 }).notNull(),
+  pci: numeric('pci', { precision: 5, scale: 2 }).notNull(),
+  crp: numeric('crp', { precision: 5, scale: 2 }).notNull(),
+  scoredAt: timestamp('scored_at', { withTimezone: true }).notNull().defaultNow(),
+  pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
+}, (t) => [unique().on(t.jurisdictionId, t.zoneCode)])

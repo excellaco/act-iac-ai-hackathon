@@ -315,3 +315,7 @@
   background: #f5f5f4;
   border-color: #78716c;
 }
+
+.zoneSelectorWrapper {
+  margin-top: -8px;
+}

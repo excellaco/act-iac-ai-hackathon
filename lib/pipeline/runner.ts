@@ -22,16 +22,18 @@
 
 import { desc, eq, sql } from 'drizzle-orm'
 import { Database } from '../../db/client'
-import { extractedFields, pipelineRuns } from '../../db/schema'
+import { extractedFields, pipelineRuns, zoneExtractedFields } from '../../db/schema'
 import { chunkText } from './chunk'
 import { normalizeExtractionResult, RawExtractionResult } from './normalize'
 import { validateExtractionResult } from './validate'
 import { runExtractions } from './errors'
 import { startRun, completeRun, failRun, PipelineRun } from './run-record'
 import { PipelineLogger, consoleLogger } from './errors'
-import { ExtractionArtifact, FieldArtifact, ParsedPage } from './artifact'
+import { ExtractionArtifact, FieldArtifact, ParsedPage, ZoneFieldArtifact } from './artifact'
 import { ArtifactStore } from './artifact-store'
 import { toNumericString } from './numeric'
+import { discoverZones } from '../../lib/extractors/zone-discovery.extractor'
+import { injectCanonicalZones } from '../../lib/extractors/multi-zone-gemini.extractor'
 
 // ─── injectable interfaces ────────────────────────────────────────────────────
 
@@ -43,9 +45,25 @@ export interface PdfParser {
   parse(bytes: Buffer): Promise<{ text: string; pages: ParsedPage[] }>
 }
 
+/**
+ * Per-zone extraction result for a single field in a single zone.
+ * Extends RawExtractionResult with zone identity fields.
+ */
+export interface ZoneRawResult extends RawExtractionResult {
+  zone_code: string
+  zone_name: string | null
+  multifamily_classification: 'primary' | 'permitted' | 'limited' | 'none'
+}
+
 export interface FieldExtractor {
   fieldName: string
   extract(chunk: string): Promise<RawExtractionResult | null>
+  /**
+   * Optional: extract field values for ALL residential zones in the chunk.
+   * When present, the runner collects results into artifact.zoneFields.
+   * Existing extractors without this method remain fully valid.
+   */
+  extractAllZones?(chunks: string[]): Promise<ZoneRawResult[]>
 }
 
 // ─── result types ─────────────────────────────────────────────────────────────
@@ -211,12 +229,78 @@ export async function runExtractStage(
     }
   }
 
+  // ── Multi-zone extraction (E2-155) ─────────────────────────────────────────
+  // Run zone discovery then call extractAllZones() on extractors that support it.
+  // This is skipped if no extractor implements extractAllZones to keep the pipeline
+  // backward-compatible for synthetic jurisdictions and legacy runs.
+
+  const zoneAwareExtractors = options.extractors.filter((e) => typeof e.extractAllZones === 'function')
+  let zoneFields: ZoneFieldArtifact[] | undefined
+
+  if (zoneAwareExtractors.length > 0) {
+    try {
+      logger.info('running zone discovery', { slug })
+      const chunkTexts = chunks.map((c) => c.text)
+      const canonicalZones = await discoverZones(chunkTexts)
+      logger.info('zones discovered', { count: canonicalZones.length, slug })
+
+      if (canonicalZones.length > 0) {
+        injectCanonicalZones(zoneAwareExtractors, canonicalZones)
+
+        const zoneResults: import('./artifact').ZoneFieldArtifact[] = []
+
+        for (const extractor of zoneAwareExtractors) {
+          if (!extractor.extractAllZones) continue
+          try {
+            const raw = await extractor.extractAllZones(chunkTexts)
+            for (const r of raw) {
+              const normalized = normalizeExtractionResult(r)
+              const { result: validated } = validateExtractionResult(normalized)
+              zoneResults.push({
+                field_name: extractor.fieldName,
+                zone_code: r.zone_code,
+                zone_name: r.zone_name ?? null,
+                multifamily_classification: r.multifamily_classification,
+                raw_value: validated.raw_value,
+                raw_unit: validated.raw_unit || null,
+                field_value: validated.field_value,
+                field_value_text: validated.field_value_text,
+                unit: validated.unit || null,
+                confidence: validated.confidence,
+                source_section: validated.source_section || null,
+                district_context: validated.district_context || null,
+                reasoning: validated.reasoning || null,
+              })
+            }
+          } catch (err) {
+            logger.warn('zone extraction error', {
+              fieldName: extractor.fieldName,
+              error: err instanceof Error ? err.message : String(err),
+            })
+          }
+        }
+
+        if (zoneResults.length > 0) {
+          zoneFields = zoneResults
+          logger.info('zone fields extracted', { count: zoneResults.length, slug })
+        }
+      }
+    } catch (err) {
+      // Zone extraction failure is non-fatal — artifact still has jurisdiction-level fields
+      logger.warn('zone extraction stage failed', {
+        slug,
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
   const artifact: ExtractionArtifact = {
     jurisdictionId,
     slug,
     sourceDocument,
     extractedAt: new Date().toISOString(),
     fields,
+    ...(zoneFields ? { zoneFields } : {}),
   }
 
   // Write parsed pages to store so the page-resolve stage can find source page numbers
@@ -320,7 +404,51 @@ export async function runLoadStage(
 
     logger.info('fields stored', { count: rows.length })
 
-    // 4. complete run record
+    // 4. upsert zone fields (E2-155) — skipped when artifact has no zoneFields
+    if (artifact.zoneFields && artifact.zoneFields.length > 0) {
+      const zoneRows = artifact.zoneFields.map((zf) => ({
+        jurisdictionId,
+        zoneCode:                  zf.zone_code,
+        zoneName:                  zf.zone_name,
+        multifamilyClassification: zf.multifamily_classification,
+        fieldName:                 zf.field_name,
+        rawValue:                  toNumericString(zf.raw_value),
+        rawUnit:                   clean(zf.raw_unit),
+        fieldValue:                toNumericString(zf.field_value),
+        fieldValueText:            clean(zf.field_value_text) ?? 'Not found in document',
+        unit:                      clean(zf.unit),
+        confidence:                zf.confidence,
+        sourceSection:             clean(zf.source_section),
+        pipelineRunId:             run!.id,
+      }))
+
+      const validZoneRows = zoneRows.filter((r) => r.zoneCode && r.fieldName)
+
+      if (validZoneRows.length > 0) {
+        await db
+          .insert(zoneExtractedFields)
+          .values(validZoneRows)
+          .onConflictDoUpdate({
+            target: [zoneExtractedFields.jurisdictionId, zoneExtractedFields.zoneCode, zoneExtractedFields.fieldName],
+            set: {
+              zoneName:                   sql`excluded.zone_name`,
+              multifamilyClassification:  sql`excluded.multifamily_classification`,
+              rawValue:                   sql`excluded.raw_value`,
+              rawUnit:                    sql`excluded.raw_unit`,
+              fieldValue:                 sql`excluded.field_value`,
+              fieldValueText:             sql`excluded.field_value_text`,
+              unit:                       sql`excluded.unit`,
+              confidence:                 sql`excluded.confidence`,
+              sourceSection:              sql`excluded.source_section`,
+              pipelineRunId:              sql`excluded.pipeline_run_id`,
+              extractedAt:                sql`now()`,
+            },
+          })
+        logger.info('zone fields stored', { count: validZoneRows.length })
+      }
+    }
+
+    // 5. complete run record
     run = await completeRun(db, run.id, { fieldsExtracted, fieldsFailed })
     logger.info('load stage complete', { runId: run.id, status: run.status, fieldsExtracted, fieldsFailed })
 

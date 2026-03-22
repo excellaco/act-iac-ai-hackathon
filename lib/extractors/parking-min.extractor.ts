@@ -1,14 +1,16 @@
 /**
- * E2-4: Parking minimum extractor
+ * E2-4 / E2-155: Parking minimum extractor
  *
  * Extracts parking_min_spaces_per_unit from a zoning text chunk.
  * Returns raw_value in the unit as written (per unit, per bedroom, per sqft);
  * normalization (E0-7) converts to spaces per unit.
+ * Extends MultiZoneGeminiExtractor to support per-zone extraction (E2-155).
  */
 
-import { GeminiExtractor } from './gemini-extractor'
+import { MultiZoneGeminiExtractor } from './multi-zone-gemini.extractor'
+import { DiscoveredZone } from './zone-discovery.extractor'
 
-export class ParkingMinExtractor extends GeminiExtractor {
+export class ParkingMinExtractor extends MultiZoneGeminiExtractor {
   readonly fieldName = 'parking_min_spaces_per_unit'
 
   protected buildPrompt(chunk: string): string {
@@ -34,5 +36,15 @@ Leave field_value as null — it is populated by the normalization step after ex
 
 Text chunk:
 ${chunk}`
+  }
+
+  protected buildMultiZonePrompt(chunk: string, zones: DiscoveredZone[]): string {
+    return this.buildMultiZonePromptDefault(
+      chunk,
+      zones,
+      'The parking minimum is the required off-street parking spaces per dwelling unit. May be per unit, per bedroom, or per sq ft.',
+      'spaces/unit',
+      'spaces_per_unit',
+    )
   }
 }

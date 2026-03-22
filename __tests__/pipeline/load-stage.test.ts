@@ -146,3 +146,44 @@ describe('runLoadStage', () => {
     expect(result.errors[0].message).toContain('DB connection lost')
   })
 })
+
+describe('runLoadStage — zone fields (E2-155)', () => {
+  it('upserts zone fields when artifact.zoneFields is present', async () => {
+    const db = makeDb()
+    const artifact = {
+      ...makeArtifact({
+        height_limit_ft: {
+          raw_value: 50, raw_unit: 'ft', field_value: 50, field_value_text: '50 feet',
+          unit: 'ft', confidence: 'high' as const, source_section: 'S1', district_context: 'R-30', reasoning: 'ok',
+        },
+      }),
+      zoneFields: [
+        {
+          field_name: 'height_limit_ft',
+          zone_code: 'R-30',
+          zone_name: 'Thirty DU/Acre',
+          multifamily_classification: 'primary' as const,
+          raw_value: 50, raw_unit: 'ft', field_value: 50, field_value_text: '50 feet',
+          unit: 'ft', confidence: 'high' as const, source_section: 'S1', district_context: 'R-30', reasoning: 'ok',
+        },
+      ],
+    }
+
+    await runLoadStage(db, JURISDICTION_ID, artifact, silentLogger)
+    // 3 inserts: startRun + field upsert + zone field upsert
+    expect(db.insert).toHaveBeenCalledTimes(3)
+  })
+
+  it('skips zone upsert when artifact.zoneFields is absent', async () => {
+    const db = makeDb()
+    const artifact = makeArtifact({
+      height_limit_ft: {
+        raw_value: 50, raw_unit: 'ft', field_value: 50, field_value_text: '50 ft',
+        unit: 'ft', confidence: 'high' as const, source_section: null, district_context: null, reasoning: null,
+      },
+    })
+    await runLoadStage(db, JURISDICTION_ID, artifact, silentLogger)
+    // 2 inserts only: startRun + field upsert (no zone upsert)
+    expect(db.insert).toHaveBeenCalledTimes(2)
+  })
+})

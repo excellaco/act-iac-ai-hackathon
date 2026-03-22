@@ -148,4 +148,18 @@ describe('WhatIfPanel', () => {
     // Should show the struck-through baseline value
     expect(screen.getByText(/2\.00 spaces\/unit/)).toBeInTheDocument()
   })
+
+  it('prepends zone label to the narrative when zoneLabel prop is provided and a slider changes', () => {
+    render(<WhatIfPanel {...baseProps} zoneLabel="RA6-15" />)
+
+    // Move a slider to trigger the narrative update
+    fireEvent.change(screen.getByLabelText('Parking minimum slider'), { target: { value: '0' } })
+
+    expect(screen.getByText(/\[Simulating RA6-15\]/)).toBeInTheDocument()
+  })
+
+  it('does not show zone label prefix when zoneLabel is not provided', () => {
+    render(<WhatIfPanel {...baseProps} />)
+    expect(screen.queryByText(/Simulating/)).not.toBeInTheDocument()
+  })
 })

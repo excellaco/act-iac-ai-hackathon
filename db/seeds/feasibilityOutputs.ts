@@ -63,6 +63,7 @@ async function seedFeasibilityOutputs() {
       fmr2br,
     })
 
+    // zoneCode defaults to '__avg__' (schema default) for jurisdiction-level rows
     await db
       .insert(feasibilityOutputs)
       .values({
@@ -75,7 +76,7 @@ async function seedFeasibilityOutputs() {
         rentFeasibilityRatio: (result.monthlyCarryingCost / fmr2br).toFixed(3),
       })
       .onConflictDoUpdate({
-        target: feasibilityOutputs.jurisdictionId,
+        target: [feasibilityOutputs.jurisdictionId, feasibilityOutputs.zoneCode],
         set: {
           maxUnitsPerAcre:      result.maxUnitsPerAcre.toString(),
           parkingFootprintPct:  result.parkingFootprintPct.toString(),

@@ -26,6 +26,8 @@ interface Props {
   fields: RegulationFields;
   /** Feasibility baseline. */
   baselineFeasibility: FeasibilityOutputs;
+  /** When set, shows "Simulating change to [zoneLabel]" in the narrative. */
+  zoneLabel?: string;
 }
 
 interface SliderConfig {
@@ -139,6 +141,7 @@ export default function WhatIfPanel({
   baselineSubScores,
   fields,
   baselineFeasibility,
+  zoneLabel,
 }: Props) {
   // Slider state — initialized to baseline field values
   const [sliderValues, setSliderValues] = useState<SliderState>({
@@ -183,10 +186,13 @@ export default function WhatIfPanel({
   }, [sliderValues, fields, baselineSubScores, baselineRis]);
 
   // E8-6: Plain-language narrative
-  const narrative = useMemo(
-    () => generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility),
-    [sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility],
-  );
+  const narrative = useMemo(() => {
+    const base = generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility);
+    if (zoneLabel && base !== 'Adjust the sliders above to model the impact of regulatory changes.') {
+      return `[Simulating ${zoneLabel}] ${base}`;
+    }
+    return base;
+  }, [sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility, zoneLabel]);
 
   // E8-5: Reset sliders to baseline
   function handleReset() {
