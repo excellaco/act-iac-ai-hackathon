@@ -1,7 +1,7 @@
 # ADR-0002: Use Google ADK for Pipeline Orchestration and LLM Extraction
 
-**Status:** Accepted  
-**Date:** 2025-03-14  
+**Status:** Accepted (pipeline ADK deferred — see Implementation Note below)
+**Date:** 2025-03-14
 **Deciders:** Parcella Hackathon Team
 
 ---
@@ -68,3 +68,11 @@ Specifically:
 - The five LLM extraction calls per jurisdiction run in parallel via `ParallelAgent`, which increases Gemini API concurrency. Rate limits should be validated before the full batch run.
 - Post-hackathon, the pipeline can be scaled to additional jurisdictions by deploying to Vertex AI Agent Engine without re-architecting the agent structure.
 - The what-if simulation (E8) remains deterministic for MVP. If natural language simulation is added post-MVP (Stretch S-5), it can be implemented as an additional `LlmAgent` using the RIS scoring function as a tool, consistent with this ADR.
+
+---
+
+## Implementation Note (March 2026)
+
+**Pipeline ADK deferred.** The ingestion pipeline (E0) was implemented using direct TypeScript orchestration in `lib/pipeline/runner.ts` rather than ADK `SequentialAgent`/`ParallelAgent`. The decision was pragmatic: ADK TS was at v0.4.0 when the pipeline was built, documentation was sparse, and the existing pipeline worked well and was thoroughly tested. Retrofitting working, tested code against a pre-1.0 framework before demo time was judged too risky (see discussion on #132).
+
+**ADK adopted for chat agent instead.** ADK v0.5.0 was adopted for the chat agent feature (#131), where the `LlmAgent` handles the agentic tool-call loop (jurisdiction data retrieval, PDF text access, feasibility computation). This is the use case where ADK provides the most value — the alternative would have required hand-rolling the multi-turn tool execution loop against raw Vertex AI.

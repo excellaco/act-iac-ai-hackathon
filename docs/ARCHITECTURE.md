@@ -53,8 +53,9 @@ Deterministic TypeScript calculations served via Next.js API routes, backed by C
 
 **Implementation status (as of March 2026):**
 - E3-5 composite formula (`RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`) and E3-6 DB storage: Done
-- E3-1 DCI, E3-2 DCOI, E3-3 PCI sub-score calculations: Not yet implemented — scores are currently seeded from `db/seeds/realScores.ts` using pre-computed values
-- E3-4 CRP and E4 feasibility modeling: Not yet implemented
+- E3-1 DCI, E3-2 DCOI, E3-3 PCI sub-score calculations: Done — `lib/scoringEngine.ts`
+- E3-4 CRP: Done — peer-set percentile in `lib/scoringEngine.ts`
+- E4 feasibility modeling: Done — `lib/feasibility.ts` computes unit yield, parking footprint, cost per unit, and rent feasibility; `FeasibilityPanel` renders in UI; `feasibility_outputs` table seeded via `db/seeds/feasibilityOutputs.ts`
 
 **RIS composite formula:** `RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`
 
@@ -76,7 +77,7 @@ Next.js / React frontend deployed to Cloud Run. Four functional areas: search + 
 |----------|--------|-----------|
 | Cloud platform | Google Cloud (Cloud Run, Cloud SQL, Vertex AI) | [ADR-0001](adr/0001-platform-and-stack.md) |
 | Application stack | Next.js + TypeScript | [ADR-0001](adr/0001-platform-and-stack.md) |
-| Pipeline orchestration | Google ADK for TypeScript | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
+| Pipeline orchestration | Direct TypeScript (ADK evaluated, deferred) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | LLM | Gemini via Vertex AI | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | Pipeline execution | Batch pre-processing (not real-time) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | Raw PDF storage | GCS (`parcela-490518-raw-data`) — files are ~90MB, too large for Git | `infra/` |
