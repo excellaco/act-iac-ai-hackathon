@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, startTransition } from 'react';
 import type { RegulationFields } from '../../lib/mockData';
 import type { FeasibilityOutputs } from '../../lib/feasibility';
 import { computeAllSubScores } from '../../lib/scoringEngine';
@@ -154,12 +154,14 @@ export default function WhatIfPanel({
 
   // Reset sliders when the underlying fields change (e.g. zone selection changes)
   useEffect(() => {
-    setSliderValues({
-      parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
-      heightLimitFt:           fields.heightLimitFt,
-      densityLimitUpa:         fields.densityLimitUpa,
-      minLotSizeSqft:          fields.minLotSizeSqft,
-      setbackFrontFt:          fields.setbackFrontFt,
+    startTransition(() => {
+      setSliderValues({
+        parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+        heightLimitFt:           fields.heightLimitFt,
+        densityLimitUpa:         fields.densityLimitUpa,
+        minLotSizeSqft:          fields.minLotSizeSqft,
+        setbackFrontFt:          fields.setbackFrontFt,
+      });
     });
   }, [fields]);
 

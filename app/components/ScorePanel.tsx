@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
 import { risColor, risLabel, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import ZoneSelector from './ZoneSelector';
@@ -54,7 +54,6 @@ function defaultZoneCode(zones: ZoneScore[]): string | '__avg__' {
 
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
   const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
-  const color = risColor(ris);
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
   const [pdfModal, setPdfModal] = useState<PdfModalState | null>(null);
@@ -72,10 +71,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         crp:  { score: activeZone.crp,  confidence: subScores.crp.confidence,  source: subScores.crp.source  },
       }
     : subScores;
-  const activeFields = useMemo(
-    () => (activeZone ? { ...fields, ...activeZone.fields } : fields),
-    [activeZone, fields],
-  );
+  const activeFields = activeZone ? { ...fields, ...activeZone.fields } : fields;
   const activeFeasibility = activeZone?.feasibility ?? feasibility;
 
   const zoneHeadline = selectedZoneCode === '__avg__'

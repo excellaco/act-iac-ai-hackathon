@@ -310,7 +310,7 @@ export function averageZoneRIS(
     (z) => z.multifamilyClassification === 'primary' || z.multifamilyClassification === 'permitted',
   )
 
-  let dci: number, dcoi: number, pci: number, risComposite: number
+  let dci: number, dcoi: number, pci: number
 
   if (scoredZones.length === 0) {
     // No scoreable zones — fall back to simple average of all zones
@@ -326,7 +326,7 @@ export function averageZoneRIS(
 
   // CRP is always computed at jurisdiction level after averaging
   const crp = computeCRP({ dci, dcoi, pci, slug })
-  risComposite = computeRIS({ dci, dcoi, pci, crp })
+  const risComposite = computeRIS({ dci, dcoi, pci, crp })
 
   // Back-fill CRP and recompute risComposite for each zone using the weighted formula
   const filledZoneScores = zoneScores.map((z) => ({
