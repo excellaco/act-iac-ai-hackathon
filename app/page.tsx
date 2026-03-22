@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import type { JurisdictionSummary } from '../lib/apiClient';
-import { fetchScore } from '../lib/apiClient';
+import { fetchScore, fetchJurisdictions } from '../lib/apiClient';
 import { scoreResponseToJurisdictionData, type JurisdictionData } from '../lib/mockData';
 import JurisdictionSearch from './components/JurisdictionSearch';
 import ScorePanel from './components/ScorePanel';
@@ -72,6 +72,17 @@ export default function Home() {
     return () => window.removeEventListener('parcella:reset', handleReset);
   }, [handleReset]);
 
+  // Handle jurisdiction selection from map click (regional view)
+  async function handleSelectByName(name: string, state: string) {
+    try {
+      const all = await fetchJurisdictions();
+      const match = all.find((j) => j.name === name && j.state === state);
+      if (match) handleSelect(match);
+    } catch {
+      // Non-fatal — user can still search manually
+    }
+  }
+
   // E6-7 / E7-1: Initiate comparison view when a peer chip is clicked
   async function handleCompare(peer: { id: string; name: string; state: string; ris: number }) {
     try {
@@ -99,7 +110,7 @@ export default function Home() {
     <div className={styles.layout}>
       <main className={`${styles.main} ${selected ? styles.mainWithPanel : ''}`}>
         {/* Full-bleed choropleth map as background */}
-        <ChoroplethMap selected={selected} onReset={handleReset} />
+        <ChoroplethMap selected={selected} onReset={handleReset} onSelectByName={handleSelectByName} />
 
         <div className={selected ? styles.searchShellCompact : styles.searchShellHero}>
           {!selected && !loading && (
