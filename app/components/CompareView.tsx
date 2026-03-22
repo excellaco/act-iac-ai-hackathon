@@ -133,7 +133,7 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         </div>
       </div>
 
-      <MiniMap jurisdictionName={name} ris={ris} />
+      <MiniMap key={`${name}-${ris}`} jurisdictionName={name} ris={ris} />
     </div>
   );
 }

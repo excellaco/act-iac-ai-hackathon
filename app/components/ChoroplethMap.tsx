@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
+import { NAME_TO_FIPS } from '../../lib/fips';
 import styles from './ChoroplethMap.module.css';
 
 const STATE_RIS: Record<string, number> = {
@@ -19,21 +20,6 @@ const STATE_RIS: Record<string, number> = {
   'Oklahoma': 36, 'Arkansas': 34, 'Louisiana': 42, 'Mississippi': 35,
   'Kentucky': 39, 'West Virginia': 38, 'Iowa': 31, 'New Mexico': 37,
   'Utah': 44, 'District of Columbia': 80,
-};
-
-// Lookup map from jurisdiction display name to 5-digit FIPS code.
-// selected.name from the DB keyed by display name, not FIPS.
-const NAME_TO_FIPS: Record<string, string> = {
-  'Fairfax County':         '51059',
-  'Arlington County':       '51013',
-  'Loudoun County':         '51107',
-  'Frederick County':       '51069',
-  'Prince William County':  '51153',
-  'Stafford County':        '51179',
-  'Alexandria City':        '51510',
-  'Howard County':          '24027',
-  'Montgomery County':      '24031',
-  "Prince George's County": '24033',
 };
 
 
@@ -121,6 +107,10 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+      }
+      // Clear Leaflet's internal marker so the container can be re-initialized after HMR
+      if (containerRef.current) {
+        delete (containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id;
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

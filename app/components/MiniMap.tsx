@@ -2,21 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { risFillColor } from '../../lib/ris'
+import { NAME_TO_FIPS } from '../../lib/fips'
 import styles from './MiniMap.module.css'
-
-// Same lookup as ChoroplethMap — maps jurisdiction name to 5-digit FIPS
-const NAME_TO_FIPS: Record<string, string> = {
-  'Fairfax County':         '51059',
-  'Arlington County':       '51013',
-  'Loudoun County':         '51107',
-  'Frederick County':       '51069',
-  'Prince William County':  '51153',
-  'Stafford County':        '51179',
-  'Alexandria City':        '51510',
-  'Howard County':          '24027',
-  'Montgomery County':      '24031',
-  "Prince George's County": '24033',
-}
 
 interface MiniMapProps {
   jurisdictionName: string
@@ -30,13 +17,16 @@ export default function MiniMap({ jurisdictionName, ris }: MiniMapProps) {
 
   useEffect(() => {
     if (!containerRef.current) return
-    // Guard against HMR re-initialization — Leaflet attaches _leaflet_id to the container
+
+    // _leaflet_id is a private Leaflet internal attached to initialized containers.
+    // Checking it is a known workaround for HMR double-initialization in dev mode.
     if ((containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id) return
     if (mapRef.current) return
 
+    const controller = new AbortController()
+
     import('leaflet').then((L) => {
-      // Double-check after async import
-      if (!containerRef.current) return
+      if (!containerRef.current || controller.signal.aborted) return
       if ((containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id) return
 
       const map = L.map(containerRef.current!, {
@@ -50,52 +40,61 @@ export default function MiniMap({ jurisdictionName, ris }: MiniMapProps) {
         touchZoom: false,
         keyboard: false,
         boxZoom: false,
-        attributionControl: false,
+        attributionControl: true,
       })
 
       mapRef.current = map
 
-      // Light tile layer at low opacity for geographic context
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         opacity: 0.5,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map)
 
-      // Load county boundary and fit to it
       const fips = NAME_TO_FIPS[jurisdictionName]
       if (!fips) return
 
-      fetch('/geo/target-counties.json')
+      fetch('/geo/target-counties.json', { signal: controller.signal })
         .then((res) => res.json())
         .then((geojson) => {
+          if (controller.signal.aborted) return
+
           const feature = geojson.features.find(
             (f: { id: string }) => f.id === fips,
           )
           if (!feature) return
 
           const color = risFillColor(ris)
-          L.geoJSON(feature, {
+          const layer = L.geoJSON(feature, {
             style: {
               fillColor: color,
               fillOpacity: 0.35,
               color,
               weight: 2,
             },
-          }).addTo(map)
+          })
+          layer.addTo(map)
 
-          const bounds = L.geoJSON(feature).getBounds()
+          const bounds = layer.getBounds()
           map.fitBounds(bounds, { padding: [25, 25], maxZoom: 12, animate: false })
           const baseZoom = map.getZoom()
           map.setZoom(Math.min(baseZoom + 0.25, 12), { animate: false })
         })
-        .catch(() => {/* non-fatal */})
+        .catch(() => {/* aborted or non-fatal fetch error */})
     })
 
     return () => {
+      controller.abort()
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
       }
+      // Clear Leaflet's internal marker so the container can be re-initialized after HMR
+      if (containerRef.current) {
+        delete (containerRef.current as HTMLElement & { _leaflet_id?: number })._leaflet_id
+      }
     }
+  // Parent passes key={jurisdictionName} to force re-mount when jurisdiction changes,
+  // so empty deps is intentional here — the component lifecycle handles updates.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
