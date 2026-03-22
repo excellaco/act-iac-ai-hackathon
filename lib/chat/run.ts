@@ -57,6 +57,12 @@ export async function runChat(
     userId: 'anonymous',
     newMessage: userContent,
   })) {
+    console.log('[chat] event author=%s partial=%s isFinal=%s parts=%s',
+      event.author,
+      event.partial,
+      isFinalResponse(event),
+      JSON.stringify(event.content?.parts?.map((p: Record<string, unknown>) => Object.keys(p))),
+    )
     if (isFinalResponse(event)) {
       const parts = event.content?.parts
       if (parts) {
@@ -68,5 +74,6 @@ export async function runChat(
     }
   }
 
+  console.log('[chat] final reply length=%d', reply.length)
   return reply || 'I was unable to generate a response. Please try again.'
 }
