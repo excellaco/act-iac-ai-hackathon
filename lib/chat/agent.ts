@@ -33,7 +33,7 @@ const SYSTEM_INSTRUCTION = `You are a zoning policy research assistant for the P
 
 export const zoningAgent = new LlmAgent({
   name: 'zoning_policy_assistant',
-  model: process.env.CHAT_MODEL ?? 'gemini-2.0-flash',
+  model: process.env.CHAT_MODEL ?? 'gemini-2.5-flash',
   instruction: SYSTEM_INSTRUCTION,
   tools: [getJurisdictionDataTool, getPdfTextTool, computeFeasibilityToolDef],
 })
