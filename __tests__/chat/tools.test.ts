@@ -155,7 +155,7 @@ describe('get_jurisdiction_data tool', () => {
       { fieldName: 'density_limit_units_per_acre', fieldValue: '72', unit: 'units/acre', confidence: 'High', sourceSection: '§3.2', fieldValueText: '72 units per acre' },
     ]))
     // Zone RIS score
-    ;(db.query.zoneRisScores as jest.Mock | { findFirst: jest.Mock }).findFirst.mockResolvedValue({
+    ;(db.query.zoneRisScores as unknown as { findFirst: jest.Mock }).findFirst.mockResolvedValue({
       risComposite: '43', dci: '40', dcoi: '50', pci: '35', crp: '45',
       zoneCode: 'RA6-15', zoneName: 'Residential Apartment', multifamilyClassification: 'primary',
     })
@@ -183,7 +183,7 @@ describe('get_jurisdiction_data tool', () => {
       .mockReturnValueOnce(makeSelectMock([      // allZones listing
         { zoneCode: 'RA6-15', zoneName: 'Residential Apartment', multifamilyClassification: 'primary' },
       ]))
-    ;(db.query.zoneRisScores as jest.Mock | { findFirst: jest.Mock }).findFirst.mockResolvedValue(null)
+    ;(db.query.zoneRisScores as unknown as { findFirst: jest.Mock }).findFirst.mockResolvedValue(null)
     ;(db.query.feasibilityOutputs.findFirst as jest.Mock).mockResolvedValue(null)
 
     const result = await getJurisdictionData({ jurisdictionId: 'uuid-1', zoneCode: 'XX-99' })
