@@ -22,6 +22,9 @@ provider "google" {
   region  = var.region
 }
 
+# Used to resolve the default Compute Engine service account for the Cloud Run app.
+data "google_project" "current" {}
+
 # ---------------------------------------------------------------------------
 # GCS bucket for raw zoning PDFs
 # ---------------------------------------------------------------------------
@@ -42,4 +45,17 @@ resource "google_storage_bucket_iam_member" "pipeline_reader" {
   bucket = google_storage_bucket.raw_data.name
   role   = "roles/storage.objectViewer"
   member = "serviceAccount:${var.pipeline_service_account}"
+}
+
+# Grant the Cloud Run app service account read access so the PDF proxy can stream PDFs.
+# Defaults to the project's default Compute Engine SA (used when --service-account is not
+# specified in `gcloud run deploy`). Override app_service_account to use a dedicated SA.
+locals {
+  app_service_account = var.app_service_account != "" ? var.app_service_account : "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_storage_bucket_iam_member" "app_reader" {
+  bucket = google_storage_bucket.raw_data.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${local.app_service_account}"
 }
