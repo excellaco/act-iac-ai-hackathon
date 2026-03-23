@@ -64,9 +64,12 @@ async function main() {
         parser,
         extractors,
         logger: {
-          info: (msg, ctx) => console.log(`   ${msg}`, ctx ?? ''),
-          warn: (msg, ctx) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
+          info:  (msg, ctx) => console.log(`   ${msg}`, ctx ?? ''),
+          warn:  (msg, ctx) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
           error: (msg, ctx) => console.error(`   ✗ ${msg}`, ctx ?? ''),
+          debug: (msg, ctx) => {
+            if (process.env.LOG_LEVEL === 'debug') console.log(`   [debug] ${msg}`, ctx ?? '')
+          },
         },
       })
 
