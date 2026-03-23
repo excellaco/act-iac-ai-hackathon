@@ -72,6 +72,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       }
     : subScores;
   const activeFields = activeZone ? { ...fields, ...activeZone.fields } : fields;
+  const activeCitations = activeZone ? { ...citations, ...activeZone.citations } : citations;
   const activeFeasibility = activeZone?.feasibility ?? feasibility;
 
   const zoneHeadline = selectedZoneCode === '__avg__'
@@ -172,7 +173,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                 {SUB_SCORE_FIELDS[key].length > 0 && (
                   <ul className={styles.citationList}>
                     {SUB_SCORE_FIELDS[key].map((fieldName) => {
-                      const citation = citations?.[fieldName];
+                      const citation = activeCitations?.[fieldName];
                       const hasSource = citation?.sourcePage != null || citation?.sourceSection;
                       return (
                         <li key={fieldName} className={styles.citationItem}>
