@@ -107,9 +107,9 @@ export async function GET(
       for (const f of zFields) {
         fieldsObj[f.fieldName] = f.fieldValue
         citationsObj[f.fieldName] = {
-          fieldValueText: f.fieldValueText,
-          sourceSection: f.sourceSection,
-          sourcePage: f.sourcePage,
+          fieldValueText: f.fieldValueText ?? null,
+          sourceSection: f.sourceSection ?? null,
+          sourcePage: f.sourcePage ?? null,
         }
       }
 
