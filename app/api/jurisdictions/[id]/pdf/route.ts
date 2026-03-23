@@ -5,8 +5,9 @@
  * (development) so the browser can display it in an iframe without exposing
  * GCS credentials or requiring signed URLs.
  *
- * The source document path is looked up from extracted_fields.source_document
- * (first non-null value for the jurisdiction — all fields share the same PDF).
+ * The source document path is looked up from the most recent completed pipeline_runs
+ * row that has a gs:// source_document. Using pipeline_runs avoids picking up stale
+ * 'synthetic' placeholder values written to extracted_fields by earlier runs.
  *
  * GET /api/jurisdictions/[id]/pdf
  */
@@ -19,8 +20,8 @@ const PDF_HEADERS = {
   'Cache-Control': 'private, max-age=3600',
 }
 import { db } from '@/db/client'
-import { extractedFields } from '@/db/schema'
-import { and, eq, isNotNull } from 'drizzle-orm'
+import { pipelineRuns } from '@/db/schema'
+import { and, desc, eq, isNotNull, like } from 'drizzle-orm'
 import { Storage } from '@google-cloud/storage'
 import fs from 'fs'
 import path from 'path'
@@ -31,11 +32,20 @@ export async function GET(
 ) {
   const { id } = await params
 
-  // Look up source_document from any extracted field for this jurisdiction
+  // Look up source_document from the most recent completed pipeline run that has a GCS path.
+  // Querying pipeline_runs avoids picking up stale 'synthetic' values from extracted_fields.
   const [row] = await db
-    .select({ sourceDocument: extractedFields.sourceDocument })
-    .from(extractedFields)
-    .where(and(eq(extractedFields.jurisdictionId, id), isNotNull(extractedFields.sourceDocument)))
+    .select({ sourceDocument: pipelineRuns.sourceDocument })
+    .from(pipelineRuns)
+    .where(
+      and(
+        eq(pipelineRuns.jurisdictionId, id),
+        eq(pipelineRuns.status, 'completed'),
+        isNotNull(pipelineRuns.sourceDocument),
+        like(pipelineRuns.sourceDocument, 'gs://%'),
+      ),
+    )
+    .orderBy(desc(pipelineRuns.startedAt))
     .limit(1)
 
   if (!row?.sourceDocument) {
