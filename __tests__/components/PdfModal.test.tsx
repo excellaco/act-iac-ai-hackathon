@@ -79,4 +79,22 @@ describe('PdfModal', () => {
 
     expect(defaultProps.onClose).toHaveBeenCalledTimes(1)
   })
+
+  it('calls onClose when Enter is pressed on backdrop', () => {
+    const { container } = render(<PdfModal {...defaultProps} />)
+
+    const backdrop = container.querySelector('[role="dialog"]')!.lastElementChild as HTMLElement
+    fireEvent.keyDown(backdrop, { key: 'Enter' })
+
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onClose when Space is pressed on backdrop', () => {
+    const { container } = render(<PdfModal {...defaultProps} />)
+
+    const backdrop = container.querySelector('[role="dialog"]')!.lastElementChild as HTMLElement
+    fireEvent.keyDown(backdrop, { key: ' ' })
+
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(1)
+  })
 })
