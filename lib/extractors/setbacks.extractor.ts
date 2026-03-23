@@ -106,7 +106,8 @@ export class SetbacksGeminiCall {
 
     const result = await withRetry(() => generativeModel.generateContent(buildSetbacksPrompt(chunk)))
     const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
-    const parsed: RawExtractionResult[] = JSON.parse(text)
+    const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+    const parsed: RawExtractionResult[] = JSON.parse(sanitized)
 
     this.cache.set(chunk, parsed)
     return parsed
