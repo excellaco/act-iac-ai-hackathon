@@ -43,7 +43,14 @@ export default function PdfModal({ jurisdictionId, sourcePage, sourceSection, fi
           title="Source ordinance document"
         />
       </div>
-      <div className={styles.backdrop} onClick={onClose} />
+      <div
+        className={styles.backdrop}
+        onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose() }}
+        role="button"
+        tabIndex={0}
+        aria-label="Close"
+      />
     </div>
   );
 }
