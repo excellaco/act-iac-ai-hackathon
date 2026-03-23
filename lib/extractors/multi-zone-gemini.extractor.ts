@@ -18,6 +18,7 @@ import { ZoneRawResult } from '../pipeline/runner'
 import { DiscoveredZone, matchZoneCode } from './zone-discovery.extractor'
 import { RawExtractionResult } from '../pipeline/normalize'
 import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
+import { consoleLogger } from '../pipeline/errors'
 
 function confidenceRank(c: 'high' | 'medium' | 'low'): number {
   return c === 'high' ? 2 : c === 'medium' ? 1 : 0
@@ -67,7 +68,12 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
         const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
         results = JSON.parse(sanitized)
         if (!Array.isArray(results)) continue
-      } catch {
+      } catch (err) {
+        consoleLogger.warn('multi-zone extraction chunk failed', {
+          fieldName: this.fieldName,
+          chunkIndex: chunks.indexOf(chunk),
+          error: err instanceof Error ? err.message : String(err),
+        })
         continue
       }
 

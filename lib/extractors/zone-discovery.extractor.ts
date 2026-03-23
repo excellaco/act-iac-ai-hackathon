@@ -11,6 +11,7 @@
 
 import { VertexAI } from '@google-cloud/vertexai'
 import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
+import { PipelineLogger, consoleLogger } from '../pipeline/errors'
 
 export type MultifamilyClassification = 'primary' | 'permitted' | 'limited' | 'none'
 
@@ -67,7 +68,11 @@ function normalizeCode(code: string): string {
  */
 const EARLY_EXIT_THRESHOLD = 10
 
-export async function discoverZones(chunks: string[], limiter?: GeminiLimiter): Promise<DiscoveredZone[]> {
+export async function discoverZones(
+  chunks: string[],
+  limiter?: GeminiLimiter,
+  logger: PipelineLogger = consoleLogger,
+): Promise<DiscoveredZone[]> {
   const project = process.env.GOOGLE_CLOUD_PROJECT ?? process.env.GCLOUD_PROJECT
   const location = process.env.GOOGLE_CLOUD_LOCATION ?? 'us-central1'
 
@@ -109,7 +114,11 @@ export async function discoverZones(chunks: string[], limiter?: GeminiLimiter): 
         if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
         continue
       }
-    } catch {
+    } catch (err) {
+      logger.warn('zone discovery chunk failed', {
+        chunkIndex: chunks.indexOf(chunk),
+        error: err instanceof Error ? err.message : String(err),
+      })
       consecutiveEmpty++
       if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
       continue

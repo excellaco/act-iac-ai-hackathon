@@ -1,8 +1,8 @@
 /**
  * Shared Gemini concurrency limiter and retry utility.
  *
- * All three Gemini call sites (standard extraction, zone discovery, multi-zone
- * extraction) import from here and share a single limiter instance per pipeline
+ * All four Gemini call sites (standard extraction, zone discovery, multi-zone
+ * extraction, setbacks) import from here and share a single limiter instance per pipeline
  * run, so they draw from the same quota budget rather than competing blindly.
  *
  * Env vars (set in .env.example):
@@ -16,7 +16,7 @@ export type GeminiLimiter = ReturnType<typeof pLimit>
 
 /** Create a new concurrency limiter, reading GEMINI_CONCURRENCY from env. */
 export function createGeminiLimiter(): GeminiLimiter {
-  const concurrency = parseInt(process.env.GEMINI_CONCURRENCY ?? '5', 10)
+  const concurrency = parseInt(process.env.GEMINI_CONCURRENCY ?? '5', 10) || 5
   return pLimit(concurrency)
 }
 
@@ -41,7 +41,7 @@ export async function withRetry<T>(
   fn: () => Promise<T>,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
 ): Promise<T> {
-  const maxRetries = parseInt(process.env.GEMINI_MAX_RETRIES ?? '3', 10)
+  const maxRetries = parseInt(process.env.GEMINI_MAX_RETRIES ?? '3', 10) || 3
   let attempt = 0
 
   // eslint-disable-next-line no-constant-condition

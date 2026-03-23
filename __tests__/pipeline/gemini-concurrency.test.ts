@@ -131,4 +131,21 @@ describe('createGeminiLimiter', () => {
     await Promise.all([task(), task(), task(), task()])
     expect(maxObserved).toBeLessThanOrEqual(2)
   })
+
+  it('falls back to default concurrency of 5 when GEMINI_CONCURRENCY is non-numeric', async () => {
+    process.env.GEMINI_CONCURRENCY = 'abc'
+    // Should not throw (pLimit(NaN) would misbehave without the || 5 guard)
+    expect(() => createGeminiLimiter()).not.toThrow()
+  })
+})
+
+describe('withRetry NaN guard', () => {
+  it('falls back to 3 retries when GEMINI_MAX_RETRIES is non-numeric', async () => {
+    process.env.GEMINI_MAX_RETRIES = 'abc'
+    const err = new Error('RESOURCE_EXHAUSTED')
+    const fn = jest.fn().mockRejectedValue(err)
+    await expect(withRetry(fn, noopSleep)).rejects.toThrow()
+    // Should use fallback of 3, not retry infinitely
+    expect(fn).toHaveBeenCalledTimes(4) // 1 initial + 3 retries
+  })
 })

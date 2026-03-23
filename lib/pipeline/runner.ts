@@ -245,7 +245,7 @@ export async function runExtractStage(
     try {
       logger.info('running zone discovery', { slug })
       const chunkTexts = chunks.map((c) => c.text)
-      const canonicalZones = await discoverZones(chunkTexts, limiter)
+      const canonicalZones = await discoverZones(chunkTexts, limiter, logger)
       logger.info('zones discovered', { count: canonicalZones.length, slug })
 
       if (canonicalZones.length > 0) {
