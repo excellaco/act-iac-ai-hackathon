@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
 import { NAME_TO_FIPS } from '../../lib/fips';
+import ZoneOverlay from './ZoneOverlay';
 import styles from './ChoroplethMap.module.css';
 
 const STATE_RIS: Record<string, number> = {
@@ -88,10 +89,10 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
           const fips = feature?.id as string | undefined;
           const isSelected = selected && NAME_TO_FIPS[selected.name] === fips;
           return {
-            fillColor: isSelected ? risFillColor(selected!.ris) : '#4f46e5',
-            fillOpacity: isSelected ? 0.55 : 0.3,
-            color: isSelected ? '#1e40af' : '#4f46e5',
-            weight: isSelected ? 3 : 2,
+            fillColor: isSelected ? risFillColor(selected!.ris) : '#e5e7eb',
+            fillOpacity: isSelected ? 0.55 : 0.15,
+            color: isSelected ? '#1e40af' : '#9ca3af',
+            weight: isSelected ? 3 : 1,
           };
         },
       });
@@ -319,6 +320,10 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
           ))}
         </div>
       </div>
+
+      {selected && !zoomedOut && selected.zoneScores.length > 0 && (
+        <ZoneOverlay zones={selected.zoneScores} />
+      )}
 
       {selected && (
         <div className={styles.mapControls}>
