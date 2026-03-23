@@ -4,17 +4,20 @@ import { PdfParserImpl, normalizePdfText } from '../../lib/pipeline/pdf-parser'
 // The mock invokes the pagerender callback (if provided) to exercise the
 // per-page text extraction path (lines 57–65 in pdf-parser.ts).
 jest.mock('pdf-parse', () =>
-  jest.fn().mockImplementation((_bytes: Buffer, options?: { pagerender?: (pageData: unknown) => Promise<string> }) => {
+  jest.fn().mockImplementation(async (_bytes: Buffer, options?: { pagerender?: (pageData: unknown) => Promise<string> }) => {
     const pages = [
       [{ str: 'Page one ', hasEOL: false }, { str: 'content', hasEOL: true }],
       [{ str: 'Page two text', hasEOL: true }],
     ]
+    const renderPromises: Promise<unknown>[] = []
     if (options?.pagerender) {
       for (const items of pages) {
-        options.pagerender({ getTextContent: () => Promise.resolve({ items }) })
+        const promise = options.pagerender({ getTextContent: () => Promise.resolve({ items }) })
+        if (promise) renderPromises.push(promise)
       }
     }
-    return Promise.resolve({ text: 'Page one content\nPage two text' })
+    await Promise.all(renderPromises)
+    return { text: 'Page one content\nPage two text' }
   })
 )
 
