@@ -14,7 +14,7 @@ flowchart LR
   end
 
   subgraph UI["Dashboard UI · Next.js / React · Cloud Run"]
-    U1["Search + map · E5"] --- U2["Score panel · E6"] --- U3["Comparison · E7"] --- U4["What-if sim · E8"]
+    U1["Search + map · E5"] --- U2["Score panel · E6"] --- U3["Comparison · E7"] --- U4["What-if sim · E8"] --- U5["Chat agent · ADK"]
   end
 
   subgraph SCORE["Scoring & feasibility · TypeScript · Cloud SQL"]
@@ -43,11 +43,13 @@ A batch pre-processing pipeline in TypeScript deployed to Cloud Run. Runs once p
 - `lib/pipeline/gcs-fetcher.ts` + `local-fetcher.ts` — GCS fetch (prod) or local `data/raw/` fallback (dev)
 - `lib/pipeline/pdf-parser.ts` — PDF → text via `pdf-parse`
 - `lib/pipeline/chunk.ts` — ≤4000 token overlapping chunks
-- `lib/extractors/` — 8 Gemini extractors (one per field) using `@google-cloud/vertexai`; setbacks share one API call per chunk
-- `lib/pipeline/gemini-concurrency.ts` — shared concurrency limiter (`p-limit`, capped at `GEMINI_CONCURRENCY`, default 5) and `withRetry` utility (exponential backoff on 429/RESOURCE_EXHAUSTED, up to `GEMINI_MAX_RETRIES`, default 3)
+- `lib/extractors/` — Gemini extractors using `@google-cloud/vertexai`:
+  - Per-field extractors: lot size, height, density, parking, setbacks, discretionary review
+  - `zone-discovery.extractor.ts` — discovers all relevant zoning districts in a jurisdiction
+  - `multi-zone-gemini.extractor.ts` + `multi-zone-setbacks.extractor.ts` — extract fields per zone, then average for jurisdiction-level score
 - `lib/pipeline/normalize.ts`, `validate.ts` — deterministic post-extraction conversion and plausibility checks
 
-See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md) for the original ADK decision rationale. The current implementation uses direct TypeScript orchestration; ADK integration is a post-MVP enhancement.
+See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md) for the original ADK decision rationale. The pipeline uses direct TypeScript orchestration; ADK is used for the chat agent (see below).
 
 ### Scoring & feasibility engine (E3/E4/E9)
 Deterministic TypeScript calculations served via Next.js API routes, backed by Cloud SQL (PostgreSQL). Computes the composite Regulatory Impact Score (RIS) and feasibility outputs (unit yield, buildable area, cost per unit) from structured pipeline outputs.
@@ -69,8 +71,22 @@ Deterministic TypeScript calculations served via Next.js API routes, backed by C
 
 All sub-scores are normalized to 0–100 using min-max normalization against the peer jurisdiction set. Higher score = more restrictive regulatory environment.
 
+### Chat agent
+An ADK `LlmAgent` (Gemini 2.5 Flash via Vertex AI) provides a conversational interface for policy questions. Users can ask free-form questions about zoning regulations, and the agent calls tools to retrieve data and generate grounded answers.
+
+**Key modules:**
+- `lib/chat/agent.ts` — LlmAgent definition with system instruction
+- `lib/chat/tools.ts` — three `FunctionTool` declarations: `get_jurisdiction_data` (DB query), `get_pdf_text` (GCS PDF fetch + parse with caching), `compute_feasibility` (what-if calculations)
+- `lib/chat/run.ts` — per-request orchestration via `InMemoryRunner.runEphemeral()`
+- `app/api/jurisdictions/[id]/chat/route.ts` — stateless POST endpoint; conversation history maintained client-side
+
+See [`docs/adr/0006-adk-chat-agent.md`](adr/0006-adk-chat-agent.md) for design rationale.
+
+### PDF source citations
+Extracted fields in the score panel link directly to the source page in the zoning ordinance PDF. The PDF is served via a proxy route (`app/api/jurisdictions/[id]/pdf/route.ts`) that fetches from GCS and streams to the browser, with page-level deep-linking using `source_page` from the extraction pipeline.
+
 ### Dashboard UI (E5–E8)
-Next.js / React frontend deployed to Cloud Run. Four functional areas: search + map, RIS score panel with inline AI disclosures, cross-jurisdiction comparison, and what-if policy simulation.
+Next.js / React frontend deployed to Cloud Run. Five functional areas: search + map (with regional and national zoom levels), RIS score panel with inline AI disclosures, cross-jurisdiction comparison (with per-jurisdiction maps), what-if policy simulation, and a chat panel for policy questions.
 
 ## Key Decisions
 
@@ -86,3 +102,5 @@ Next.js / React frontend deployed to Cloud Run. Four functional areas: search + 
 | Schema management | Drizzle ORM — `db/schema.ts` + `drizzle-kit` migrations | [ADR-0003](adr/0003-database-access-and-migrations.md) |
 | Local dev database | Docker Compose (`postgres:16`) — no GCP credentials required | [ADR-0003](adr/0003-database-access-and-migrations.md) |
 | Migration timing | Auto-apply on deploy before app starts | [ADR-0003](adr/0003-database-access-and-migrations.md) |
+| Chat agent | Google ADK `LlmAgent` with Gemini 2.5 Flash | [ADR-0006](adr/0006-adk-chat-agent.md) |
+| Map component | Leaflet (open source, no API key) | [ADR-0005](adr/0005-leaflet-for-map-component.md) |

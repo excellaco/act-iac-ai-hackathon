@@ -62,11 +62,24 @@
 
 ---
 
+### Step 5 — Ask a Question About the Zoning Code
+- Below the Compare Peers section, a collapsible **"Ask about [jurisdiction]"** chat panel is available
+- User expands the panel and types a natural language question (e.g., "Why is the parking score so high?", "What does the code say about ADUs?", "What if parking were reduced to 1 space per unit?")
+- An AI assistant (Google ADK LlmAgent backed by Gemini) answers using three tools:
+  - **Jurisdiction data** — extracted fields, RIS scores, feasibility metrics from the database
+  - **Source PDF text** — the full zoning ordinance, parsed and cached, with section citations
+  - **Feasibility computation** — live what-if calculations from modified parameters
+- Responses cite source sections from the ordinance (e.g., "per §8102.04")
+- Conversation history is maintained within the session; clears when switching jurisdictions
+- **User action:** Asks follow-up questions to build understanding of regulatory constraints
+
+---
+
 ## Happy Path Summary
 
 ```
 Search for Jurisdiction → County RIS Panel (with inline AI disclosures) →
-Add Comparators → What-If Simulation
+Add Comparators → What-If Simulation → Ask Policy Questions via Chat
 ```
 
 ---
