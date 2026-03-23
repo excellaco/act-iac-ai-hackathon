@@ -21,33 +21,50 @@ export interface DiscoveredZone {
   multifamily_classification: MultifamilyClassification
 }
 
-const SYSTEM_PROMPT = `You are a zoning code analyst identifying zoning districts from a municipal zoning ordinance.
+const SYSTEM_PROMPT = `You are a zoning code analyst identifying BASE residential zoning districts from a municipal zoning ordinance.
 
-Your task is to enumerate every residential zoning district that appears in the provided text and classify each by its multifamily permission level. You must:
+A BASE residential zoning district is a standalone district (not an overlay) whose primary regulatory purpose is to govern where and how people live — single-family homes, townhomes, multifamily apartments, etc.
 
-1. Search only within the provided text — do not use external knowledge.
-2. Identify all distinct residential zoning districts by their official code (e.g. "R-30", "RA6-15", "SCN-24").
-3. Classify each zone exactly as one of:
-   - "primary"   — multifamily is the primary by-right use
-   - "permitted" — multifamily is a permitted by-right use alongside other types
-   - "limited"   — multifamily is capped, conditional, or ADU-only
-   - "none"      — no multifamily use permitted
-4. Return the zone_code exactly as it appears in the text (do not normalize or abbreviate).
-5. Return only valid JSON — no preamble, no markdown, no explanation outside the JSON.`
+INCLUDE only districts that meet ALL of these criteria:
+- Standalone base district (not an overlay applied on top of another district)
+- Residential use is the primary purpose of the district
+- The district regulates housing density, setbacks, height, and similar development standards
+
+DO NOT include any of the following — even if they appear in the same section as residential zones:
+- Overlay districts (e.g. "Transit Overlay", "Historic Overlay", "Entrance Corridor", "Airport Impact")
+- Planned Development districts (PD-*, PDH, PD-OP, PD-TC, etc.) unless the text explicitly states they function as standalone residential base districts
+- Commercial or retail districts (C-*, B-*, CR-*)
+- Industrial or employment districts (I-*, M-*, E-*)
+- Agricultural or rural districts (A-*, AR-*) unless the text explicitly permits multifamily housing as a primary use
+- Mixed-use districts where commercial or office is the primary use
+- Special purpose, transition, or buffer districts
+- Any district whose name or description is primarily non-residential
+
+When uncertain whether a district is a base residential district, DO NOT include it. A false negative (missing a zone) is far less harmful than a false positive (including hundreds of non-residential zones).
+
+Classify each included district exactly as one of:
+- "primary"   — multifamily is the primary by-right use
+- "permitted" — multifamily is a permitted by-right use alongside other uses
+- "limited"   — multifamily is capped, conditional, or ADU-only
+- "none"      — no multifamily use permitted
+
+Return the zone_code exactly as it appears in the text. Return only valid JSON — no preamble, no markdown, no explanation outside the JSON.`
 
 function buildDiscoveryPrompt(chunk: string): string {
-  return `Enumerate all residential zoning districts that appear in the following zoning ordinance text. For each district, return its code, full name (if available), and multifamily classification.
+  return `Identify BASE residential zoning districts from the following zoning ordinance text.
 
-Return a JSON array:
+INCLUDE only standalone residential base districts (e.g. R-1, R-2, RM-2, RA, RMF) whose primary purpose is housing.
+
+DO NOT include: overlay districts, planned development districts, commercial zones, industrial zones, agricultural zones, mixed-use zones where commercial is primary, or any district where residential is a secondary or conditional use. If uncertain, exclude it.
+
+Return a JSON array (or [] if no base residential districts appear in this chunk):
 [
   {
-    "zone_code": "<exact code as written, e.g. 'R-30' or 'RA6-15'>",
+    "zone_code": "<exact code as written in the text>",
     "zone_name": "<full district name or null if not stated>",
     "multifamily_classification": "primary" | "permitted" | "limited" | "none"
   }
 ]
-
-If no residential districts appear in this chunk, return an empty array [].
 
 Text chunk:
 ${chunk}`

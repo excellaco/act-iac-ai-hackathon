@@ -267,6 +267,15 @@ export async function runExtractStage(
       const canonicalZones = await discoverZones(chunkTexts, limiter, logger)
       logger.info('zones discovered', { count: canonicalZones.length, slug, elapsedMs: Date.now() - zoneDiscoveryStart })
 
+      const MAX_EXPECTED_ZONES = 75
+      if (canonicalZones.length > MAX_EXPECTED_ZONES) {
+        logger.warn('zone count unusually high — possible over-extraction of non-residential districts', {
+          count: canonicalZones.length,
+          threshold: MAX_EXPECTED_ZONES,
+          slug,
+        })
+      }
+
       if (canonicalZones.length > 0) {
         injectCanonicalZones(zoneAwareExtractors, canonicalZones)
         injectLimiter(zoneAwareExtractors, limiter)
