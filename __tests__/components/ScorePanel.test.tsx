@@ -103,6 +103,10 @@ describe('ScorePanel', () => {
 describe('ScorePanel — PDF citations', () => {
   const mockOnCompare = jest.fn()
 
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   // Fairfax fixture with citations that have source data
   const FAIRFAX_WITH_CITATIONS = {
     ...FAIRFAX,
@@ -125,8 +129,10 @@ describe('ScorePanel — PDF citations', () => {
   it('shows citation quotes when accordion is expanded', () => {
     render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
 
-    fireEvent.click(screen.getByText('Density Constraint Index'))
+    const accordionHeader = screen.getByText('Density Constraint Index')
+    fireEvent.click(accordionHeader)
 
+    expect(accordionHeader.closest('details')).toHaveAttribute('open')
     expect(screen.getByText(/One acre minimum lot size/)).toBeInTheDocument()
   })
 
