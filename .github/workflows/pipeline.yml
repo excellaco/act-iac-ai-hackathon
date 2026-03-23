@@ -23,6 +23,14 @@ on:
           - fairfax_va
           - arlington_va
           - loudoun_va
+      log_level:
+        description: 'Log level (debug for verbose chunk progress)'
+        required: false
+        default: ''
+        type: choice
+        options:
+          - ''
+          - debug
 
 jobs:
   run-pipeline:
@@ -62,3 +70,4 @@ jobs:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
           RAW_DATA_BUCKET: parcela-490518-raw-data
           GEMINI_MODEL: gemini-2.5-flash
+          LOG_LEVEL: ${{ github.event.inputs.log_level }}
