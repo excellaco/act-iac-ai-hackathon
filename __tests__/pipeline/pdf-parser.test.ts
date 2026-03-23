@@ -1,19 +1,39 @@
 import { PdfParserImpl, normalizePdfText } from '../../lib/pipeline/pdf-parser'
 
-// Mock pdf-parse so tests don't need real PDF files
+// Mock pdf-parse so tests don't need real PDF files.
+// The mock invokes the pagerender callback (if provided) to exercise the
+// per-page text extraction path (lines 57–65 in pdf-parser.ts).
 jest.mock('pdf-parse', () =>
-  jest.fn().mockResolvedValue({ text: 'extracted text content from PDF' })
+  jest.fn().mockImplementation(async (_bytes: Buffer, options?: { pagerender?: (pageData: unknown) => Promise<string> }) => {
+    const pages = [
+      [{ str: 'Page one ', hasEOL: false }, { str: 'content', hasEOL: true }],
+      [{ str: 'Page two text', hasEOL: true }],
+    ]
+    const renderPromises: Promise<unknown>[] = []
+    if (options?.pagerender) {
+      for (const items of pages) {
+        const promise = options.pagerender({ getTextContent: () => Promise.resolve({ items }) })
+        if (promise) renderPromises.push(promise)
+      }
+    }
+    await Promise.all(renderPromises)
+    return { text: 'Page one content\nPage two text' }
+  })
 )
 
 import pdfParse from 'pdf-parse'
 
 describe('PdfParserImpl', () => {
-  it('returns extracted text and pages from pdf-parse', async () => {
+  it('returns extracted text and per-page array from pdf-parse', async () => {
     const parser = new PdfParserImpl()
     const bytes = Buffer.from('%PDF-1.4 fake')
     const result = await parser.parse(bytes)
-    expect(result.text).toBe('extracted text content from PDF')
-    expect(Array.isArray(result.pages)).toBe(true)
+    expect(result.text).toContain('Page one content')
+    expect(result.pages).toHaveLength(2)
+    expect(result.pages[0].page).toBe(1)
+    expect(result.pages[0].text).toContain('Page one')
+    expect(result.pages[1].page).toBe(2)
+    expect(result.pages[1].text).toContain('Page two')
   })
 
   it('propagates errors from pdf-parse', async () => {
