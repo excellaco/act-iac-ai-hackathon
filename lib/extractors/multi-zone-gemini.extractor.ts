@@ -69,7 +69,7 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
         const text = await (this._limiter
           ? this._limiter(() => withRetry(callGemini, undefined, consoleLogger))
           : withRetry(callGemini, undefined, consoleLogger))
-        const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+        const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x1F]/g, ' ')
         results = JSON.parse(sanitized)
         if (!Array.isArray(results)) continue
       } catch (err) {

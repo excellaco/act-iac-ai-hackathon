@@ -106,8 +106,15 @@ export class SetbacksGeminiCall {
 
     const result = await withRetry(() => generativeModel.generateContent(buildSetbacksPrompt(chunk)))
     const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
-    const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
-    const parsed: RawExtractionResult[] = JSON.parse(sanitized)
+    const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x1F]/g, ' ')
+    let parsed: RawExtractionResult[]
+    try {
+      parsed = JSON.parse(sanitized)
+    } catch {
+      // Cache the failure as empty so front/side/rear don't each re-call Gemini
+      this.cache.set(chunk, [])
+      return []
+    }
 
     this.cache.set(chunk, parsed)
     return parsed

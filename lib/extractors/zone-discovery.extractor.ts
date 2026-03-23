@@ -103,7 +103,7 @@ export async function discoverZones(
       const task = () => withRetry(callGemini, undefined, logger)
       return (limiter ? limiter(task) : task())
         .then((text) => {
-          const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+          const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x1F]/g, ' ')
           const parsed = JSON.parse(sanitized)
           const zones: DiscoveredZone[] = Array.isArray(parsed) ? parsed : []
           logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${zones.length} zones)`)

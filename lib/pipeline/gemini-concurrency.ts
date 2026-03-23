@@ -7,7 +7,7 @@
  *
  * Env vars (set in .env.example):
  *   GEMINI_CONCURRENCY  — max simultaneous in-flight calls (default: 5)
- *   GEMINI_MAX_RETRIES  — retry attempts on 429/RESOURCE_EXHAUSTED (default: 3)
+ *   GEMINI_MAX_RETRIES  — retry attempts on 429/RESOURCE_EXHAUSTED (default: 6)
  */
 
 import pLimit from 'p-limit'
@@ -29,11 +29,12 @@ function isRateLimitError(err: unknown): boolean {
 /**
  * Wrap an async Gemini call with exponential-backoff retry on quota errors.
  *
- * Retries up to GEMINI_MAX_RETRIES times (default 3) on 429 / RESOURCE_EXHAUSTED.
+ * Retries up to GEMINI_MAX_RETRIES times (default 6) on 429 / RESOURCE_EXHAUSTED.
  * All other errors are rethrown immediately — no retry on bad prompts or auth failures.
  *
  * Backoff: baseDelay * 2^attempt + jitter(0–500ms)
- *   attempt 0 → ~1 s, attempt 1 → ~2 s, attempt 2 → ~4 s
+ *   attempt 0 → ~1 s, attempt 1 → ~2 s, attempt 2 → ~4 s, …, attempt 5 → ~32 s
+ *   cumulative max: ~63 s — enough to outlast a 60-second Gemini quota window
  *
  * @param fn     The async call to execute (and retry)
  * @param sleep  Injectable sleep for testing — defaults to real setTimeout
@@ -44,7 +45,7 @@ export async function withRetry<T>(
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
   logger: PipelineLogger = consoleLogger,
 ): Promise<T> {
-  const maxRetries = parseInt(process.env.GEMINI_MAX_RETRIES ?? '3', 10) || 3
+  const maxRetries = parseInt(process.env.GEMINI_MAX_RETRIES ?? '6', 10) || 6
   let attempt = 0
 
   // eslint-disable-next-line no-constant-condition
