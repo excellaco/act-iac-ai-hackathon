@@ -62,12 +62,10 @@ function normalizeCode(code: string): string {
  * Run zone discovery across all text chunks and return a deduplicated list
  * of canonical residential zones with their multifamily classification.
  *
- * Each chunk is queried independently; results are merged by normalized zone
- * code, with higher-permission classifications winning on conflict (primary >
- * permitted > limited > none) since a later chunk may provide more context.
+ * Chunks are queried in parallel (bounded by the optional limiter) then merged
+ * by normalized zone code, with higher-permission classifications winning on
+ * conflict (primary > permitted > limited > none).
  */
-const EARLY_EXIT_THRESHOLD = 10
-
 export async function discoverZones(
   chunks: string[],
   limiter?: GeminiLimiter,
@@ -93,44 +91,38 @@ export async function discoverZones(
     primary: 4, permitted: 3, limited: 2, none: 1,
   }
 
-  // canonical key → best result seen so far
-  const byCode = new Map<string, DiscoveredZone>()
-
-  let consecutiveEmpty = 0
   const total = chunks.length
 
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i]
-    let results: DiscoveredZone[]
-    try {
+  // Run all chunk calls in parallel, bounded by the limiter
+  const chunkResults = await Promise.all(
+    chunks.map((chunk, i) => {
       const callGemini = async () => {
         const resp = await generativeModel.generateContent(buildDiscoveryPrompt(chunk))
         return resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
       }
-      const text = await (limiter
-        ? limiter(() => withRetry(callGemini, undefined, logger))
-        : withRetry(callGemini, undefined, logger))
-      // Strip null bytes
-      const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
-      results = JSON.parse(sanitized)
-      if (!Array.isArray(results)) {
-        consecutiveEmpty++
-        if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
-        continue
-      }
-    } catch (err) {
-      logger.warn('zone discovery chunk failed', {
-        chunkIndex: i + 1,
-        chunkTotal: total,
-        error: err instanceof Error ? err.message : String(err),
-      })
-      consecutiveEmpty++
-      if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
-      continue
-    }
+      const task = () => withRetry(callGemini, undefined, logger)
+      return (limiter ? limiter(task) : task())
+        .then((text) => {
+          const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
+          const parsed = JSON.parse(sanitized)
+          const zones: DiscoveredZone[] = Array.isArray(parsed) ? parsed : []
+          logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${zones.length} zones)`)
+          return zones
+        })
+        .catch((err) => {
+          logger.warn('zone discovery chunk failed', {
+            chunkIndex: i + 1,
+            chunkTotal: total,
+            error: err instanceof Error ? err.message : String(err),
+          })
+          return [] as DiscoveredZone[]
+        })
+    }),
+  )
 
-    const sizeBeforeChunk = byCode.size
-
+  // Merge results — higher-permission classification wins on conflict
+  const byCode = new Map<string, DiscoveredZone>()
+  for (const results of chunkResults) {
     for (const r of results) {
       if (!r.zone_code || !r.multifamily_classification) continue
       const key = normalizeCode(r.zone_code)
@@ -146,15 +138,6 @@ export async function discoverZones(
           multifamily_classification: r.multifamily_classification,
         })
       }
-    }
-
-    if (byCode.size === sizeBeforeChunk) {
-      consecutiveEmpty++
-      logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${byCode.size} zones, ${consecutiveEmpty} consecutive empty)`)
-      if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
-    } else {
-      consecutiveEmpty = 0
-      logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${byCode.size} zones found)`)
     }
   }
 
