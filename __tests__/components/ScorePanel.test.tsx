@@ -100,6 +100,72 @@ describe('ScorePanel', () => {
   })
 })
 
+describe('ScorePanel — PDF citations', () => {
+  const mockOnCompare = jest.fn()
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  // Fairfax fixture with citations that have source data
+  const FAIRFAX_WITH_CITATIONS = {
+    ...FAIRFAX,
+    citations: {
+      min_lot_size_sqft: {
+        fieldValueText: 'One acre minimum lot size',
+        sourceSection: '§ 4-102',
+        sourcePage: 42,
+        sourceDocument: 'gs://test/fairfax.pdf',
+      },
+      parking_min_spaces_per_unit: {
+        fieldValueText: 'Two spaces per dwelling unit',
+        sourceSection: '§ 8102.04',
+        sourcePage: 87,
+        sourceDocument: 'gs://test/fairfax.pdf',
+      },
+    },
+  }
+
+  it('shows citation quotes when accordion is expanded', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
+
+    const accordionHeader = screen.getByText('Density Constraint Index')
+    fireEvent.click(accordionHeader)
+
+    expect(accordionHeader.closest('details')).toHaveAttribute('open')
+    expect(screen.getByText(/One acre minimum lot size/)).toBeInTheDocument()
+  })
+
+  it('shows "View source" buttons for citations with source data', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
+
+    fireEvent.click(screen.getByText('Density Constraint Index'))
+
+    expect(screen.getAllByText('View source').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('opens PdfModal when "View source" is clicked', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
+
+    fireEvent.click(screen.getByText('Density Constraint Index'))
+    fireEvent.click(screen.getAllByText('View source')[0])
+
+    expect(screen.getByRole('dialog', { name: 'Source document' })).toBeInTheDocument()
+    expect(screen.getByText('§ 4-102')).toBeInTheDocument()
+  })
+
+  it('closes PdfModal when close button is clicked', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
+
+    fireEvent.click(screen.getByText('Density Constraint Index'))
+    fireEvent.click(screen.getAllByText('View source')[0])
+    expect(screen.getByRole('dialog', { name: 'Source document' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Close PDF viewer'))
+    expect(screen.queryByRole('dialog', { name: 'Source document' })).not.toBeInTheDocument()
+  })
+})
+
 describe('ScorePanel — ZoneSelector (E2-155)', () => {
   const mockOnCompare = jest.fn()
 
