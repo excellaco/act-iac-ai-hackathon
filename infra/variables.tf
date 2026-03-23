@@ -24,5 +24,5 @@ variable "pipeline_service_account" {
 variable "app_service_account" {
   description = "Service account email that the Cloud Run app runs as (granted objectViewer on the raw data bucket for the PDF proxy). Defaults to the project's default Compute Engine SA."
   type        = string
-  default     = ""
+  default     = "1035403781322-compute@developer.gserviceaccount.com"
 }
