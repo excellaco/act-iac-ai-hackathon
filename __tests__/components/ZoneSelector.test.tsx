@@ -9,6 +9,7 @@ const mockZones: ZoneScore[] = [
     multifamilyClassification: 'primary',
     dci: 40, dcoi: 50, pci: 35, crp: 45, risComposite: 43,
     fields: { densityLimitUpa: 72, parkingMinSpacesPerUnit: 0.5 },
+    citations: {},
     feasibility: null,
   },
   {
@@ -17,6 +18,7 @@ const mockZones: ZoneScore[] = [
     multifamilyClassification: 'limited',
     dci: 80, dcoi: 60, pci: 70, crp: 65, risComposite: 72,
     fields: { densityLimitUpa: 4, parkingMinSpacesPerUnit: 2.0 },
+    citations: {},
     feasibility: null,
   },
   {
@@ -25,6 +27,7 @@ const mockZones: ZoneScore[] = [
     multifamilyClassification: 'permitted',
     dci: 55, dcoi: 45, pci: 40, crp: 50, risComposite: 50,
     fields: { densityLimitUpa: 30 },
+    citations: {},
     feasibility: null,
   },
 ]
