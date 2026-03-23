@@ -226,7 +226,7 @@ describe('injectLimiter', () => {
   it('sets limiter on multi-zone extractors', () => {
     process.env.GOOGLE_CLOUD_PROJECT = 'test-project'
     const extractor = new TestMultiZoneExtractor()
-    const mockLimiter = jest.fn()
+    const mockLimiter = Object.assign(jest.fn(), { activeCount: 0, pendingCount: 0, clearQueue: jest.fn() }) as unknown as import('../../lib/pipeline/gemini-concurrency').GeminiLimiter
     injectLimiter([extractor], mockLimiter)
     expect(true).toBe(true)
   })

@@ -149,11 +149,12 @@ describe('discoverZones', () => {
 
   it('uses limiter when provided', async () => {
     mockResponse([])
-    const mockLimiter = jest.fn((fn: () => Promise<string>) => fn()) as unknown as ReturnType<typeof jest.fn>
+    const inner = jest.fn((fn: () => Promise<string>) => fn())
+    const mockLimiter = Object.assign(inner, { activeCount: 0, pendingCount: 0, clearQueue: jest.fn() }) as unknown as import('../../lib/pipeline/gemini-concurrency').GeminiLimiter
 
     await discoverZones(['chunk1', 'chunk2'], mockLimiter, mockLogger)
 
-    expect(mockLimiter).toHaveBeenCalledTimes(2)
+    expect(inner).toHaveBeenCalledTimes(2)
   })
 
   it('skips entries missing zone_code or classification', async () => {
