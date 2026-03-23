@@ -20,3 +20,9 @@ variable "pipeline_service_account" {
   type        = string
   default     = "github-actions@parcela-490518.iam.gserviceaccount.com"
 }
+
+variable "app_service_account" {
+  description = "Service account email that the Cloud Run app runs as (granted objectViewer on the raw data bucket for the PDF proxy). Defaults to the project's default Compute Engine SA."
+  type        = string
+  default     = ""
+}
