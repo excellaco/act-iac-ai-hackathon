@@ -60,7 +60,9 @@ export async function GET(
 
       return new Response(new Uint8Array(pdfBytes), { headers: PDF_HEADERS })
     }
-  } catch {
-    return NextResponse.json({ error: 'Failed to retrieve source PDF' }, { status: 500 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('pdf proxy error', { sourceDocument, bucket, message })
+    return NextResponse.json({ error: 'Failed to retrieve source PDF', detail: message }, { status: 500 })
   }
 }
