@@ -174,7 +174,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                   <ul className={styles.citationList}>
                     {SUB_SCORE_FIELDS[key].map((fieldName) => {
                       const citation = activeCitations?.[fieldName];
-                      const hasSource = citation?.sourcePage != null || citation?.sourceSection;
+                      const hasSource = citation?.sourcePage != null;
                       return (
                         <li key={fieldName} className={styles.citationItem}>
                           <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
