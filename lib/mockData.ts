@@ -61,6 +61,8 @@ export interface ZoneScore {
   risComposite: number;
   /** Partial regulatory fields extracted for this zone. */
   fields: Partial<RegulationFields>;
+  /** Citation metadata for zone-specific extracted fields. */
+  citations: Record<string, FieldCitation>;
   feasibility: FeasibilityOutputs | null;
 }
 
@@ -242,6 +244,7 @@ export function scoreResponseToJurisdictionData(
       crp: string
       risComposite: string
       fields: Record<string, string | null>
+      citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null }>
       feasibility: {
         maxUnitsPerAcre: string | null
         parkingFootprintPct: string | null
@@ -363,6 +366,19 @@ export function scoreResponseToJurisdictionData(
       ...(zf['setback_rear_ft']             != null ? { setbackRearFt:           parseNumeric(zf['setback_rear_ft'], 0)             } : {}),
     }
 
+    // Build zone citations from zone-level field data
+    const zoneCitations: Record<string, FieldCitation> = {}
+    if (zs.citations) {
+      for (const [fieldName, c] of Object.entries(zs.citations)) {
+        zoneCitations[fieldName] = {
+          fieldValueText: c.fieldValueText,
+          sourceSection: c.sourceSection,
+          sourcePage: c.sourcePage,
+          sourceDocument: null,
+        }
+      }
+    }
+
     return {
       zoneCode:                  zs.zoneCode,
       zoneName:                  zs.zoneName,
@@ -373,6 +389,7 @@ export function scoreResponseToJurisdictionData(
       crp:                       Math.round(parseNumeric(zs.crp, 0)),
       risComposite:              Math.round(parseNumeric(zs.risComposite, 0)),
       fields:                    zoneFieldsPartial,
+      citations:                 zoneCitations,
       feasibility:               zoneFeasibility,
     }
   })

@@ -115,7 +115,14 @@ describe('GET /api/jurisdictions/[id]/score', () => {
     ;(db.select as jest.Mock)
       .mockReturnValueOnce(makeSelectMock([]))
       .mockReturnValueOnce(makeSelectMock([mockZoneRow]))
-      .mockReturnValueOnce(makeSelectMock([{ fieldName: 'density_limit_units_per_acre', fieldValue: '72', zoneCode: 'RA6-15' }]))
+      .mockReturnValueOnce(makeSelectMock([{
+        fieldName: 'density_limit_units_per_acre',
+        fieldValue: '72',
+        zoneCode: 'RA6-15',
+        fieldValueText: 'Maximum density: 72 units per acre',
+        sourceSection: '§14.2',
+        sourcePage: 87,
+      }]))
       .mockReturnValueOnce(makeSelectMock([{
         zoneCode: 'RA6-15',
         maxUnitsPerAcre: 72,
@@ -134,6 +141,13 @@ describe('GET /api/jurisdictions/[id]/score', () => {
     expect(zone.zoneCode).toBe('RA6-15')
     expect(zone.multifamilyClassification).toBe('primary')
     expect(zone.fields).toEqual({ density_limit_units_per_acre: '72' })
+    expect(zone.citations).toEqual({
+      density_limit_units_per_acre: {
+        fieldValueText: 'Maximum density: 72 units per acre',
+        sourceSection: '§14.2',
+        sourcePage: 87,
+      },
+    })
     expect(zone.feasibility).toEqual(expect.objectContaining({ maxUnitsPerAcre: 72 }))
   })
 })

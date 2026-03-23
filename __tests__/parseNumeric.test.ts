@@ -117,4 +117,110 @@ describe('scoreResponseToJurisdictionData', () => {
     expect(result!.feasibility.estimatedCostPerUnit).toBe(251600)
     expect(result!.feasibility.maxUnitsPerAcre).toBe(12)
   })
+
+  it('parses zoneScores and maps fields to RegulationFields', () => {
+    const withZones = {
+      ...validResponse,
+      zoneScores: [
+        {
+          zoneCode: 'RA6-15',
+          zoneName: 'Residential Apartment',
+          multifamilyClassification: 'primary' as const,
+          dci: '40', dcoi: '50', pci: '35', crp: '45', risComposite: '43',
+          fields: {
+            min_lot_size_sqft: '3630',
+            height_limit_ft: '125',
+            density_limit_units_per_acre: '72',
+            parking_min_spaces_per_unit: '0.5',
+          },
+          feasibility: {
+            maxUnitsPerAcre: '72',
+            parkingFootprintPct: '27.3',
+            estimatedCostPerUnit: '219500',
+            fmr2br: '2280',
+          },
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withZones)
+    expect(result).not.toBeNull()
+    expect(result!.zoneScores).toHaveLength(1)
+    const zone = result!.zoneScores[0]
+    expect(zone.zoneCode).toBe('RA6-15')
+    expect(zone.dci).toBe(40)
+    expect(zone.fields.minLotSizeSqft).toBe(3630)
+    expect(zone.fields.heightLimitFt).toBe(125)
+    expect(zone.fields.densityLimitUpa).toBe(72)
+    expect(zone.feasibility?.estimatedCostPerUnit).toBe(219500)
+  })
+
+  it('populates zone citations when present', () => {
+    const withZoneCitations = {
+      ...validResponse,
+      zoneScores: [
+        {
+          zoneCode: 'RA6-15',
+          zoneName: 'Residential Apartment',
+          multifamilyClassification: 'primary' as const,
+          dci: '40', dcoi: '50', pci: '35', crp: '45', risComposite: '43',
+          fields: { min_lot_size_sqft: '3630' },
+          citations: {
+            min_lot_size_sqft: {
+              fieldValueText: 'Minimum lot area: 3,630 sq ft',
+              sourceSection: '§12.3.1',
+              sourcePage: 42,
+            },
+          },
+          feasibility: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withZoneCitations)
+    expect(result).not.toBeNull()
+    const zone = result!.zoneScores[0]
+    expect(zone.citations['min_lot_size_sqft']).toEqual({
+      fieldValueText: 'Minimum lot area: 3,630 sq ft',
+      sourceSection: '§12.3.1',
+      sourcePage: 42,
+      sourceDocument: null,
+    })
+  })
+
+  it('returns empty citations when zone has no citations', () => {
+    const withZoneNoCitations = {
+      ...validResponse,
+      zoneScores: [
+        {
+          zoneCode: 'R-6',
+          zoneName: 'Single Family',
+          multifamilyClassification: 'limited' as const,
+          dci: '80', dcoi: '60', pci: '70', crp: '65', risComposite: '72',
+          fields: {},
+          feasibility: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withZoneNoCitations)
+    expect(result).not.toBeNull()
+    expect(result!.zoneScores[0].citations).toEqual({})
+  })
+
+  it('falls back to null feasibility when zone cost is unparsable', () => {
+    const withBadZoneFeasibility = {
+      ...validResponse,
+      zoneScores: [
+        {
+          zoneCode: 'R-6',
+          zoneName: 'Single Family',
+          multifamilyClassification: 'limited' as const,
+          dci: '80', dcoi: '60', pci: '70', crp: '65', risComposite: '72',
+          fields: {},
+          feasibility: { maxUnitsPerAcre: '4', parkingFootprintPct: '10', estimatedCostPerUnit: 'N/A', fmr2br: '2280' },
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withBadZoneFeasibility)
+    expect(result).not.toBeNull()
+    expect(result!.zoneScores[0].feasibility).toBeNull()
+  })
 })

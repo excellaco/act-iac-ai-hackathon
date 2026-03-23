@@ -7,9 +7,12 @@ import type { InferSelectModel } from 'drizzle-orm'
 type ZoneScoreRow = InferSelectModel<typeof zoneRisScores>
 type FeasibilityRow = InferSelectModel<typeof feasibilityOutputs>
 
+type ZoneCitations = Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null }>
+
 function buildZoneScoreRow(
   zs: ZoneScoreRow,
   fieldsObj: Record<string, string | null>,
+  citationsObj: ZoneCitations,
   zoneFeasibility: FeasibilityRow | undefined,
 ) {
   return {
@@ -22,6 +25,7 @@ function buildZoneScoreRow(
     crp: zs.crp,
     risComposite: zs.risComposite,
     fields: fieldsObj,
+    citations: citationsObj,
     feasibility: zoneFeasibility
       ? {
           maxUnitsPerAcre:      zoneFeasibility.maxUnitsPerAcre,
@@ -99,11 +103,17 @@ export async function GET(
       const zoneFeasibility = feasibilityByZone.get(zs.zoneCode)
 
       const fieldsObj: Record<string, string | null> = {}
+      const citationsObj: ZoneCitations = {}
       for (const f of zFields) {
         fieldsObj[f.fieldName] = f.fieldValue
+        citationsObj[f.fieldName] = {
+          fieldValueText: f.fieldValueText ?? null,
+          sourceSection: f.sourceSection ?? null,
+          sourcePage: f.sourcePage ?? null,
+        }
       }
 
-      return buildZoneScoreRow(zs, fieldsObj, zoneFeasibility)
+      return buildZoneScoreRow(zs, fieldsObj, citationsObj, zoneFeasibility)
     })
   }
 

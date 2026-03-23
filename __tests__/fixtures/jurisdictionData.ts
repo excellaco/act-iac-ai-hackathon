@@ -107,6 +107,7 @@ export const ARLINGTON_ZONE_SCORES: ZoneScore[] = [
     multifamilyClassification: 'primary',
     dci: 40, dcoi: 50, pci: 35, crp: 45, risComposite: 43,
     fields: { densityLimitUpa: 72, heightLimitFt: 125, parkingMinSpacesPerUnit: 0.5 },
+    citations: {},
     feasibility: { maxUnitsPerAcre: 72, parkingFootprintPct: 27.3, estimatedCostPerUnit: 219_500, monthlyCarryingCost: 915, rentFeasibility: 'Feasible', fmr2br: 2280 },
   },
   {
@@ -115,6 +116,7 @@ export const ARLINGTON_ZONE_SCORES: ZoneScore[] = [
     multifamilyClassification: 'limited',
     dci: 80, dcoi: 60, pci: 70, crp: 65, risComposite: 72,
     fields: { densityLimitUpa: 4, heightLimitFt: 35, parkingMinSpacesPerUnit: 2.0 },
+    citations: {},
     feasibility: null,
   },
 ]
