@@ -15,7 +15,7 @@
 
 import { eq, and, isNotNull } from 'drizzle-orm'
 import { Database } from '../../db/client'
-import { extractedFields } from '../../db/schema'
+import { extractedFields, zoneExtractedFields } from '../../db/schema'
 import { ArtifactStore } from './artifact-store'
 import { PipelineLogger, consoleLogger } from './errors'
 
@@ -78,5 +78,53 @@ export async function runPageResolveStage(
   }
 
   logger.info('page-resolve stage complete', { jurisdictionId, resolved, unresolved })
+  return { resolved, unresolved }
+}
+
+/**
+ * Zone page-resolve stage: update source_page for all zone_extracted_fields of a jurisdiction.
+ *
+ * Uses the same parsed-pages artifact as the jurisdiction-level stage — the PDF
+ * is shared across all zones within a jurisdiction.
+ */
+export async function runZonePageResolveStage(
+  db: Database,
+  jurisdictionId: string,
+  slug: string,
+  store: ArtifactStore,
+  logger: PipelineLogger = consoleLogger,
+): Promise<{ resolved: number; unresolved: number }> {
+  logger.info('zone page-resolve stage started', { jurisdictionId, slug })
+
+  const pages = await store.readPages(slug)
+  logger.info('parsed pages loaded', { slug, pageCount: pages.length })
+
+  const fields = await db
+    .select({
+      id: zoneExtractedFields.id,
+      fieldName: zoneExtractedFields.fieldName,
+      zoneCode: zoneExtractedFields.zoneCode,
+      fieldValueText: zoneExtractedFields.fieldValueText,
+    })
+    .from(zoneExtractedFields)
+    .where(and(eq(zoneExtractedFields.jurisdictionId, jurisdictionId), isNotNull(zoneExtractedFields.fieldValueText)))
+
+  let resolved = 0
+  let unresolved = 0
+
+  for (const field of fields) {
+    const page = findPage(pages, field.fieldValueText ?? '')
+    if (page !== null) {
+      await db
+        .update(zoneExtractedFields)
+        .set({ sourcePage: page })
+        .where(eq(zoneExtractedFields.id, field.id))
+      resolved++
+    } else {
+      unresolved++
+    }
+  }
+
+  logger.info('zone page-resolve stage complete', { jurisdictionId, resolved, unresolved })
   return { resolved, unresolved }
 }

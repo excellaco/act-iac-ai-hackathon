@@ -14,7 +14,7 @@
 
 import { db } from '../db/client'
 import { jurisdictions } from '../db/schema'
-import { runPageResolveStage } from '../lib/pipeline/page-resolver'
+import { runPageResolveStage, runZonePageResolveStage } from '../lib/pipeline/page-resolver'
 import { buildArtifactStore } from '../lib/pipeline/artifact-store'
 
 const ALL_REAL_JURISDICTION_IDS = ['fairfax_va', 'arlington_va', 'loudoun_va']
@@ -51,17 +51,24 @@ async function main() {
 
     console.log(`   jurisdiction: ${jur.displayName} (slug: ${jur.slug})`)
 
+    const logger = {
+      info: (msg: string, ctx?: object) => console.log(`   ${msg}`, ctx ?? ''),
+      warn: (msg: string, ctx?: object) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
+      error: (msg: string, ctx?: object) => console.error(`   ✗ ${msg}`, ctx ?? ''),
+    }
+
     try {
-      const { resolved: r, unresolved: u } = await runPageResolveStage(
-        db, jur.id, jur.slug, store,
-        {
-          info: (msg, ctx) => console.log(`   ${msg}`, ctx ?? ''),
-          warn: (msg, ctx) => console.warn(`   ⚠ ${msg}`, ctx ?? ''),
-          error: (msg, ctx) => console.error(`   ✗ ${msg}`, ctx ?? ''),
-        },
-      )
-      console.log(`   resolved:   ${r}`)
-      console.log(`   unresolved: ${u}`)
+      const { resolved: r, unresolved: u } = await runPageResolveStage(db, jur.id, jur.slug, store, logger)
+      console.log(`   jurisdiction resolved:   ${r}`)
+      console.log(`   jurisdiction unresolved: ${u}`)
+    } catch (err) {
+      console.error(`   ✗ ${err instanceof Error ? err.message : String(err)}`)
+    }
+
+    try {
+      const { resolved: r, unresolved: u } = await runZonePageResolveStage(db, jur.id, jur.slug, store, logger)
+      console.log(`   zone resolved:   ${r}`)
+      console.log(`   zone unresolved: ${u}`)
     } catch (err) {
       console.error(`   ✗ ${err instanceof Error ? err.message : String(err)}`)
     }
