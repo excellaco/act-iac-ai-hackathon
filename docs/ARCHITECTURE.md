@@ -44,6 +44,7 @@ A batch pre-processing pipeline in TypeScript deployed to Cloud Run. Runs once p
 - `lib/pipeline/pdf-parser.ts` — PDF → text via `pdf-parse`
 - `lib/pipeline/chunk.ts` — ≤4000 token overlapping chunks
 - `lib/extractors/` — 8 Gemini extractors (one per field) using `@google-cloud/vertexai`; setbacks share one API call per chunk
+- `lib/pipeline/gemini-concurrency.ts` — shared concurrency limiter (`p-limit`, capped at `GEMINI_CONCURRENCY`, default 5) and `withRetry` utility (exponential backoff on 429/RESOURCE_EXHAUSTED, up to `GEMINI_MAX_RETRIES`, default 3)
 - `lib/pipeline/normalize.ts`, `validate.ts` — deterministic post-extraction conversion and plausibility checks
 
 See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-adk-for-pipeline-orchestration.md) for the original ADK decision rationale. The current implementation uses direct TypeScript orchestration; ADK integration is a post-MVP enhancement.

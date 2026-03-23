@@ -15,6 +15,11 @@
  */
 
 import { NormalizedExtractionResult } from './normalize'
+import { GeminiLimiter } from './gemini-concurrency'
+import { PipelineLogger, consoleLogger } from './logger'
+
+export type { PipelineLogger }
+export { consoleLogger }
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -29,19 +34,6 @@ export interface ExtractionOutcome {
   ok: boolean
   result: NormalizedExtractionResult
   error: ExtractionError | null
-}
-
-export interface PipelineLogger {
-  info(message: string, meta?: Record<string, unknown>): void
-  warn(message: string, meta?: Record<string, unknown>): void
-  error(message: string, meta?: Record<string, unknown>): void
-}
-
-/** Default logger — writes structured JSON to console */
-export const consoleLogger: PipelineLogger = {
-  info: (msg, meta) => console.log(JSON.stringify({ level: 'info', msg, ...meta })),
-  warn: (msg, meta) => console.warn(JSON.stringify({ level: 'warn', msg, ...meta })),
-  error: (msg, meta) => console.error(JSON.stringify({ level: 'error', msg, ...meta })),
 }
 
 // ─── null result factory ──────────────────────────────────────────────────────
@@ -120,6 +112,7 @@ export async function safeExtract(
 export async function runExtractions(
   extractions: Array<{ fieldName: string; extractor: () => Promise<NormalizedExtractionResult> }>,
   logger: PipelineLogger = consoleLogger,
+  limiter?: GeminiLimiter,
 ): Promise<{
   outcomes: ExtractionOutcome[]
   fieldsExtracted: number
@@ -128,15 +121,15 @@ export async function runExtractions(
 }> {
   const outcomes = await Promise.all(
     extractions.map(({ fieldName, extractor }) =>
-      safeExtract(fieldName, extractor, logger),
+      limiter
+        ? limiter(() => safeExtract(fieldName, extractor, logger))
+        : safeExtract(fieldName, extractor, logger),
     ),
   )
 
   const errors = outcomes.filter((o) => !o.ok).map((o) => o.error!)
   const fieldsExtracted = outcomes.filter((o) => o.ok && o.result.field_value !== null).length
   const fieldsFailed = outcomes.filter((o) => !o.ok).length
-
-  logger.info('extraction run complete', { fieldsExtracted, fieldsFailed })
 
   return { outcomes, fieldsExtracted, fieldsFailed, errors }
 }
