@@ -95,12 +95,12 @@ describe('withRetry', () => {
     expect(delays[1]).toBeGreaterThan(delays[0])
   })
 
-  it('defaults to 3 retries when GEMINI_MAX_RETRIES is unset', async () => {
+  it('defaults to 6 retries when GEMINI_MAX_RETRIES is unset', async () => {
     const err = new Error('RESOURCE_EXHAUSTED')
     const fn = jest.fn().mockRejectedValue(err)
     await expect(withRetry(fn, noopSleep)).rejects.toThrow()
-    // 1 initial + 3 retries = 4 total calls
-    expect(fn).toHaveBeenCalledTimes(4)
+    // 1 initial + 6 retries = 7 total calls
+    expect(fn).toHaveBeenCalledTimes(7)
   })
 })
 
@@ -140,12 +140,12 @@ describe('createGeminiLimiter', () => {
 })
 
 describe('withRetry NaN guard', () => {
-  it('falls back to 3 retries when GEMINI_MAX_RETRIES is non-numeric', async () => {
+  it('falls back to 6 retries when GEMINI_MAX_RETRIES is non-numeric', async () => {
     process.env.GEMINI_MAX_RETRIES = 'abc'
     const err = new Error('RESOURCE_EXHAUSTED')
     const fn = jest.fn().mockRejectedValue(err)
     await expect(withRetry(fn, noopSleep)).rejects.toThrow()
-    // Should use fallback of 3, not retry infinitely
-    expect(fn).toHaveBeenCalledTimes(4) // 1 initial + 3 retries
+    // Should use fallback of 6, not retry infinitely
+    expect(fn).toHaveBeenCalledTimes(7) // 1 initial + 6 retries
   })
 })
