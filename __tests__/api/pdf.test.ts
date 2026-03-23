@@ -58,7 +58,12 @@ describe('GET /api/jurisdictions/[id]/pdf', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    jest.spyOn(console, 'error').mockImplementation()
     process.env = { ...originalEnv, RAW_DATA_BUCKET: 'test-bucket' }
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
   afterAll(() => {
