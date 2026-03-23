@@ -11,7 +11,7 @@
 
 import { VertexAI } from '@google-cloud/vertexai'
 import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
-import { PipelineLogger, consoleLogger } from '../pipeline/errors'
+import { PipelineLogger, consoleLogger } from '../pipeline/logger'
 
 export type MultifamilyClassification = 'primary' | 'permitted' | 'limited' | 'none'
 
@@ -97,15 +97,19 @@ export async function discoverZones(
   const byCode = new Map<string, DiscoveredZone>()
 
   let consecutiveEmpty = 0
+  const total = chunks.length
 
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i]
     let results: DiscoveredZone[]
     try {
       const callGemini = async () => {
         const resp = await generativeModel.generateContent(buildDiscoveryPrompt(chunk))
         return resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
       }
-      const text = await (limiter ? limiter(() => withRetry(callGemini)) : withRetry(callGemini))
+      const text = await (limiter
+        ? limiter(() => withRetry(callGemini, undefined, logger))
+        : withRetry(callGemini, undefined, logger))
       // Strip null bytes
       const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
       results = JSON.parse(sanitized)
@@ -116,7 +120,8 @@ export async function discoverZones(
       }
     } catch (err) {
       logger.warn('zone discovery chunk failed', {
-        chunkIndex: chunks.indexOf(chunk),
+        chunkIndex: i + 1,
+        chunkTotal: total,
         error: err instanceof Error ? err.message : String(err),
       })
       consecutiveEmpty++
@@ -145,9 +150,11 @@ export async function discoverZones(
 
     if (byCode.size === sizeBeforeChunk) {
       consecutiveEmpty++
+      logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${byCode.size} zones, ${consecutiveEmpty} consecutive empty)`)
       if (consecutiveEmpty >= EARLY_EXIT_THRESHOLD) break
     } else {
       consecutiveEmpty = 0
+      logger.debug?.(`zone discovery: chunk ${i + 1}/${total} (${byCode.size} zones found)`)
     }
   }
 

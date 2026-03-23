@@ -18,7 +18,7 @@ import { ZoneRawResult } from '../pipeline/runner'
 import { DiscoveredZone, matchZoneCode } from './zone-discovery.extractor'
 import { RawExtractionResult } from '../pipeline/normalize'
 import { GeminiLimiter, withRetry } from '../pipeline/gemini-concurrency'
-import { consoleLogger } from '../pipeline/errors'
+import { consoleLogger } from '../pipeline/logger'
 
 function confidenceRank(c: 'high' | 'medium' | 'low'): number {
   return c === 'high' ? 2 : c === 'medium' ? 1 : 0
@@ -53,7 +53,11 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
     // Best result per zone code (highest confidence with actual value wins)
     const byZone = new Map<string, ZoneRawResult>()
 
-    for (const chunk of chunks) {
+    const total = chunks.length
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]
+      consoleLogger.debug?.(`${this.fieldName} zones: chunk ${i + 1}/${total}`)
       let results: ZoneRawResult[]
       try {
         const callGemini = async () => {
@@ -63,15 +67,16 @@ export abstract class MultiZoneGeminiExtractor extends GeminiExtractor {
           return resp.response.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]'
         }
         const text = await (this._limiter
-          ? this._limiter(() => withRetry(callGemini))
-          : withRetry(callGemini))
+          ? this._limiter(() => withRetry(callGemini, undefined, consoleLogger))
+          : withRetry(callGemini, undefined, consoleLogger))
         const sanitized = text.replace(/\x00/g, '').replace(/[\x01-\x08\x0B\x0C\x0E-\x1F]/g, ' ')
         results = JSON.parse(sanitized)
         if (!Array.isArray(results)) continue
       } catch (err) {
         consoleLogger.warn('multi-zone extraction chunk failed', {
           fieldName: this.fieldName,
-          chunkIndex: chunks.indexOf(chunk),
+          chunkIndex: i + 1,
+          chunkTotal: total,
           error: err instanceof Error ? err.message : String(err),
         })
         continue

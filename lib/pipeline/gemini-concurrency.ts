@@ -11,6 +11,7 @@
  */
 
 import pLimit from 'p-limit'
+import { PipelineLogger, consoleLogger } from './logger'
 
 export type GeminiLimiter = ReturnType<typeof pLimit>
 
@@ -36,10 +37,12 @@ function isRateLimitError(err: unknown): boolean {
  *
  * @param fn     The async call to execute (and retry)
  * @param sleep  Injectable sleep for testing — defaults to real setTimeout
+ * @param logger Logger for retry warnings — defaults to consoleLogger
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
+  logger: PipelineLogger = consoleLogger,
 ): Promise<T> {
   const maxRetries = parseInt(process.env.GEMINI_MAX_RETRIES ?? '3', 10) || 3
   let attempt = 0
@@ -51,6 +54,11 @@ export async function withRetry<T>(
     } catch (err) {
       if (!isRateLimitError(err) || attempt >= maxRetries) throw err
       const delay = Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 500)
+      logger.warn('Gemini rate limited, retrying', {
+        attempt: attempt + 1,
+        maxRetries,
+        delayMs: delay,
+      })
       await sleep(delay)
       attempt++
     }

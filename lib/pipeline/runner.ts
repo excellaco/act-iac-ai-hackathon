@@ -98,11 +98,16 @@ async function extractBestResult(
   logger: PipelineLogger,
 ): Promise<RawExtractionResult | null> {
   let bestResult: RawExtractionResult | null = null
+  const total = chunks.length
 
-  for (const chunk of chunks) {
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i]
     try {
       const result = await extractor.extract(chunk)
-      if (!result) continue
+      if (!result) {
+        logger.debug?.(`${extractor.fieldName}: chunk ${i + 1}/${total} → no result`)
+        continue
+      }
 
       // Prefer results that have a value over null results, even at lower confidence.
       // A null result with high confidence means "I'm sure it's not in this chunk" —
@@ -119,10 +124,17 @@ async function extractBestResult(
       }
 
       // Only stop early if we have a high-confidence result with an actual value
-      if (bestResult.confidence === 'high' && (bestResult.raw_value !== null || bestResult.field_value_text?.trim())) break
+      if (bestResult.confidence === 'high' && (bestResult.raw_value !== null || bestResult.field_value_text?.trim())) {
+        logger.debug?.(`${extractor.fieldName}: chunk ${i + 1}/${total} → high confidence, stopping early`)
+        break
+      }
+
+      logger.debug?.(`${extractor.fieldName}: chunk ${i + 1}/${total} → ${result.confidence} confidence, continuing`)
     } catch (err) {
       logger.warn('extractor error on chunk', {
         fieldName: extractor.fieldName,
+        chunkIndex: i + 1,
+        chunkTotal: total,
         error: err instanceof Error ? err.message : String(err),
       })
     }
@@ -188,6 +200,7 @@ export async function runExtractStage(
   const limiter = createGeminiLimiter()
 
   // 4–6. extract, normalize, validate — one task per extractor, run in parallel
+  const extractionStart = Date.now()
   const extractions = options.extractors.map((extractor) => ({
     fieldName: extractor.fieldName,
     extractor: async () => {
@@ -215,6 +228,11 @@ export async function runExtractStage(
   }))
 
   const { outcomes } = await runExtractions(extractions, logger, limiter)
+  logger.info('extraction run complete', {
+    fieldsExtracted: outcomes.filter((o) => o.ok && o.result.field_value !== null).length,
+    fieldsFailed: outcomes.filter((o) => !o.ok).length,
+    elapsedMs: Date.now() - extractionStart,
+  })
 
   // 7. build artifact
   const fields: Record<string, FieldArtifact> = {}
@@ -244,9 +262,10 @@ export async function runExtractStage(
   if (zoneAwareExtractors.length > 0) {
     try {
       logger.info('running zone discovery', { slug })
+      const zoneDiscoveryStart = Date.now()
       const chunkTexts = chunks.map((c) => c.text)
       const canonicalZones = await discoverZones(chunkTexts, limiter, logger)
-      logger.info('zones discovered', { count: canonicalZones.length, slug })
+      logger.info('zones discovered', { count: canonicalZones.length, slug, elapsedMs: Date.now() - zoneDiscoveryStart })
 
       if (canonicalZones.length > 0) {
         injectCanonicalZones(zoneAwareExtractors, canonicalZones)
