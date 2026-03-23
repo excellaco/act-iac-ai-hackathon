@@ -54,10 +54,11 @@ describe('ZoneOverlay', () => {
 
   it('shows zone name when available and omits it when null', () => {
     render(<ZoneOverlay zones={mockZones} />)
-    expect(screen.getByText('Residential Apartment')).toBeInTheDocument()
-    expect(screen.getByText('Mixed Use Village')).toBeInTheDocument()
-    // R-10 has null zoneName — no extra text for it
-    expect(screen.queryByText('Single Family Residential')).not.toBeInTheDocument()
+    const overlay = screen.getByTestId('zone-overlay')
+    const zoneNameElements = Array.from(overlay.querySelectorAll('[class*="zoneName"]'))
+    const zoneNames = zoneNameElements.map((el) => el.textContent)
+    // Only the two non-null zone names should be rendered (sorted by RIS desc)
+    expect(zoneNames).toEqual(['Mixed Use Village', 'Residential Apartment'])
   })
 
   it('displays classification badges for each zone', () => {

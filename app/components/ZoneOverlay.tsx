@@ -4,14 +4,16 @@ import type { ZoneScore } from '../../lib/mockData';
 import { risFillColor, risColor } from '../../lib/ris';
 import styles from './ZoneOverlay.module.css';
 
-const CLASSIFICATION_LABELS: Record<string, string> = {
+type Classification = ZoneScore['multifamilyClassification'];
+
+const CLASSIFICATION_LABELS: Partial<Record<Classification, string>> = {
   primary:   'Primary MF',
   permitted: 'Permitted',
   limited:   'Limited',
   none:      'No MF',
 };
 
-const CLASSIFICATION_COLORS: Record<string, string> = {
+const CLASSIFICATION_COLORS: Partial<Record<Classification, string>> = {
   primary:   '#16a34a',
   permitted: '#2563eb',
   limited:   '#d97706',
