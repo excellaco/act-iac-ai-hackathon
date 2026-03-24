@@ -29,7 +29,7 @@
       "source_section": "\u00a76.3.4",
       "district_context": "RA8-18 Multiple-family Dwelling District (for Two-family Dwellings)",
       "reasoning": "The minimum lot size for two-family dwellings, a type of multifamily development, was found in the dimensional standards table for the RA8-18 district, representing the least restrictive value for multifamily in the provided text.",
-      "source_page": null
+      "source_page": 93
     },
     "parking_min_spaces_per_unit": {
       "raw_value": "One",
@@ -41,7 +41,7 @@
       "source_section": "\u00a77.2.4",
       "district_context": "RA4.8, Multiple-family dwelling district",
       "reasoning": "The ordinance specifies one off-street parking space per dwelling unit for multiple-family dwellings in the RA4.8 district.",
-      "source_page": null
+      "source_page": 94
     },
     "discretionary_review_required": {
       "raw_value": "P",
