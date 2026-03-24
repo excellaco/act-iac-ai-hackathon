@@ -25,6 +25,7 @@ on:
           - extract
           - load
           - page-resolve
+          - score
       jurisdiction:
         description: 'Jurisdiction to process (leave blank for all 3)'
         required: false
