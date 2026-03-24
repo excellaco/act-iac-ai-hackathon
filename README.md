@@ -246,4 +246,5 @@ Open [http://localhost:3000](http://localhost:3000). The map, scores, comparison
 | [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources and field mappings |
 | [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema |
 | [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | Extraction prompt templates and validation rules |
+| [`docs/PIPELINE.md`](docs/PIPELINE.md) | Data pipeline stages, artifacts, and approval workflow (see #198) |
 | [`docs/adr/`](docs/adr/) | Architectural Decision Records (ADR-0001 through ADR-0006) |
