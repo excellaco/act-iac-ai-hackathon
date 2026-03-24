@@ -5,8 +5,9 @@
  * zone's fields to zone_extracted_fields.  Also records a pipeline run.
  *
  * Usage:
- *   npm run pipeline:load <jurisdiction_slug>
+ *   npm run pipeline:load <jurisdiction_slug> [zone_code]
  *   npm run pipeline:load fairfax_va
+ *   npm run pipeline:load arlington_va RA4.8
  *
  * Gates:
  *   - Requires zones artifact (to validate zone membership).
@@ -73,10 +74,12 @@ async function findZoneFieldFiles(slug: string): Promise<string[]> {
 
 async function main() {
   const slugArg = process.argv[2]
+  const zoneArg = process.argv[3] ?? null
 
   if (!slugArg) {
-    console.error('Usage: npm run pipeline:load <jurisdiction_slug>')
+    console.error('Usage: npm run pipeline:load <jurisdiction_slug> [zone_code]')
     console.error('Example: npm run pipeline:load fairfax_va')
+    console.error('Example: npm run pipeline:load arlington_va RA4.8')
     process.exit(1)
   }
 
@@ -87,7 +90,9 @@ async function main() {
   }
 
   console.log(`\nParcela — pipeline:load`)
-  console.log(`Slug:     ${slugArg}\n`)
+  console.log(`Slug:     ${slugArg}`)
+  if (zoneArg) console.log(`Zone:     ${zoneArg}`)
+  console.log()
 
   // 1. Resolve jurisdiction from DB
   const allJurisdictions = await db.select().from(jurisdictions)
@@ -139,8 +144,20 @@ async function main() {
     zonesArtifact.zones.map((z) => [slugifyZoneCode(z.zone_code), z]),
   )
 
-  // 3. Find all field files on disk
-  const fieldFiles = await findZoneFieldFiles(jur.slug)
+  // 3. Find zone field files on disk (filtered to a single zone if zoneArg given)
+  let fieldFiles = await findZoneFieldFiles(jur.slug)
+  if (zoneArg) {
+    const targetSlug = slugifyZoneCode(zoneArg)
+    fieldFiles = fieldFiles.filter((f) => {
+      const match = f.match(new RegExp(`^${jur.slug}_(.+)_fields\\.json$`))
+      return match ? match[1] === targetSlug : false
+    })
+    if (fieldFiles.length === 0) {
+      console.error(`ERROR: No fields artifact found for zone "${zoneArg}" (${targetSlug})`)
+      console.error(`  Expected: data/artifacts/${jur.slug}/${jur.slug}_${targetSlug}_fields.json`)
+      process.exit(1)
+    }
+  }
   logger.info(`Found ${fieldFiles.length} zone field file(s)`)
 
   if (fieldFiles.length === 0) {

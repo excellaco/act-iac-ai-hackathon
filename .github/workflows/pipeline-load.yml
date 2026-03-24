@@ -11,6 +11,11 @@ on:
           - fairfax_va
           - arlington_va
           - loudoun_va
+      zone:
+        description: 'Zone code to load (leave blank for all zones)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -47,7 +52,7 @@ jobs:
           sleep 5
 
       - name: Load artifacts to database
-        run: npm run pipeline:load ${{ inputs.jurisdiction }}
+        run: npm run pipeline:load ${{ inputs.jurisdiction }} ${{ inputs.zone }}
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
