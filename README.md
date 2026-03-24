@@ -1,378 +1,249 @@
-# Parcella — Zoning Land Use Policy Impact Simulator
+# Parcella — AI-Powered Housing Regulatory Intelligence Platform
 
-An AI-powered housing regulatory and development feasibility intelligence platform built for the ACT-IAC AI Hackathon.
-
-Parcela transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
-
-> **Hackathon scope:** MVP targets 2–3 contrasting Virginia jurisdictions (Fairfax, Arlington, Loudoun counties). See [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) for the full user flow.
->
 > **Live demo:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
+>
+> **Team:** [TBD — Team Excella members and roles]
 
 ---
 
-## Quick Start
+## The Problem
 
-```bash
-npm install
-npm run dev
-```
+Zoning regulations are the single largest determinant of what can be built where — and they're buried in hundreds of pages of unstructured legal text that varies across every municipality in the country. A housing policy analyst trying to understand why development is stalled in their jurisdiction faces a manual, weeks-long process: download ordinance PDFs, read them, extract the relevant numbers, and try to compare them to peer jurisdictions. There is no standardized way to quantify how restrictive a jurisdiction's zoning code is, how it compares to neighbors, or what the development economics look like under current rules.
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+This matters because **regulatory barriers to housing are a federal policy priority**. HUD, state housing agencies, and local planning departments all need data-driven tools to identify where regulations constrain housing supply — and to model what would change if those rules were relaxed.
 
----
+## What Parcella Does
 
-## Project Structure
+Parcella transforms unstructured municipal zoning ordinances into structured, comparable data using AI — then puts that data in the hands of policy analysts through an interactive decision-support tool.
 
-```
-act-iac-ai-hackathon/
-├── app/                        # Next.js app router pages and layouts
-├── __tests__/                  # Jest + React Testing Library test suite
-│   ├── fixtures/zoning/        # E2-0 gold fixtures for LLM extraction evaluation
-│   ├── pipeline/               # Unit tests for E0 pipeline modules
-│   └── extractors/             # Unit tests for E2 Gemini extractors
-├── lib/
-│   ├── pipeline/               # E0/E1 pipeline — runner, chunker, fetchers, parser, normalizer, validator
-│   └── extractors/             # E2 Gemini extractors — one per regulatory field
-├── db/
-│   ├── schema.ts               # Drizzle schema (all 6 tables)
-│   ├── migrations/             # Auto-generated SQL migrations
-│   └── seeds/                  # Seed scripts for jurisdictions, scores, market data
-├── scripts/
-│   └── run-pipeline.ts         # CLI: npm run pipeline:run [jurisdictionId]
-├── public/                     # Static assets
-├── infra/                      # Terraform — GCS bucket and IAM (see infra/README.md)
-├── data/
-│   └── raw/                    # Local dev fallback for source documents (see data/raw/README.md)
-│       └── zoning/             # Zoning ordinance PDFs — primary storage is GCS (gitignored)
-├── docs/                       # Project documentation
-│   ├── ARCHITECTURE.md         # System architecture diagram and layer descriptions
-│   ├── PERSONA.md              # Primary user persona — Valentina Reyes (Val)
-│   ├── USER_JOURNEY.md         # 4-step MVP user journey (policy maker persona)
-│   ├── BACKLOG.md              # Full sprint backlog with epics, stories, and points
-│   ├── DATA_SOURCES.md         # Public data sources, formats, and field mappings
-│   ├── DATABASE_SCHEMA.md      # Cloud SQL schema — all tables, columns, relationships
-│   ├── LLM_PROMPT_TEMPLATES.md # ADK LlmAgent prompt templates and validation rules
-│   └── adr/
-│       ├── 0001-platform-and-stack.md              # Google Cloud + Next.js/TypeScript decision
-│       └── 0002-google-adk-for-pipeline-orchestration.md  # ADK usage decision
-├── Dockerfile                  # Container image for Cloud Run deployment
-└── .github/workflows/          # CI/CD pipeline (quality + deploy jobs)
-```
+**The platform delivers four capabilities:**
+
+1. **AI-Powered Extraction** — Gemini (via Vertex AI) reads full zoning ordinance PDFs and extracts specific regulatory fields (lot size minimums, height limits, density caps, parking requirements, setbacks, discretionary review requirements) for each zoning district. Extractions include confidence tiers and verbatim source citations with page-level links back to the original document.
+
+2. **Regulatory Impact Scoring** — A composite Regulatory Impact Score (RIS) quantifies how restrictive a jurisdiction's zoning code is on a 0–100 scale, built from four weighted sub-scores. The formula, weights, and data sources are fully transparent and displayed inline — no black box.
+
+3. **Cross-Jurisdiction Comparison** — Side-by-side comparison of up to three jurisdictions with ranked sub-scores, field-level data, development feasibility metrics, and geographic context maps.
+
+4. **What-If Policy Simulation** — Slider-based simulation that recalculates scores and feasibility outputs in real time as the user adjusts regulatory parameters — answering "what would happen if we reduced parking minimums from 2.0 to 1.0 spaces per unit?"
+
+5. **Conversational Policy Chat** — An AI chat agent (Google ADK `LlmAgent`) lets analysts ask natural language questions about the zoning data: "Why is Fairfax's parking score so high?", "What does the ordinance say about ADUs?", "What if density limits were doubled?" The agent retrieves jurisdiction data, reads the source PDF, and runs feasibility calculations using declared tools.
 
 ---
 
-## Architecture Overview
+## How AI Is Used
 
-Parcela is a five-layer system:
+Parcella uses AI at two distinct layers — both designed for transparency and traceability:
 
-```
-Zoning PDFs + Public Datasets
-        ↓
-[ E0/E1 ] Ingestion & Extraction Pipeline  (Google ADK — SequentialAgent)
-        ↓
-[ E2    ] LLM Field Extraction             (Google ADK — ParallelAgent + LlmAgent)
-        ↓
-[ E3    ] RIS Scoring Engine               (TypeScript — deterministic calculation)
-        ↓
-[ E9    ] Backend API                      (Next.js API routes → Cloud SQL)
-        ↓
-[ E5–E8 ] Dashboard UI                     (Next.js / React — search, map, compare, simulate)
-```
+### Extraction Pipeline (Batch, Pre-Processing)
 
-The ingestion pipeline runs as a **pre-processing batch job** before the demo. The live application is a data visualization layer on top of pre-computed scores. See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) for the ADK decision rationale.
+The ingestion pipeline runs Gemini 2.5 Flash against full zoning ordinance PDFs to extract structured regulatory data. This is not a simple summarization — it's a targeted, field-by-field extraction with:
+
+- **Per-zone district discovery** — the LLM first identifies all residential zoning districts in the ordinance, then extracts field values for each district independently
+- **Structured output schemas** — each extraction returns a typed JSON object with value, unit, confidence tier, verbatim source quote, and section citation
+- **Confidence tiers** (High / Medium / Low) — assigned by the LLM based on how clearly the value appears in the text, displayed to the user as badges
+- **Gold fixture validation** — extraction prompts are evaluated against a hand-curated set of test cases with known correct answers
+- **Deterministic post-processing** — raw LLM outputs pass through normalization (unit conversion) and validation (plausibility range checks) before entering the database
+
+### Chat Agent (Real-Time, Interactive)
+
+The chat agent uses Google ADK's `LlmAgent` with three declared tools:
+
+| Tool | What It Does |
+|------|-------------|
+| `get_jurisdiction_data` | Retrieves scores, extracted fields, feasibility metrics, and market data from the database |
+| `get_pdf_text` | Fetches and returns the full parsed text of the zoning ordinance PDF (50–150K tokens via Gemini's 1M context window — no RAG needed) |
+| `compute_feasibility` | Runs live what-if feasibility calculations with modified parameters |
+
+The agent is instructed to cite source sections, never make policy recommendations, and note when data is illustrative rather than extracted from a real document.
 
 ---
 
-## User Journey (Summary)
+## Explainability & Responsible AI
 
-1. **Search** — policy maker types their county into a search bar; autocomplete returns matching jurisdictions
-2. **View RIS** — map zooms to selected county; accordion score panel shows Regulatory Impact Score and sub-scores with inline confidence badges and data source attribution
-3. **Compare** — add 1–2 more counties for side-by-side comparison with a summary ranking bar
-4. **Simulate** — toggle "What-If" mode; adjust regulatory constraint sliders; scores and feasibility outputs update in real time
+Parcella is designed for a government audience that needs to **trust and defend** the outputs. Every design decision prioritizes transparency:
 
-Full details: [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md)
+| Practice | How It's Implemented |
+|----------|---------------------|
+| **Transparent scoring** | RIS formula, sub-score weights, and rationale are documented and displayed in the UI via "About this score" |
+| **Source attribution** | Every extracted field links to the specific page and section of the source ordinance PDF |
+| **Confidence badges** | High / Medium / Low tiers on every data point — users see where the AI is confident and where it isn't |
+| **Verbatim quotes** | Extracted fields include the exact text from the ordinance, not paraphrases |
+| **No policy recommendations** | The platform quantifies regulatory constraint — it does not recommend changes. A persistent disclaimer states: *"This score measures regulatory constraint and does not recommend policy positions."* |
+| **Descriptive, not prescriptive** | The RIS is explicitly framed as a descriptive index, not a normative judgment |
+| **Public data sources** | All market data (HUD FMR, Census ACS, Census Building Permits) comes from publicly accessible federal datasets with documented vintage and methodology |
+| **Synthetic data clearly labeled** | Illustrative peer jurisdictions used for comparative scoring are flagged as "Illustrative data — not from official sources" in the UI |
+
+---
+
+## Feasibility for Government Adoption
+
+Parcella is built with a realistic path to production deployment in a federal environment:
+
+- **Google Cloud (FedRAMP-authorized)** — deployed on Cloud Run, Cloud SQL, and Vertex AI — all available in Google's FedRAMP-authorized environment
+- **No proprietary data dependencies** — all data sources are publicly available federal datasets (HUD, Census Bureau, BLS, BEA)
+- **Infrastructure as Code** — Terraform manages cloud resources; CI/CD via GitHub Actions with Workload Identity Federation (no static keys)
+- **Scalable architecture** — adding a new jurisdiction requires uploading a PDF and running the extraction pipeline. No code changes needed.
+- **Security posture** — Snyk dependency scanning, SonarCloud code quality analysis, automated linting and type checking on every commit
+
+### Path from MVP to Production
+
+| MVP (Current) | Production |
+|---------------|-----------|
+| 3 real + 7 illustrative jurisdictions | National coverage via automated PDF ingestion |
+| Manual pipeline trigger | Scheduled pipeline with document change monitoring |
+| No authentication | Federated SSO (PIV/CAC for federal users) |
+| Single Cloud Run instance | Multi-region with defined RTO/RPO |
+| Inline confidence badges | Formal ATO with NIST 800-53 controls |
 
 ---
 
 ## Regulatory Impact Score (RIS)
 
-The RIS is a composite 0–100 index measuring regulatory constraint. It is **descriptive, not prescriptive** — it quantifies regulatory complexity without making normative policy judgments.
+The RIS is a composite 0–100 index measuring regulatory constraint. Higher score = more restrictive.
 
-| Sub-score | Weight | What it measures |
+| Sub-score | Weight | What It Measures |
 |-----------|--------|-----------------|
-| Density Constraint Index (DCI) | 30% | Lot size, height limits, density limits |
-| Development Cost Impact (DCOI) | 25% | Parking requirements, construction cost inputs |
-| Permitting Complexity Indicator (PCI) | 20% | Permit approval rates, discretionary review |
+| Density Constraint Index (DCI) | 30% | Lot size, height limits, density limits, setbacks |
+| Development Cost Impact (DCOI) | 25% | Parking requirements, regional construction costs |
+| Permitting Complexity Indicator (PCI) | 20% | Discretionary review requirements, permit volume |
 | Comparative Restrictiveness Percentile (CRP) | 25% | Ranking within peer jurisdiction set |
 
-Higher score = more restrictive regulatory environment.
+All sub-scores are normalized 0–100 using min-max normalization against the peer set. The formula, weights, and rationale are documented in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
-## Stack
+## Architecture
+
+```
+Zoning PDFs + Public Datasets (HUD, Census, BLS, BEA)
+        |
+[ Ingestion & Extraction Pipeline ]  Gemini 2.5 Flash via Vertex AI
+  Fetch PDF → Parse → Discover zones → Extract per-zone fields → Normalize → Validate → Store
+        |
+[ Scoring Engine ]                   Deterministic TypeScript
+  DCI + DCOI + PCI + CRP → RIS composite → Feasibility modeling
+        |
+[ API Layer ]                        Next.js API routes → Cloud SQL (PostgreSQL)
+  /api/jurisdictions, /api/.../score, /api/.../chat, /api/.../pdf
+        |
+[ Dashboard UI ]                     Next.js / React on Cloud Run
+  Search + Map → Score Panel → Compare → What-If → Chat Agent
+```
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full layer-by-layer breakdown, and [`docs/adr/`](docs/adr/) for architectural decision records.
+
+---
+
+## Technology Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Frontend & API | Next.js 16 + TypeScript |
-| AI Pipeline | Google ADK for TypeScript |
-| LLM | Gemini (via Vertex AI) |
-| Database | Cloud SQL (PostgreSQL) |
-| Raw PDF Storage | Google Cloud Storage (`parcela-490518-raw-data`) |
+| AI — Extraction | Gemini 2.5 Flash via `@google-cloud/vertexai` |
+| AI — Chat Agent | Google ADK `LlmAgent` via `@google/adk` |
+| Database | Cloud SQL (PostgreSQL) via Drizzle ORM |
+| PDF Storage | Google Cloud Storage |
 | Deployment | Google Cloud Run |
-| Infrastructure as Code | Terraform (`infra/`) |
-| CI/CD | GitHub Actions |
-| Code Quality | ESLint, SonarCloud, Snyk |
-
-See [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) for the full rationale.
+| Infrastructure | Terraform |
+| CI/CD | GitHub Actions (Workload Identity Federation — no static keys) |
+| Code Quality | ESLint, SonarCloud, Snyk, Jest (540+ tests) |
 
 ---
 
-## Testing
+## Data Sources
 
-Tests use [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/). Tests live in `__tests__/`.
+All data is sourced from publicly available federal datasets:
 
-```bash
-npm test
-```
+| Source | Data | Vintage |
+|--------|------|---------|
+| Municipal zoning ordinance PDFs | Regulatory field values | Current as of download |
+| HUD Fair Market Rents | 2BR FMR for rent feasibility | FY2025 |
+| Census ACS (B25001/B25002) | Housing units, population | 2020–2024 5-year |
+| Census Building Permits Survey | Permit volume by structure type | 2023 annual |
+| BLS Occupational Employment Statistics | Regional labor costs | May 2024 |
+| BEA Regional Price Parities | Regional cost multipliers | 2023 |
+
+See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for download URLs, formats, and field mappings.
 
 ---
 
-## Database
+## AI Tools Disclosure
 
-Parcela uses PostgreSQL (Cloud SQL in production) managed via [Drizzle ORM](https://orm.drizzle.team/).
+### AI used in the solution
+- **Google Gemini 2.5 Flash** (via Vertex AI) — zoning field extraction and chat agent responses
+- **Google ADK for TypeScript** (`@google/adk` v0.5.0) — LlmAgent orchestration for the chat interface
 
-### Local development
+### AI tools used during development
+- [TBD — need confirmation from each team member: Claude Code, GitHub Copilot, Codex, ChatGPT, etc.]
+
+---
+
+## Open-Source Libraries
+
+Key open-source dependencies (full list in `package.json`):
+
+| Library | Purpose |
+|---------|---------|
+| Next.js 16 | Application framework |
+| React 19 | UI rendering |
+| Drizzle ORM | Database schema and queries |
+| Leaflet | Interactive maps (no API key required) |
+| pdf-parse | PDF text extraction |
+| Jest + React Testing Library | Testing (540+ tests) |
+| Terraform | Infrastructure as Code |
+
+---
+
+## Team
+
+[TBD — Team name, members, roles, designated lead]
+
+---
+
+## Live Demo
+
+**URL:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
+
+**Try it:**
+1. Search for "Fairfax County" and select it
+2. Review the RIS score, sub-scores, and confidence badges
+3. Expand a sub-score accordion to see source citations — click "View source" to see the original PDF
+4. Click "Compare Peers" to add Arlington or Loudoun
+5. Toggle "What-If Simulation" and adjust parking minimums
+6. Expand "Ask about Fairfax County, VA" and ask: "Why is the parking score so high?"
+
+---
+
+## Running Locally
 
 ```bash
-# Start local PostgreSQL (port 5433)
+# Prerequisites: Node.js 20+, Docker
+
+# Start local PostgreSQL
 docker compose up -d
 
-# Push the schema
+# Install dependencies and seed the database
+npm install
 npm run db:push
-
-# Seed all data (jurisdictions, scores, synthetic peers, market data)
 npm run db:seed:all
+
+# Start the dev server
+npm run dev
 ```
 
-Individual seed scripts:
-
-| Script | What it seeds |
-|--------|--------------|
-| `npm run db:seed` | 3 real jurisdictions |
-| `npm run db:seed:scores` | Pre-computed RIS scores for real jurisdictions |
-| `npm run db:seed:synthetic` | ~7 synthetic peer jurisdictions for CRP |
-| `npm run db:seed:market` | FMR, ACS, and building permit data from public APIs |
-| `npm run db:seed:all` | All of the above in sequence |
-
-### Migrations
-
-```bash
-# Generate a new migration file from schema changes
-npm run db:generate
-
-# Apply pending migrations (run against Cloud SQL in CI)
-npm run db:migrate
-```
-
-### Environment variables
-
-Copy `.env.example` to `.env.local` and set:
-
-```bash
-# Required
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/parcela
-GOOGLE_CLOUD_PROJECT=parcela-490518   # required for Gemini/Vertex AI calls
-
-# Optional
-GEMINI_MODEL=gemini-2.0-flash-001     # defaults to gemini-2.0-flash-001
-RAW_DATA_BUCKET=parcela-490518-raw-data  # omit to use local data/raw/ fallback
-HUD_API_TOKEN=<token>                 # omit to use hardcoded FY2025 FMR fallbacks
-```
-
-For Cloud Run, use the Cloud SQL Unix socket form:
-
-```
-DATABASE_URL=postgresql://USER:PASSWORD@/parcela?host=/cloudsql/PROJECT:REGION:INSTANCE
-```
-
-### pgcrypto extension
-
-`gen_random_uuid()` (used by Drizzle's `.defaultRandom()`) requires the `pgcrypto` extension. Enable it once on Cloud SQL:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-```
-
-### GitHub Secret required
-
-| Secret | Description |
-|--------|-------------|
-| `DATABASE_URL` | Cloud SQL connection string for CI migrations |
+Open [http://localhost:3000](http://localhost:3000). The map, scores, comparison, and what-if features work locally. The chat agent requires GCP credentials (`gcloud auth application-default login`).
 
 ---
 
-## Running the Extraction Pipeline
-
-The pipeline fetches zoning PDFs, parses them, and calls Gemini to extract regulatory fields into the database. Run it locally after setting up the database and Google Cloud credentials.
-
-### Prerequisites
-
-```bash
-# Authenticate with Google Cloud (required for Gemini calls)
-gcloud auth application-default login
-
-# Start local database and seed it
-docker compose up -d
-npm run db:seed:all
-```
-
-### Run
-
-```bash
-# All 3 jurisdictions
-npm run pipeline:run
-
-# Single jurisdiction
-npm run pipeline:run arlington_va
-npm run pipeline:run fairfax_va
-npm run pipeline:run loudoun_va
-```
-
-Uses local PDFs from `data/raw/zoning/` when `RAW_DATA_BUCKET` is not set, or fetches from GCS when it is.
-
-### Verify results
-
-```bash
-npm run db:studio   # browse extracted_fields table in Drizzle Studio (localhost:4983)
-npm run dev         # run the app — search for a jurisdiction to see the score panel
-```
-
----
-
-## CI/CD Pipeline
-
-The pipeline triggers on every push to `main` and runs two jobs:
-
-### quality job
-Runs first and must pass before deployment:
-1. Install dependencies
-2. TypeScript type check (`tsc --noEmit`)
-3. Lint (`eslint`)
-4. Tests (`jest`) with coverage report
-5. Snyk dependency vulnerability scan (fails on high/critical)
-6. Snyk monitor (sends snapshot to Snyk dashboard for ongoing tracking)
-7. SonarCloud code quality analysis
-
-### deploy job
-Runs after `quality` passes:
-1. Install dependencies
-2. Build the Next.js app
-3. Authenticate to GCP
-4. Check GCS raw data bucket is accessible (fails with instructions if not)
-5. Build and push Docker image to Artifact Registry
-6. Deploy to Cloud Run
-
-### infra workflow
-Triggered on PRs touching `infra/` or manually via **Actions → Infrastructure → Run workflow**:
-- **On PR:** runs `terraform init`, `terraform validate`, `terraform plan` — plan output visible in the PR
-- **On manual dispatch:** choose `plan` (default) or `apply` to provision/update infrastructure
-
-### GitHub Secrets Required
-
-| Secret | Description |
-|--------|-------------|
-| `GCP_PROJECT_ID` | GCP project ID (`parcela-490518`) |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Workload Identity Federation provider ID — see One-Time GCP Setup below |
-| `DATABASE_URL` | Cloud SQL Unix socket connection string for Cloud Run |
-| `DATABASE_URL_MIGRATE` | Cloud SQL TCP connection string for CI migrations via Cloud SQL Auth Proxy |
-| `SNYK_TOKEN` | Snyk auth token (from Account Settings in Snyk dashboard) |
-| `SONAR_TOKEN` | SonarCloud token (from My Account → Security in SonarCloud) |
-
----
-
-## One-Time GCP Setup
-
-GCP project: `parcela-490518`. CI/CD authenticates via **Workload Identity Federation** — no service account JSON key is needed or used.
-
-**Enable required APIs:**
-```bash
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com \
-  sqladmin.googleapis.com storage.googleapis.com \
-  iamcredentials.googleapis.com sts.googleapis.com
-```
-
-**Create the Artifact Registry repository:**
-```bash
-gcloud artifacts repositories create excella-ai-hackathon \
-  --repository-format=docker \
-  --location=us-central1
-```
-
-**Create a service account and grant roles:**
-```bash
-gcloud iam service-accounts create github-actions
-
-for role in roles/run.admin roles/artifactregistry.writer roles/iam.serviceAccountUser \
-            roles/cloudsql.client roles/storage.admin roles/aiplatform.user; do
-  gcloud projects add-iam-policy-binding parcela-490518 \
-    --member="serviceAccount:github-actions@parcela-490518.iam.gserviceaccount.com" \
-    --role="$role"
-done
-```
-
-**Configure Workload Identity Federation:**
-```bash
-gcloud iam workload-identity-pools create "github-actions-pool" \
-  --location="global" --display-name="GitHub Actions Pool"
-
-gcloud iam workload-identity-pools providers create-oidc "github-provider" \
-  --location="global" \
-  --workload-identity-pool="github-actions-pool" \
-  --issuer-uri="https://token.actions.githubusercontent.com" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-  --attribute-condition="assertion.repository == 'excellaco/act-iac-ai-hackathon'"
-
-PROJECT_NUMBER=$(gcloud projects describe parcela-490518 --format="value(projectNumber)")
-gcloud iam service-accounts add-iam-policy-binding \
-  github-actions@parcela-490518.iam.gserviceaccount.com \
-  --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/excellaco/act-iac-ai-hackathon"
-```
-
-Set the `GCP_WORKLOAD_IDENTITY_PROVIDER` secret to:
-```
-projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
-```
-
----
-
-## One-Time Security Tools Setup
-
-**Snyk:**
-1. Sign up at [snyk.io](https://snyk.io) using your GitHub account
-2. Copy your auth token from **Account Settings → Auth Token**
-3. Add it as the `SNYK_TOKEN` GitHub secret
-
-**SonarCloud:**
-1. Sign up at [sonarcloud.io](https://sonarcloud.io) using your GitHub account
-2. Create a new project linked to this repo — note the project key and organization key
-3. Generate a token from **My Account → Security**
-4. Add it as the `SONAR_TOKEN` GitHub secret
-5. Disable **Automatic Analysis** under **Administration → Analysis Method** in your SonarCloud project
-
----
-
-## Documentation Index
+## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture diagram and layer descriptions |
-| [`docs/PERSONA.md`](docs/PERSONA.md) | Primary user persona — Valentina Reyes (Val), Housing Policy Analyst |
-| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
-| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
-| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema — all tables, columns, types, and relationships |
-| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | ADK LlmAgent prompt templates, output schema, and validation rules |
-| [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) | ADR: Google Cloud + Next.js/TypeScript |
-| [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) | ADR: Google ADK for pipeline and LLM extraction |
-| [`docs/adr/0003-database-access-and-migrations.md`](docs/adr/0003-database-access-and-migrations.md) | ADR: Drizzle ORM, Docker Compose local dev, auto-apply migrations |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture and layer descriptions |
+| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey |
+| [`docs/PERSONA.md`](docs/PERSONA.md) | Primary user persona — Valentina Reyes, Housing Policy Analyst |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog with epics and stories |
+| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources and field mappings |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema |
+| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | Extraction prompt templates and validation rules |
+| [`docs/adr/`](docs/adr/) | Architectural Decision Records (ADR-0001 through ADR-0006) |
