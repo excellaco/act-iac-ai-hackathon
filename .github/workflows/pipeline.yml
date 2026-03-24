@@ -26,6 +26,7 @@ on:
           - load
           - page-resolve
           - score
+          - purge
       jurisdiction:
         description: 'Jurisdiction to process (leave blank for all 3)'
         required: false

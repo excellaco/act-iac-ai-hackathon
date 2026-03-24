@@ -22,6 +22,7 @@
     "pipeline:extract": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/extract.ts",
     "pipeline:load": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/load.ts",
     "pipeline:score": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/score.ts",
+    "pipeline:purge": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/purge.ts",
     "pipeline:run": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/run-pipeline.ts",
     "pipeline:page-resolve": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/page-resolve.ts",
     "score:zones": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/score-zones.ts",
