@@ -68,6 +68,8 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         </div>
       )}
 
+      <h4 className={styles.sectionTitle}>Regulatory Impact Score</h4>
+
       <div className={styles.subScores}>
         {(Object.entries(activeSubScores) as [string, number][]).map(([key, score]) => {
           return (
@@ -106,8 +108,12 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
             {jurisdiction.fields.discretionaryReviewType.replace(/-/g, ' ')}
           </span>
         </div>
-        {activeFeasibility && (
-          <>
+      </div>
+
+      {activeFeasibility && (
+        <>
+          <h4 className={styles.sectionTitle}>Development Feasibility</h4>
+          <div className={styles.cardFields}>
             <div className={styles.fieldRow}>
               <span className={styles.fieldLabel}>Cost per unit</span>
               <span className={styles.fieldValue}>
@@ -126,9 +132,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
                 {activeFeasibility.rentFeasibility}
               </span>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
