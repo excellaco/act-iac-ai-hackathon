@@ -1,0 +1,790 @@
+{
+  "jurisdictionId": "8e458cfe-9060-436e-8fbe-51b5fca87800",
+  "slug": "fairfax_va",
+  "sourceDocument": "gs://parcela-490518-raw-data/zoning/fairfax_va/fairfax_zoning_ordinance_2023_downloaded_20260316.pdf",
+  "extractedAt": "2026-03-24T05:38:45.113Z",
+  "approved": false,
+  "include_in_extraction": true,
+  "include_in_load": true,
+  "zones": [
+    {
+      "zone_code": "PQG2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQR2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQS2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQD2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQT2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQEG2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQEU2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQGF2",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PQRF",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        8
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "R-1",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        365
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "R-2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        346
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RC-?PE",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RC-?P:",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "d]13",
+      "zone_name": null,
+      "multifamily_classification": "primary",
+      "source_pages": [
+        43
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "e^10",
+      "zone_name": null,
+      "multifamily_classification": "primary",
+      "source_pages": [
+        47
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "f_6.",
+      "zone_name": null,
+      "multifamily_classification": "primary",
+      "source_pages": [
+        51
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "e]6fg",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        56
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ABC5NN",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        93
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ABC5PP",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        93
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ABC5QQ",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        93
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ABC5RR",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        93
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ABC5SS",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        93
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "PNB",
+      "zone_name": "PNB District",
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        510
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRS2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRI2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRT2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRU2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRV2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRW2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRX2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRO2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "QRY2",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        110
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "STH",
+      "zone_name": null,
+      "multifamily_classification": "none",
+      "source_pages": [
+        221
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "STU",
+      "zone_name": null,
+      "multifamily_classification": "none",
+      "source_pages": [
+        5,
+        7,
+        8,
+        9,
+        11,
+        13,
+        16,
+        17,
+        20,
+        22,
+        24,
+        26,
+        30,
+        31,
+        37,
+        39,
+        41,
+        42,
+        43,
+        45,
+        47,
+        49,
+        50,
+        51,
+        53,
+        55,
+        56,
+        57,
+        59,
+        60,
+        62,
+        64,
+        67,
+        70,
+        74,
+        82,
+        83,
+        84,
+        86,
+        88,
+        90,
+        92,
+        93,
+        97,
+        99,
+        100,
+        102,
+        103,
+        106,
+        109,
+        114,
+        117,
+        120,
+        123,
+        124,
+        125,
+        129,
+        132,
+        136,
+        141,
+        142,
+        143,
+        144,
+        147,
+        150,
+        153,
+        154,
+        156,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        170,
+        171,
+        172,
+        174,
+        175,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        184,
+        187,
+        189,
+        190,
+        191,
+        192,
+        194,
+        195,
+        196,
+        197,
+        198,
+        201,
+        202,
+        203,
+        204,
+        208,
+        209,
+        210,
+        214,
+        215,
+        216,
+        217,
+        218,
+        221,
+        222,
+        226,
+        227,
+        228,
+        230,
+        231,
+        232,
+        233,
+        235,
+        237,
+        239,
+        242,
+        243,
+        244,
+        245,
+        246,
+        247,
+        248,
+        252,
+        253,
+        255,
+        257,
+        262,
+        264,
+        265,
+        267,
+        268,
+        269,
+        273,
+        276,
+        281,
+        288,
+        289,
+        290,
+        293,
+        294,
+        298,
+        301,
+        302,
+        309,
+        311,
+        312,
+        313,
+        315,
+        319,
+        322,
+        325,
+        326,
+        328,
+        330,
+        333,
+        337,
+        339,
+        340,
+        343,
+        349,
+        352,
+        357,
+        359,
+        360,
+        362,
+        363,
+        364,
+        366,
+        368,
+        369,
+        370,
+        375,
+        376,
+        377,
+        378,
+        380,
+        383,
+        392,
+        394,
+        396,
+        401,
+        404,
+        406,
+        411,
+        412,
+        413,
+        417,
+        422,
+        424,
+        425,
+        427,
+        429,
+        430,
+        431,
+        432,
+        438,
+        441,
+        451,
+        453,
+        456,
+        457,
+        459,
+        461,
+        463,
+        465,
+        466,
+        467,
+        478,
+        487,
+        488,
+        489,
+        495,
+        499,
+        502,
+        518,
+        519,
+        521,
+        527,
+        530
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "SVW",
+      "zone_name": null,
+      "multifamily_classification": "none",
+      "source_pages": [
+        16,
+        26,
+        43,
+        64,
+        124,
+        128,
+        161,
+        177,
+        181,
+        192,
+        216,
+        221,
+        247,
+        255,
+        298,
+        322,
+        328,
+        333,
+        375,
+        394,
+        429,
+        431,
+        518
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "SXU",
+      "zone_name": null,
+      "multifamily_classification": "none",
+      "source_pages": [
+        221
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "SVU",
+      "zone_name": null,
+      "multifamily_classification": "none",
+      "source_pages": [
+        1,
+        9,
+        34,
+        50,
+        68,
+        129,
+        144,
+        147,
+        150,
+        163,
+        166,
+        221,
+        245,
+        273,
+        318,
+        339,
+        360,
+        366,
+        367,
+        391,
+        403,
+        421,
+        425,
+        433,
+        503
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVC",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        143
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVW",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        143,
+        410,
+        450
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVP",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        370,
+        397
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVD",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        143
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVG",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        143
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVJ",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [
+        143
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVY",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "RVZ",
+      "zone_name": null,
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "Zh9",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "Zh:",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "Zhi",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274,
+        354
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "ZhX",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "Zhj",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274,
+        363,
+        527
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    },
+    {
+      "zone_code": "Zh6",
+      "zone_name": null,
+      "multifamily_classification": "limited",
+      "source_pages": [
+        274
+      ],
+      "include_in_extraction": true,
+      "include_in_load": true
+    }
+  ]
+}
