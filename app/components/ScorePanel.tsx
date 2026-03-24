@@ -12,6 +12,13 @@ import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
 import styles from './ScorePanel.module.css';
 
+/** Zoning Atlas jurisdiction IDs — only real jurisdictions with atlas pages */
+const ZONING_ATLAS_IDS: Record<string, number> = {
+  fairfax:   6593,
+  arlington: 6570,
+  loudoun:   6585,
+}
+
 /** Extracted fields that contribute to each sub-score */
 const SUB_SCORE_FIELDS: Record<SubScoreKey, string[]> = {
   dci:  ['min_lot_size_sqft', 'height_limit_ft', 'density_limit_units_per_acre', 'setback_front_ft', 'setback_side_ft', 'setback_rear_ft'],
@@ -236,6 +243,13 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
       <FeasibilityPanel feasibility={activeFeasibility} />
 
+      {/* AI analysis stats — shown when zones have been analyzed */}
+      {zoneScores.length > 0 && (
+        <p className={styles.analysisStats}>
+          {zoneScores.length} zoning district{zoneScores.length !== 1 ? 's' : ''} analyzed by AI
+        </p>
+      )}
+
       {/* Chat panel — above Compare Peers so users can ask questions before comparing */}
       <ChatPanel
         jurisdictionId={jurisdiction.id}
@@ -244,6 +258,21 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
 
       {/* E6-7: Compare Peers */}
       <ComparePeers current={jurisdiction} onCompare={onCompare} />
+
+      {/* Zoning Atlas link — shown for jurisdictions with atlas pages */}
+      {ZONING_ATLAS_IDS[jurisdiction.slug] && (
+        <p className={styles.atlasLink}>
+          Learn more about {name} at the{' '}
+          <a
+            href={`https://www.zoningatlas.org/snapshots/?jurisdiction=${ZONING_ATLAS_IDS[jurisdiction.slug]}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.atlasAnchor}
+          >
+            Zoning Atlas
+          </a>
+        </p>
+      )}
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
