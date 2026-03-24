@@ -243,7 +243,7 @@ export default function WhatIfPanel({
           className={styles.scoreDelta}
           style={{ color: risDeltaColor, background: risDeltaColor + '15' }}
         >
-          {risDelta === 0 ? 'No change' : risDelta > 0 ? `+${risDelta}` : risDelta}
+          {risDelta === 0 ? 'No change' : risDelta > 0 ? `+${risDelta} pts` : `${risDelta} pts`}
         </div>
       </div>
 

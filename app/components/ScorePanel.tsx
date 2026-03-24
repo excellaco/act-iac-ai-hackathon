@@ -217,10 +217,6 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         jurisdictionName={`${name}, ${state}`}
       />
 
-      <p className={styles.disclaimer}>
-        This score measures regulatory constraint and does not recommend policy positions.
-      </p>
-
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
       )}

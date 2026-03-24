@@ -49,9 +49,10 @@ describe('ScorePanel', () => {
     expect(screen.getByText(/Municode zoning code/)).toBeInTheDocument()
   })
 
-  it('renders the disclaimer', () => {
+  it('shows disclaimer in methodology modal', () => {
     render(<ScorePanel jurisdiction={FAIRFAX} onCompare={mockOnCompare} />)
-    expect(screen.getByText(/does not recommend policy positions/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('About this score'))
+    expect(screen.getByText(/does not recommend any policy position/)).toBeInTheDocument()
   })
 
   it('What-If toggle is off by default', () => {
