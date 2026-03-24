@@ -11,12 +11,9 @@ import styles from './CompareView.module.css';
 
 const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
 
-/** Find the default zone: most permissive primary zone by risComposite. */
-function defaultZone(zones: ZoneScore[]): string | '__avg__' {
-  const primary = zones.filter((z) => z.multifamilyClassification === 'primary');
-  const pool = primary.length > 0 ? primary : zones;
-  if (pool.length === 0) return '__avg__';
-  return pool.reduce((best, z) => (z.risComposite > best.risComposite ? z : best), pool[0]).zoneCode;
+/** Default to averaged view across all zones. */
+function defaultZone(): '__avg__' {
+  return '__avg__';
 }
 
 interface CompareCardProps {
@@ -26,7 +23,7 @@ interface CompareCardProps {
 
 function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
   const { name, state, ris, subScores, zoneScores } = jurisdiction;
-  const [selectedZone, setSelectedZone] = useState<string | '__avg__'>(() => defaultZone(zoneScores));
+  const [selectedZone, setSelectedZone] = useState<string | '__avg__'>(defaultZone);
 
   const activeZone = selectedZone !== '__avg__' ? zoneScores.find((z) => z.zoneCode === selectedZone) : null;
   const activeRis = activeZone?.risComposite ?? ris;
@@ -62,6 +59,8 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
           </button>
         </div>
       </div>
+
+      <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
 
       {zoneScores.length > 0 && (
         <div className={styles.cardZoneSelector}>
@@ -130,8 +129,6 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
           </>
         )}
       </div>
-
-      <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
     </div>
   );
 }

@@ -176,8 +176,8 @@ describe('CompareView — ZoneSelector per card (E2-155)', () => {
     fireEvent.change(firstSelect, { target: { value: 'R-10' } })
     expect(firstSelect.value).toBe('R-10')
 
-    // Second card should still be on its default (RA6-15 — primary zone)
+    // Second card should still be on its default (all zones averaged)
     const [, secondSelect] = screen.getAllByRole('combobox', { name: 'Select zoning district' }) as HTMLSelectElement[]
-    expect(secondSelect.value).toBe('RA6-15')
+    expect(secondSelect.value).toBe('__avg__')
   })
 })
