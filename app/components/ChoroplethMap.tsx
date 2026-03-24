@@ -150,6 +150,11 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
     }
 
     if (selected) {
+      // Fade state choropleth so the selected county stands out
+      if (statesLayerRef.current) {
+        statesLayerRef.current.setStyle({ fillOpacity: 0.15, weight: 0.5 });
+      }
+
       const fips = NAME_TO_FIPS[selected.name];
       const counties = countiesRef.current;
       const feature = fips && counties
@@ -187,6 +192,10 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
         map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
       }
     } else {
+      // Restore state choropleth to full opacity
+      if (statesLayerRef.current) {
+        statesLayerRef.current.setStyle({ fillOpacity: 0.75, weight: 1 });
+      }
       map.dragging.disable();
       map.setView([38, -97], 4, { animate: true, duration: 0.8 });
     }
