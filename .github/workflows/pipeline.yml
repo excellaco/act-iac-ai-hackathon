@@ -51,8 +51,9 @@ jobs:
   run-pipeline:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v5
@@ -86,3 +87,107 @@ jobs:
           RAW_DATA_BUCKET: parcela-490518-raw-data
           GEMINI_MODEL: gemini-2.5-flash
           LOG_LEVEL: ${{ github.event.inputs.log_level }}
+
+      - name: Sync artifacts from GCS
+        if: ${{ github.event.inputs.stage == 'zones' || github.event.inputs.stage == 'extract' }}
+        run: npm run artifacts:sync ${{ github.event.inputs.jurisdiction }}
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+          RAW_DATA_BUCKET: parcela-490518-raw-data
+
+      - name: Create PR with zone discovery results
+        if: ${{ github.event.inputs.stage == 'zones' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JURISDICTION: ${{ github.event.inputs.jurisdiction }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          BRANCH="artifacts/${JURISDICTION}/zones-${RUN_ID}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+
+          # Stage zones JSON files, excluding page-map artifacts
+          git add "data/artifacts/${JURISDICTION}/" -- ':!*_pages.json'
+
+          if git diff --cached --quiet; then
+            echo "No artifact changes to commit."
+            exit 0
+          fi
+
+          git commit -m "artifacts(${JURISDICTION}): zone discovery results [run ${RUN_ID}]"
+          git push origin "${BRANCH}"
+
+          EXISTING_PR=$(gh pr list --head "${BRANCH}" --json url --jq '.[0].url' 2>/dev/null || true)
+
+          if [ -n "${EXISTING_PR}" ]; then
+            echo "PR already exists: ${EXISTING_PR}"
+          else
+            gh pr create \
+              --base main \
+              --head "${BRANCH}" \
+              --title "artifacts(${JURISDICTION}): zone discovery results" \
+              --body "## Zone Discovery Results — \`${JURISDICTION}\`
+
+This PR was opened automatically by the **Extraction Pipeline** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
+
+## Reviewer checklist
+
+- [ ] Open \`data/artifacts/${JURISDICTION}/${JURISDICTION}_zones.json\` (or the equivalent zones file).
+- [ ] Review the discovered zones for accuracy.
+- [ ] Set \`\"approved\": true\` on each zone entry you want Stage 2 (Field Extraction) to process.
+- [ ] Save the file and commit the change to this branch before merging.
+
+> **Important:** Merging this PR without setting \`approved: true\` on at least one zone will cause Stage 2 (\`pipeline-extract\`) to skip all zones for this jurisdiction."
+          fi
+
+      - name: Create PR with field extraction results
+        if: ${{ github.event.inputs.stage == 'extract' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JURISDICTION: ${{ github.event.inputs.jurisdiction }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          BRANCH="artifacts/${JURISDICTION}/extract-${RUN_ID}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+
+          # Stage field artifact files, excluding page-map artifacts
+          git add "data/artifacts/${JURISDICTION}/" -- ':!*_pages.json'
+
+          if git diff --cached --quiet; then
+            echo "No artifact changes to commit."
+            exit 0
+          fi
+
+          ZONE_LABEL="${ZONE:-all zones}"
+          git commit -m "artifacts(${JURISDICTION}): field extraction results — ${ZONE_LABEL} [run ${RUN_ID}]"
+          git push origin "${BRANCH}"
+
+          EXISTING_PR=$(gh pr list --head "${BRANCH}" --json url --jq '.[0].url' 2>/dev/null || true)
+
+          if [ -n "${EXISTING_PR}" ]; then
+            echo "PR already exists: ${EXISTING_PR}"
+          else
+            gh pr create \
+              --base main \
+              --head "${BRANCH}" \
+              --title "artifacts(${JURISDICTION}): field extraction results" \
+              --body "## Field Extraction Results — \`${JURISDICTION}\`
+
+This PR was opened automatically by the **Extraction Pipeline** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
+
+## Reviewer checklist
+
+- [ ] Review each zone fields JSON file under \`data/artifacts/${JURISDICTION}/\`.
+- [ ] Verify the extracted field values are accurate against the source zoning ordinance.
+- [ ] Set \`\"approved\": true\` in each zone fields JSON file you want the Load stage to persist to the database.
+- [ ] Save the files and commit the changes to this branch before merging.
+
+> **Note:** Only zone fields files with \`\"approved\": true\` will be loaded into the database by Stage 3 (\`pipeline-load\`)."
+          fi
