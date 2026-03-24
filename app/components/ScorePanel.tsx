@@ -208,14 +208,14 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
       <FeasibilityPanel feasibility={activeFeasibility} />
 
-      {/* E6-7: Compare Peers */}
-      <ComparePeers current={jurisdiction} onCompare={onCompare} />
-
-      {/* Chat panel — below Compare Peers */}
+      {/* Chat panel — above Compare Peers so users can ask questions before comparing */}
       <ChatPanel
         jurisdictionId={jurisdiction.id}
         jurisdictionName={`${name}, ${state}`}
       />
+
+      {/* E6-7: Compare Peers */}
+      <ComparePeers current={jurisdiction} onCompare={onCompare} />
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
