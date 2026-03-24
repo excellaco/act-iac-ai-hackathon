@@ -9,7 +9,7 @@
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
@@ -72,6 +72,7 @@
   align-items: center;
   width: min(100%, 604px);
   padding: 48px 32px;
+  padding-top: 15vh;
   text-align: center;
 }
 
