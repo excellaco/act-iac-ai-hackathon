@@ -46,6 +46,20 @@ jobs:
           ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
           sleep 5
 
+      - name: Check pages artifact exists
+        run: |
+          PAGES_PATH="zoning/${{ inputs.jurisdiction }}/artifacts/${{ inputs.jurisdiction }}_pages.json"
+          if ! gcloud storage ls "gs://parcela-490518-raw-data/${PAGES_PATH}" > /dev/null 2>&1; then
+            echo "ERROR: Pages artifact not found at gs://parcela-490518-raw-data/${PAGES_PATH}"
+            echo ""
+            echo "Run the Pipeline — Document Pre-processing workflow first:"
+            echo "  https://github.com/${{ github.repository }}/actions/workflows/pipeline-parse.yml"
+            exit 1
+          fi
+          echo "Pages artifact found — proceeding with zone discovery."
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+
       - name: Run zone discovery
         run: npm run pipeline:zones ${{ inputs.jurisdiction }}
         env:
