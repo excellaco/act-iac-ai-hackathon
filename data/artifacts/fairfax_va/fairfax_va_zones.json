@@ -727,6 +727,6 @@
       ],
       "include_in_extraction": false,
       "include_in_load": false
-    },
+    }
   ]
 }
