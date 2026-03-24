@@ -1,0 +1,119 @@
+{
+  "jurisdictionId": "8e458cfe-9060-436e-8fbe-51b5fca87800",
+  "slug": "fairfax_va",
+  "sourceDocument": "gs://parcela-490518-raw-data/zoning/fairfax_va/fairfax_zoning_ordinance_2023_downloaded_20260316.pdf",
+  "extractedAt": "2026-03-24T05:38:45.113Z",
+  "approved": true,
+  "include_in_extraction": true,
+  "include_in_load": true,
+  "zones": [
+    {
+      "zone_code": "R-A",
+      "zone_name": "Rural Agricultural",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-C",
+      "zone_name": "Residential Conservation",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-E",
+      "zone_name": "Residential Estate",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-1",
+      "zone_name": "Residential, One Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-2",
+      "zone_name": "Residential, Two Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-3",
+      "zone_name": "Residential, Three Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-4",
+      "zone_name": "Residential, Four Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-5",
+      "zone_name": "Residential, Five Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-8",
+      "zone_name": "Residential, Eight Du/Ac",
+      "multifamily_classification": "permitted",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-12",
+      "zone_name": "Residential, Twelve Du/Ac",
+      "multifamily_classification": "primary",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-16",
+      "zone_name": "Residential, Sixteen Du/Ac",
+      "multifamily_classification": "primary",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-20",
+      "zone_name": "Residential, Twenty Du/Ac",
+      "multifamily_classification": "primary",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    }
+  ]
+}
