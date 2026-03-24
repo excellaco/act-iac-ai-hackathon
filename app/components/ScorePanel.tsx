@@ -246,12 +246,37 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
       <FeasibilityPanel feasibility={activeFeasibility} />
 
-      {/* AI analysis stats — shown when zones have been analyzed */}
-      {zoneScores.length > 0 && (
-        <p className={styles.analysisStats}>
-          {zoneScores.length} zoning district{zoneScores.length !== 1 ? 's' : ''} analyzed by AI
+      {/* Source links and AI stats — grouped together above chat */}
+      <div className={styles.sourceInfo}>
+        <p className={styles.atlasLink}>
+          <a
+            href={`/api/jurisdictions/${jurisdiction.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.atlasAnchor}
+          >
+            View {name} Zoning Ordinance
+          </a>
         </p>
-      )}
+        {zoneScores.length > 0 && (
+          <p className={styles.analysisStats}>
+            {zoneScores.length} zoning district{zoneScores.length !== 1 ? 's' : ''} analyzed by AI
+          </p>
+        )}
+        {ZONING_ATLAS_IDS[jurisdiction.slug] != null && (
+          <p className={styles.atlasLink}>
+            Learn more at the{' '}
+            <a
+              href={`https://www.zoningatlas.org/snapshots/?jurisdiction=${ZONING_ATLAS_IDS[jurisdiction.slug]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.atlasAnchor}
+            >
+              Zoning Atlas
+            </a>
+          </p>
+        )}
+      </div>
 
       {/* Chat panel — above Compare Peers so users can ask questions before comparing */}
       <ChatPanel
@@ -261,33 +286,6 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
 
       {/* E6-7: Compare Peers */}
       <ComparePeers current={jurisdiction} onCompare={onCompare} />
-
-      {/* Zoning Atlas link — shown for jurisdictions with atlas pages */}
-      {ZONING_ATLAS_IDS[jurisdiction.slug] != null && (
-        <p className={styles.atlasLink}>
-          Learn more about {name} at the{' '}
-          <a
-            href={`https://www.zoningatlas.org/snapshots/?jurisdiction=${ZONING_ATLAS_IDS[jurisdiction.slug]}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.atlasAnchor}
-          >
-            Zoning Atlas
-          </a>
-        </p>
-      )}
-
-      {/* Full ordinance link — opens entire PDF in new tab */}
-      <p className={styles.atlasLink}>
-        <a
-          href={`/api/jurisdictions/${jurisdiction.id}/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.atlasAnchor}
-        >
-          View {name} Zoning Ordinance
-        </a>
-      </p>
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />

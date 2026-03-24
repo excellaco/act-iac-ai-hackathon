@@ -34,7 +34,7 @@ describe('CompareView', () => {
     render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
     // Wait for AddCard's async fetchJurisdictions to settle
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
-    expect(screen.getByText('Fairfax County')).toBeInTheDocument()
+    expect(screen.getByText(/Fairfax County/)).toBeInTheDocument()
     expect(screen.getByText('73')).toBeInTheDocument()
   })
 
@@ -42,8 +42,8 @@ describe('CompareView', () => {
     render(<CompareView initial={FAIRFAX} initialPeer={ARLINGTON} onBack={mockOnBack} />)
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
     // Names appear in both the ranking bar and cards — use getAllByText
-    expect(screen.getAllByText('Fairfax County').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Arlington County').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Fairfax County/).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Arlington County/).length).toBeGreaterThanOrEqual(1)
   })
 
   it('does not show ranking bar with only one jurisdiction', async () => {
@@ -55,7 +55,7 @@ describe('CompareView', () => {
   it('shows the Add a jurisdiction card when fewer than 3 jurisdictions', async () => {
     render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
-    expect(screen.getByText('Add a jurisdiction')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Add a jurisdiction')).toBeInTheDocument()
   })
 
   it('back button calls onBack', async () => {
@@ -72,10 +72,10 @@ describe('CompareView', () => {
     // Remove Arlington
     fireEvent.click(screen.getByLabelText('Remove Arlington County'))
     await waitFor(() => {
-      expect(screen.queryByText('Arlington County')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Arlington County/)).not.toBeInTheDocument()
     })
     // Fairfax should still be there
-    expect(screen.getByText('Fairfax County')).toBeInTheDocument()
+    expect(screen.getByText(/Fairfax County/)).toBeInTheDocument()
   })
 
   it('cannot remove the last jurisdiction — falls back to initial', async () => {
@@ -87,7 +87,7 @@ describe('CompareView', () => {
 
     // Should fall back to initial — Fairfax still shown
     await waitFor(() => {
-      expect(screen.getByText('Fairfax County')).toBeInTheDocument()
+      expect(screen.getByText(/Fairfax County/)).toBeInTheDocument()
     })
   })
 
@@ -113,7 +113,7 @@ describe('CompareView', () => {
     render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
 
-    const searchInput = screen.getByPlaceholderText('Search jurisdictions…')
+    const searchInput = screen.getByPlaceholderText('Add a jurisdiction')
     fireEvent.change(searchInput, { target: { value: 'loudoun' } })
 
     await waitFor(() => expect(screen.getByText('Loudoun County, VA')).toBeInTheDocument())
@@ -124,7 +124,7 @@ describe('CompareView', () => {
     render(<CompareView initial={FAIRFAX} onBack={mockOnBack} />)
     await waitFor(() => expect(fetchJurisdictions).toHaveBeenCalled())
 
-    fireEvent.change(screen.getByPlaceholderText('Search jurisdictions…'), {
+    fireEvent.change(screen.getByPlaceholderText('Add a jurisdiction'), {
       target: { value: 'loudoun' },
     })
     await waitFor(() => screen.getByText('Loudoun County, VA'))
