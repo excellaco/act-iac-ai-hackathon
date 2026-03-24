@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
-import { risColor, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import dynamic from 'next/dynamic';
 import ZoneSelector from './ZoneSelector';
 import styles from './CompareView.module.css';
@@ -41,13 +41,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.cardHeaderLeft}>
-          <div className={styles.colorDot} style={{ background: color }} />
           <div>
-            <h3 className={styles.cardName}>{name}</h3>
-            <p className={styles.cardState}>
-              {state}
-              {selectedZone !== '__avg__' && <span className={styles.cardZoneSubtitle}> · {selectedZone}</span>}
-            </p>
+            <h3 className={styles.cardName}>{name}, {state}</h3>
+            <p className={styles.risLabelText} style={{ color }}>{risLabelShort(activeRis)} Restrictiveness</p>
           </div>
         </div>
         <div className={styles.cardHeaderRight}>
@@ -60,7 +56,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         </div>
       </div>
 
-      <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
+      <div className={styles.miniMapWrapper}>
+        <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
+      </div>
 
       {zoneScores.length > 0 && (
         <div className={styles.cardZoneSelector}>
@@ -183,11 +181,10 @@ function AddCard({ onAdd, excludeIds }: AddCardProps) {
     <div className={styles.addCard}>
       <div className={styles.addCardInner}>
         <span className={styles.addCardIcon}>+</span>
-        <span className={styles.addCardLabel}>Add a jurisdiction</span>
         <input
           type="text"
           className={styles.addCardInput}
-          placeholder="Search jurisdictions…"
+          placeholder="Add a jurisdiction"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}

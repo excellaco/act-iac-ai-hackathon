@@ -76,15 +76,21 @@
 }
 
 .cardName {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   color: #111827;
   margin-bottom: 2px;
 }
 
-.cardState {
-  font-size: 12px;
-  color: #6b7280;
+.risLabelText {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.miniMapWrapper {
+  height: 200px;
+  overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .cardHeaderRight {
