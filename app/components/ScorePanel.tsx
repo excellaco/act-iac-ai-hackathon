@@ -10,6 +10,7 @@ import FeasibilityPanel from './FeasibilityPanel';
 import WhatIfPanel from './WhatIfPanel';
 import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
+import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
 
 /** Zoning Atlas jurisdiction IDs — only real jurisdictions with atlas pages */
@@ -88,6 +89,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
   const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
+  const [pdfModal, setPdfModal] = useState<{ sourcePage: number | null; sourceSection: string | null; fieldValueText: string | null } | null>(null);
   const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(() => defaultZoneCode(zoneScores));
 
   // Derive active fields/scores/feasibility from selected zone or jurisdiction average
@@ -221,10 +223,11 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                           {hasSource && (
                             <button
                               className={styles.viewSourceLink}
-                              onClick={() => {
-                                const pdfUrl = `/api/jurisdictions/${jurisdiction.id}/pdf${citation.sourcePage ? `#page=${citation.sourcePage}` : ''}`;
-                                window.open(pdfUrl, '_blank');
-                              }}
+                              onClick={() => setPdfModal({
+                                sourcePage: citation.sourcePage ?? null,
+                                sourceSection: citation.sourceSection ?? null,
+                                fieldValueText: citation.fieldValueText ?? null,
+                              })}
                             >
                               View source
                             </button>
@@ -274,8 +277,30 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         </p>
       )}
 
+      {/* Full ordinance link — opens entire PDF in new tab */}
+      <p className={styles.atlasLink}>
+        <a
+          href={`/api/jurisdictions/${jurisdiction.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.atlasAnchor}
+        >
+          View {name} Zoning Ordinance
+        </a>
+      </p>
+
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
+      )}
+
+      {pdfModal && (
+        <PdfModal
+          jurisdictionId={jurisdiction.id}
+          sourcePage={pdfModal.sourcePage}
+          sourceSection={pdfModal.sourceSection}
+          fieldValueText={pdfModal.fieldValueText}
+          onClose={() => setPdfModal(null)}
+        />
       )}
     </aside>
   );

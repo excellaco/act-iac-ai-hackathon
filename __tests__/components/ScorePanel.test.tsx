@@ -145,19 +145,25 @@ describe('ScorePanel — PDF citations', () => {
     expect(screen.getAllByText('View source').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('opens PDF in new tab when "View source" is clicked', () => {
-    const mockOpen = jest.fn()
-    window.open = mockOpen
-
+  it('opens PdfModal when "View source" is clicked', () => {
     render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
 
     fireEvent.click(screen.getByText('Density Constraint Index'))
     fireEvent.click(screen.getAllByText('View source')[0])
 
-    expect(mockOpen).toHaveBeenCalledWith(
-      expect.stringContaining('/api/jurisdictions/uuid-fairfax/pdf#page=42'),
-      '_blank',
-    )
+    expect(screen.getByRole('dialog', { name: 'Source document' })).toBeInTheDocument()
+    expect(screen.getByText('§ 4-102')).toBeInTheDocument()
+  })
+
+  it('closes PdfModal when close button is clicked', () => {
+    render(<ScorePanel jurisdiction={FAIRFAX_WITH_CITATIONS} onCompare={mockOnCompare} />)
+
+    fireEvent.click(screen.getByText('Density Constraint Index'))
+    fireEvent.click(screen.getAllByText('View source')[0])
+    expect(screen.getByRole('dialog', { name: 'Source document' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Close PDF viewer'))
+    expect(screen.queryByRole('dialog', { name: 'Source document' })).not.toBeInTheDocument()
   })
 })
 
