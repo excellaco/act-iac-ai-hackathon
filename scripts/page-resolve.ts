@@ -15,7 +15,7 @@
 import { db } from '../db/client'
 import { jurisdictions } from '../db/schema'
 import { runPageResolveStage, runZonePageResolveStage } from '../lib/pipeline/page-resolver'
-import { buildArtifactStore } from '../lib/pipeline/artifact-store'
+import { buildLoadArtifactStore } from '../lib/pipeline/artifact-store'
 
 const ALL_REAL_JURISDICTION_IDS = ['fairfax_va', 'arlington_va', 'loudoun_va']
 
@@ -33,7 +33,7 @@ async function main() {
   const args = targetArg ? [targetArg] : ALL_REAL_JURISDICTION_IDS
 
   const allJurisdictions = await db.select().from(jurisdictions)
-  const store = buildArtifactStore()
+  const store = buildLoadArtifactStore()
 
   console.log(`\nParcella — page-resolve stage`)
   console.log(`Artifact: ${process.env.RAW_DATA_BUCKET ? `GCS (zoning/{slug}/extractions/parsed-pages.json)` : 'local (data/extractions/)'}`)

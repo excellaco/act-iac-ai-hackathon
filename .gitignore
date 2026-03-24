@@ -45,6 +45,9 @@ next-env.d.ts
 data/processed/
 data/raw/zoning/**/*.pdf
 
+# pipeline artifacts — pages files are large and fully derived from the PDF; all others are committed
+data/artifacts/**/*_pages.json
+
 # terraform
 infra/.terraform/
 infra/.terraform.lock.hcl

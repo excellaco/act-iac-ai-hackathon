@@ -1,16 +1,20 @@
 /**
- * E0-8: Extraction artifact schema
+ * Extraction artifact schema — v2 (pipeline refactor)
  *
- * An ExtractionArtifact is the JSON output of the extract stage and the input
- * to the load stage.  Persisted to GCS (prod) or data/extractions/ (local/synthetic).
+ * Four artifact types persist to data/artifacts/{slug}/:
  *
- * The artifact stores both the raw LLM output and the post-normalization values so
- * that the load stage can re-run normalize → validate idempotently without Gemini.
+ *   {slug}_pages.json       — parsed PDF pages (internal, gitignored)
+ *   {slug}_zones.json       — discovered zones + approval gate for Stage 2
+ *   {slug}_{zone}_fields.json — per-zone field values + approval gate for Stage 3
+ *   {slug}_scores.json      — computed RIS scores (pipeline-generated, no approval needed)
  *
- * Synthetic jurisdictions use hand-authored artifacts — no PDF or Gemini call needed.
+ * The old ExtractionArtifact and ZoneFieldArtifact types are retained for
+ * backward compatibility during the migration period.
  */
 
-/** One page of a parsed PDF — used by the page-resolve stage to find source page numbers. */
+// ─── shared / legacy types ────────────────────────────────────────────────────
+
+/** One page of a parsed PDF. */
 export interface ParsedPage {
   /** 1-indexed page number */
   page: number
@@ -20,6 +24,7 @@ export interface ParsedPage {
 
 export type ParsedPagesArtifact = ParsedPage[]
 
+/** Per-field extraction result — shared by both legacy and v2 artifacts. */
 export interface FieldArtifact {
   /** Raw value as returned by the LLM, in the unit as written in the ordinance */
   raw_value: number | null
@@ -35,33 +40,133 @@ export interface FieldArtifact {
   source_section: string | null
   district_context: string | null
   reasoning: string | null
+  /**
+   * 1-indexed page number where field_value_text was found.
+   * Resolved inline during extraction (v2). NULL if not found.
+   */
+  source_page?: number | null
 }
 
-/** One field value for a specific zone, as produced by multi-zone extraction. */
+/** One field value for a specific zone — used by legacy ExtractionArtifact. */
 export interface ZoneFieldArtifact extends FieldArtifact {
-  /** The regulatory field name (e.g. "density_limit_units_per_acre"). */
   field_name: string
   zone_code: string
   zone_name: string | null
-  /** Multifamily permission classification for this zone. */
   multifamily_classification: 'primary' | 'permitted' | 'limited' | 'none'
 }
 
+/**
+ * Legacy single-artifact format (pre-v2).
+ * Retained for backward compatibility during migration.
+ */
 export interface ExtractionArtifact {
-  /** UUID of the jurisdiction in the database */
   jurisdictionId: string
-  /** URL-safe slug matching the jurisdictions.slug column (e.g. "fairfax-va") */
   slug: string
-  /** Source document path — GCS URI or local path */
   sourceDocument: string
-  /** ISO 8601 timestamp of when extraction ran */
   extractedAt: string
-  /** One entry per field name (e.g. "min_lot_size_sqft", "height_limit_ft") */
   fields: Record<string, FieldArtifact>
-  /**
-   * Per-zone field values — one entry per (zone_code, field_name) pair.
-   * Present only when multi-zone extraction ran (E2-155).
-   * Absent for synthetic jurisdictions and pre-E2-155 artifacts.
-   */
   zoneFields?: ZoneFieldArtifact[]
+}
+
+// ─── v2 artifact types ────────────────────────────────────────────────────────
+
+/** Normalize a zone code to a filesystem-safe slug (e.g. "R-MF/D" → "r-mf-d"). */
+export function slugifyZoneCode(zoneCode: string): string {
+  return zoneCode
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+export type MultifamilyClassification = 'primary' | 'permitted' | 'limited' | 'none'
+
+/** One zone entry in the ZonesArtifact. */
+export interface ZoneEntry {
+  zone_code: string
+  zone_name: string | null
+  multifamily_classification: MultifamilyClassification
+  /** Pages in the PDF where this zone code appears — used by Stage 2 for narrow-first chunk search. */
+  source_pages: number[]
+  /** Whether to run Gemini field extraction for this zone. Defaults to true. */
+  include_in_extraction: boolean
+  /** Whether to load this zone's fields into the database. Defaults to true. */
+  include_in_load: boolean
+}
+
+/**
+ * Stage 1 output: discovered zones for a jurisdiction.
+ *
+ * approved: false — pipeline-generated, awaiting human review
+ * approved: true  — human-verified; Stage 2 will proceed
+ *
+ * Stage 2 refuses to run if approved is false.
+ * Stage 2 refuses to overwrite if approved is true.
+ * Stage 2 errors if approved is false and a zones artifact already exists
+ * (conflict must be resolved manually before re-running).
+ */
+export interface ZonesArtifact {
+  jurisdictionId: string
+  slug: string
+  sourceDocument: string
+  extractedAt: string
+  approved: boolean
+  /** Master switch: if false, no zones are extracted regardless of per-zone flags. */
+  include_in_extraction: boolean
+  /** Master switch: if false, no zones are loaded regardless of per-zone flags. */
+  include_in_load: boolean
+  zones: ZoneEntry[]
+}
+
+/**
+ * Stage 2 output: extracted field values for a single zone.
+ *
+ * approved: false — pipeline-generated, awaiting human review
+ * approved: true  — human-verified; Stage 3 will load this zone
+ *
+ * Stage 3 skips zones where approved is false.
+ */
+export interface ZoneFieldsArtifact {
+  jurisdictionId: string
+  slug: string
+  zoneCode: string
+  zoneName: string | null
+  multifamilyClassification: MultifamilyClassification
+  extractedAt: string
+  approved: boolean
+  /**
+   * Field values keyed by field name (e.g. "min_lot_size_sqft").
+   * source_page is resolved inline during extraction.
+   */
+  fields: Record<string, FieldArtifact>
+}
+
+/** Per-zone score entry within a ScoresArtifact. */
+export interface ZoneScoreEntry {
+  zone_code: string
+  zone_name: string | null
+  multifamily_classification: MultifamilyClassification
+  ris_composite: number
+  dci: number
+  dcoi: number
+  pci: number
+  crp: number
+}
+
+/**
+ * Stage 4 output: computed RIS scores for a jurisdiction.
+ * Written to data/artifacts/{slug}/{slug}_scores.json and to the DB.
+ * Pipeline-generated — no approval needed.
+ */
+export interface ScoresArtifact {
+  jurisdictionId: string
+  slug: string
+  scoredAt: string
+  jurisdiction: {
+    ris_composite: number
+    dci: number
+    dcoi: number
+    pci: number
+    crp: number
+  }
+  zones: ZoneScoreEntry[]
 }
