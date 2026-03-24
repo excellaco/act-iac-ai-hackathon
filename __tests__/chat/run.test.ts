@@ -70,14 +70,45 @@ describe('runChat', () => {
     expect(call.newMessage.parts[0].text).toContain('What is the parking score?')
   })
 
-  it('returns fallback message when agent produces no text', async () => {
+  it('retries once on empty response then returns on success', async () => {
+    const finalEvent = {
+      content: { parts: [{ text: 'Got it on retry.' }] },
+    }
+    ;(isFinalResponse as jest.Mock).mockImplementation((e) => e === finalEvent)
+
+    // First attempt: empty, second attempt: success
+    mockRunEphemeral
+      .mockImplementationOnce(async function* () {
+        yield { content: { parts: [] } }
+      })
+      .mockImplementationOnce(async function* () {
+        yield finalEvent
+      })
+
+    jest.spyOn(console, 'warn').mockImplementation()
+
+    const reply = await runChat('uuid-1', 'Hello', [])
+
+    expect(reply).toBe('Got it on retry.')
+    expect(mockRunEphemeral).toHaveBeenCalledTimes(2)
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('attempt 1/2'))
+
+    jest.restoreAllMocks()
+  })
+
+  it('returns fallback after all retry attempts exhausted', async () => {
     ;(isFinalResponse as jest.Mock).mockReturnValue(false)
     mockRunEphemeral.mockImplementation(async function* () {
       yield { content: { parts: [] } }
     })
 
+    jest.spyOn(console, 'warn').mockImplementation()
+
     const reply = await runChat('uuid-1', 'Hello', [])
 
     expect(reply).toBe('I was unable to generate a response. Please try again.')
+    expect(mockRunEphemeral).toHaveBeenCalledTimes(2)
+
+    jest.restoreAllMocks()
   })
 })
