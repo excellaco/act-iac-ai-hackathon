@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "SCN-24",
+  "zoneName": "SCN-24 Zoning District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:39:51.475Z",
+  "approved": true,
+  "fields": {
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text does not contain any information regarding minimum off-street parking requirements for residential multifamily development.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": 50,
+      "raw_unit": "ft",
+      "field_value": 50,
+      "field_value_text": "MFS and MFA: 50 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.02-1",
+      "district_context": "SCN-16 and SCN-24 Zoning Districts (Multifamily Stacked and Multifamily Attached)",
+      "reasoning": "The maximum building height for multifamily stacked (MFS) and multifamily attached (MFA) residential development is explicitly stated as 50 ft in Table 2.02.02-1 for the SCN-16 and SCN-24 Zoning Districts, which are the most permissive multifamily districts listed.",
+      "source_page": 32
+    },
+    "setback_rear_ft": {
+      "raw_value": 15,
+      "raw_unit": "ft",
+      "field_value": 15,
+      "field_value_text": "SFA and MFS: 15 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.02-1",
+      "district_context": "SCN-24 (MFS)",
+      "reasoning": "The minimum residential rear yard setback for multifamily stacked (MFS) in the most permissive SCN-24 district is 15 ft.",
+      "source_page": 27
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "28.8",
+      "raw_unit": "dwelling units per acre",
+      "field_value": "28.8",
+      "field_value_text": "28.8 dwelling units per acre with ADUs\u00b9",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "Table 2.02.02-1",
+      "district_context": "SCN-24",
+      "reasoning": "The maximum residential density for multifamily stacked (MFS) residential is found in Table 2.02.02-1 under 'Density Requirements' for the SCN-24 district, which is the most permissive multifamily district listed.",
+      "source_page": null
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "",
+      "unit": null,
+      "confidence": "low",
+      "source_section": "2.02.02",
+      "district_context": "SCN-8, SCN-16, SCN-24",
+      "reasoning": "The provided text refers to 'Table 3.02.01 for uses allowed in the SCN Zoning Districts' but this table is not included, so the discretionary review requirement for multifamily residential uses cannot be determined from the given text.",
+      "source_page": null
+    },
+    "setback_side_ft": {
+      "raw_value": 10,
+      "raw_unit": "ft",
+      "field_value": 10,
+      "field_value_text": "MFS and MFA: 10 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.02-1",
+      "district_context": "SCN-24 (MFS and MFA)",
+      "reasoning": "The minimum residential side yard setback for multifamily stacked (MFS) and multifamily attached (MFA) in the most permissive SCN-24 district is 10 ft.",
+      "source_page": 32
+    },
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Not found in document",
+      "unit": null,
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "SCN-24",
+      "reasoning": "Extraction failed",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": 15,
+      "raw_unit": "ft",
+      "field_value": 15,
+      "field_value_text": "SFD, SFA, MFS: 15 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.02-1",
+      "district_context": "SCN-8 (MFS)",
+      "reasoning": "Extracted the minimum front setback for multifamily stacked (MFS) from the SCN-8 district, which provides the least restrictive front setback for a multifamily dwelling type.",
+      "source_page": 32
+    }
+  }
+}

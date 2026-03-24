@@ -25,9 +25,6 @@
 import { db } from '../db/client'
 import { jurisdictions } from '../db/schema'
 import { buildExtractArtifactStore } from '../lib/pipeline/artifact-store'
-import { GcsFetcher } from '../lib/pipeline/gcs-fetcher'
-import { LocalFetcher } from '../lib/pipeline/local-fetcher'
-import { PdfParserImpl } from '../lib/pipeline/pdf-parser'
 import { buildZoneAwareExtractors } from '../lib/extractors/index'
 import { chunkText, TextChunk } from '../lib/pipeline/chunk'
 import { normalizeExtractionResult } from '../lib/pipeline/normalize'
@@ -304,7 +301,7 @@ async function main() {
   console.log(`\nParcela — pipeline:extract`)
   console.log(`Slug:     ${slugArg}`)
   console.log(`Zone:     ${zoneArg ?? '(all eligible zones)'}`)
-  console.log(`Fetcher:  ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/raw/)'}`)
+  console.log(`Store:    ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/artifacts/)'}`)
   console.log(`Model:    ${process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'}\n`)
 
   // 1. Resolve jurisdiction
@@ -379,26 +376,21 @@ async function main() {
     process.exit(0)
   }
 
-  // 5. Fetch and parse PDF (or use pages artifact if available)
-  let pages: ParsedPage[]
-  let allChunks: TextChunk[]
+  // 5. Read pages artifact (written by pipeline:parse)
+  let pages!: ParsedPage[]
+  let allChunks!: TextChunk[]
 
   try {
-    // Try to read cached pages artifact first
-    pages = await store.readPages(jur.slug)
-    logger.info(`Using cached pages artifact (${pages.length} pages)`)
+    const pagesArtifact = await store.readPages(jur.slug)
+    pages = pagesArtifact.pages
+    logger.info(`Pages artifact loaded`, { pageCount: pages.length, extractionMethod: pagesArtifact.extractionMethod })
     const text = pages.map((p) => p.text).join('\n\n')
     allChunks = chunkText(text)
-  } catch {
-    // Fall back to fetching and parsing the PDF
-    logger.info('Pages artifact not found — fetching and parsing PDF...')
-    const fetcher = process.env.RAW_DATA_BUCKET ? new GcsFetcher() : new LocalFetcher()
-    const { bytes } = await fetcher.fetch(jur.id, jur.slug)
-    const parser = new PdfParserImpl()
-    const parsed = await parser.parse(bytes)
-    pages = parsed.pages
-    allChunks = chunkText(parsed.text)
-    logger.info(`PDF parsed: ${pages.length} pages, ${allChunks.length} chunks`)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`ERROR: ${msg}`)
+    console.error(`  Run \`npm run pipeline:parse ${slugArg}\` first.`)
+    process.exit(1)
   }
 
   logger.info(`Chunks: ${allChunks.length} total`)

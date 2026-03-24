@@ -21,8 +21,9 @@ import { PdfFetcher } from './runner'
 export class GcsFetcher implements PdfFetcher {
   private storage: Storage
   private bucket: string
+  private explicitUri?: string
 
-  constructor(bucket?: string) {
+  constructor(bucket?: string, explicitUri?: string) {
     const b = bucket ?? process.env.RAW_DATA_BUCKET
     if (!b) {
       throw new Error(
@@ -32,10 +33,24 @@ export class GcsFetcher implements PdfFetcher {
       )
     }
     this.bucket = b
+    this.explicitUri = explicitUri
     this.storage = new Storage()
   }
 
   async fetch(_jurisdictionId: string, slug: string): Promise<{ bytes: Buffer; sourceDocument: string }> {
+    // When an explicit URI is configured, download that object directly
+    if (this.explicitUri) {
+      const match = this.explicitUri.match(/^gs:\/\/([^/]+)\/(.+)$/)
+      if (!match) {
+        throw new Error(`GcsFetcher: invalid pdf_source URI: ${this.explicitUri}`)
+      }
+      const [, uriBucket, objectPath] = match
+      const file = this.storage.bucket(uriBucket).file(objectPath)
+      const [contents] = await file.download()
+      const bytes = Buffer.isBuffer(contents) ? contents : Buffer.from(contents)
+      return { bytes, sourceDocument: this.explicitUri }
+    }
+
     const prefix = `zoning/${slug}/`
     const [allFiles] = await this.storage.bucket(this.bucket).getFiles({ prefix })
 

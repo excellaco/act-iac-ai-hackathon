@@ -143,7 +143,7 @@ export class LocalArtifactStore implements ArtifactStore {
     const filePath = path.join(this.slugDir(slug), `${slug}_pages.json`)
     return this.readJson<ParsedPagesArtifact>(
       filePath,
-      `No parsed-pages artifact at ${filePath} — run \`npm run pipeline:zones ${slug}\` first`,
+      `No parsed-pages artifact at ${filePath} — run \`npm run pipeline:parse ${slug}\` first`,
     )
   }
 
@@ -238,7 +238,7 @@ export class GcsArtifactStore implements ArtifactStore {
 
   async readPages(slug: string): Promise<ParsedPagesArtifact> {
     const p = this.artifactsPath(slug, `${slug}_pages.json`)
-    return this.readGcs<ParsedPagesArtifact>(p, `No parsed-pages artifact at gs://${this.bucket}/${p}`)
+    return this.readGcs<ParsedPagesArtifact>(p, `No parsed-pages artifact at gs://${this.bucket}/${p} — run \`npm run pipeline:parse ${slug}\` first`)
   }
 
   async writePages(slug: string, pages: ParsedPagesArtifact): Promise<void> {

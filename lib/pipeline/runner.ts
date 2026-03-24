@@ -339,7 +339,12 @@ export async function runExtractStage(
   // Write parsed pages to store so the page-resolve stage can find source page numbers
   if (options.artifactStore) {
     logger.info('writing parsed pages', { slug, pageCount: pages.length })
-    await options.artifactStore.writePages(slug, pages)
+    await options.artifactStore.writePages(slug, {
+      sourceDocument,
+      parsedAt: new Date().toISOString(),
+      extractionMethod: 'text',
+      pages,
+    })
   }
 
   return artifact

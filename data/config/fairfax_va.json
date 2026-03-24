@@ -1,0 +1,5 @@
+{
+  "pdf_source": "gs://parcela-490518-raw-data/zoning/fairfax_va/fairfax_zoning_ordinance_2023_downloaded_20260316.pdf",
+  "pdf_extraction": "ocr",
+  "ocr_source": "gs://parcela-490518-raw-data/zoning/fairfax_va/ocr/"
+}

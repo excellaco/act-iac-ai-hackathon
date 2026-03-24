@@ -1,0 +1,54 @@
+{
+  "jurisdictionId": "8e458cfe-9060-436e-8fbe-51b5fca87800",
+  "slug": "fairfax_va",
+  "scoredAt": "2026-03-24T15:54:10.664Z",
+  "jurisdiction": {
+    "ris_composite": 52,
+    "dci": 52,
+    "dcoi": 54,
+    "pci": 58,
+    "crp": 44
+  },
+  "zones": [
+    {
+      "zone_code": "R-12",
+      "zone_name": "Residential District, Twelve Dwelling Units/Acre",
+      "multifamily_classification": "primary",
+      "ris_composite": 52,
+      "dci": 54,
+      "dcoi": 54,
+      "pci": 58,
+      "crp": 44
+    },
+    {
+      "zone_code": "R-16",
+      "zone_name": "Residential, Sixteen Du/Ac",
+      "multifamily_classification": "primary",
+      "ris_composite": 53,
+      "dci": 57,
+      "dcoi": 54,
+      "pci": 58,
+      "crp": 44
+    },
+    {
+      "zone_code": "R-20",
+      "zone_name": "Residential, Twenty Du/Ac",
+      "multifamily_classification": "primary",
+      "ris_composite": 52,
+      "dci": 54,
+      "dcoi": 54,
+      "pci": 58,
+      "crp": 44
+    },
+    {
+      "zone_code": "R-30",
+      "zone_name": "Residential District, Thirty Dwelling Units/Acre",
+      "multifamily_classification": "primary",
+      "ris_composite": 49,
+      "dci": 44,
+      "dcoi": 54,
+      "pci": 58,
+      "crp": 44
+    }
+  ]
+}
