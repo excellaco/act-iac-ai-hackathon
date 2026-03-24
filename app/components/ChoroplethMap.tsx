@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
 import { NAME_TO_FIPS } from '../../lib/fips';
@@ -23,21 +23,12 @@ const STATE_RIS: Record<string, number> = {
   'Utah': 44, 'District of Columbia': 80,
 };
 
-// Reverse lookup: FIPS → jurisdiction name (for click-to-select in regional view)
-const FIPS_TO_NAME: Record<string, string> = Object.fromEntries(
-  Object.entries(NAME_TO_FIPS).map(([name, fips]) => [fips, name]),
-);
-
-// Bounding box for all target jurisdictions (VA/MD/DC area)
-const REGIONAL_BOUNDS: [[number, number], [number, number]] = [[38.24, -78.55], [39.47, -76.67]];
-
 interface ChoroplethMapProps {
   selected: JurisdictionData | null;
   onReset?: () => void;
-  onSelectByName?: (name: string, state: string) => void;
 }
 
-export default function ChoroplethMap({ selected, onReset, onSelectByName }: ChoroplethMapProps) {
+export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -48,103 +39,16 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const statesLayerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const regionalLayerRef = useRef<any>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leafletRef = useRef<any>(null);
-  const [zoomedOut, setZoomedOut] = useState(false);
 
-  // ── Layer management helpers ──────────────────────────────────────────────
+  // ── Re-center: fit map to selected county bounds ─────────────────────────
 
-  function fadeStatesLayer() {
-    if (statesLayerRef.current) {
-      statesLayerRef.current.setStyle({ fillOpacity: 0.30, weight: 0.5 });
-    }
-  }
-
-  function restoreStatesLayer() {
-    if (statesLayerRef.current) {
-      statesLayerRef.current.setStyle({ fillOpacity: 0.75, weight: 1 });
-    }
-  }
-
-  function removeRegionalLayer() {
-    if (regionalLayerRef.current && mapRef.current) {
-      mapRef.current.removeLayer(regionalLayerRef.current);
-      regionalLayerRef.current = null;
-    }
-  }
-
-  // ── Regional view: fade states, show all target counties ──────────────────
-
-  const handleRegionalView = useCallback(() => {
+  const handleRecenter = useCallback(() => {
     const map = mapRef.current;
-    const L = leafletRef.current;
-    if (!map || !L) return;
+    if (!map || !countyLayerRef.current) return;
 
-    fadeStatesLayer();
-
-    if (countiesRef.current && !regionalLayerRef.current) {
-      const layer = L.geoJSON(countiesRef.current, {
-        style: (feature: { id?: string }) => {
-          const fips = feature?.id as string | undefined;
-          const isSelected = selected && NAME_TO_FIPS[selected.name] === fips;
-          return {
-            fillColor: isSelected ? risFillColor(selected!.ris) : '#e5e7eb',
-            fillOpacity: isSelected ? 0.55 : 0.15,
-            color: isSelected ? '#1e40af' : '#9ca3af',
-            weight: isSelected ? 3 : 1,
-          };
-        },
-      });
-
-      layer.bindTooltip((l: { feature?: { properties?: { NAME?: string; LSAD?: string } } }) => {
-        const props = l.feature?.properties;
-        return `${props?.NAME ?? ''} ${props?.LSAD ?? ''}`.trim();
-      });
-
-      layer.on('click', (e: { layer?: { feature?: { id?: string } } }) => {
-        const fips = e.layer?.feature?.id as string | undefined;
-        if (fips && onSelectByName) {
-          const countyName = FIPS_TO_NAME[fips];
-          const stateCode = fips.startsWith('24') ? 'MD' : 'VA';
-          if (countyName) onSelectByName(countyName, stateCode);
-        }
-      });
-
-      layer.addTo(map);
-      regionalLayerRef.current = layer;
-    }
-
-    map.fitBounds(REGIONAL_BOUNDS, { padding: [30, 30], animate: true, duration: 0.8 });
-    setZoomedOut(true);
-  }, [selected, onSelectByName]);
-
-  // ── Zoom back to selected county ──────────────────────────────────────────
-
-  const handleZoomToCounty = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    removeRegionalLayer();
-    restoreStatesLayer();
-
-    if (countyLayerRef.current) {
-      const bounds = countyLayerRef.current.getBounds();
-      map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
-    }
-    setZoomedOut(false);
-  }, []);
-
-  // ── National view: full US heat map ───────────────────────────────────────
-
-  const handleNationalView = useCallback(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    removeRegionalLayer();
-    restoreStatesLayer();
-
-    map.setView([38, -97], 4, { animate: true, duration: 0.8 });
+    const bounds = countyLayerRef.current.getBounds();
+    map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
   }, []);
 
   // ── Map initialization ────────────────────────────────────────────────────
@@ -225,14 +129,6 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Clean up regional layer when jurisdiction changes ─────────────────────
-
-  useEffect(() => {
-    removeRegionalLayer();
-    restoreStatesLayer();
-    setZoomedOut(false);
-  }, [selected]);
-
   // ── Handle selection changes — zoom to county or reset to national ────────
 
   useEffect(() => {
@@ -240,10 +136,8 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
 
     const L = leafletRef.current;
     if (!L) {
-      // Leaflet not loaded yet — retry after import
       import('leaflet').then((mod) => {
         leafletRef.current = mod;
-        // Re-trigger by calling the same logic below
       });
       return;
     }
@@ -263,10 +157,8 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
         : null;
 
       if (feature) {
+        // Enable dragging only — scroll zoom disabled to prevent accidental zoom-out
         map.dragging.enable();
-        map.scrollWheelZoom.enable();
-        map.doubleClickZoom.enable();
-        map.touchZoom.enable();
 
         const color = risFillColor(selected.ris);
         const layer = L.geoJSON(feature, {
@@ -296,9 +188,6 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
       }
     } else {
       map.dragging.disable();
-      map.scrollWheelZoom.disable();
-      map.doubleClickZoom.disable();
-      map.touchZoom.disable();
       map.setView([38, -97], 4, { animate: true, duration: 0.8 });
     }
   }, [selected]);
@@ -321,29 +210,15 @@ export default function ChoroplethMap({ selected, onReset, onSelectByName }: Cho
         </div>
       </div>
 
-      {selected && !zoomedOut && selected.zoneScores.length > 0 && (
+      {selected && selected.zoneScores.length > 0 && (
         <ZoneOverlay zones={selected.zoneScores} />
       )}
 
       {selected && (
         <div className={styles.mapControls}>
-          {!zoomedOut ? (
-            <button className={styles.mapButton} onClick={handleRegionalView} aria-label="Zoom out to regional view">
-              Regional View
-            </button>
-          ) : (
-            <>
-              <button className={styles.mapButton} onClick={handleZoomToCounty} aria-label="Zoom in to selected county">
-                Zoom to County
-              </button>
-              <button className={styles.mapButton} onClick={handleNationalView} aria-label="Zoom out to national heat map">
-                National View
-              </button>
-              <button className={styles.mapButton} onClick={onReset} aria-label="Clear selection and return to home">
-                Clear Selection
-              </button>
-            </>
-          )}
+          <button className={styles.mapButton} onClick={handleRecenter} aria-label="Re-center map on selected county">
+            Re-center
+          </button>
         </div>
       )}
     </div>
