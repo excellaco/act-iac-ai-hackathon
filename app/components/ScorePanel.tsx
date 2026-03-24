@@ -183,7 +183,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                           )}
                           {hasSource && (
                             <button
-                              className={styles.viewSourceBtn}
+                              className={styles.viewSourceLink}
                               onClick={() => setPdfModal({
                                 fieldName,
                                 sourcePage: citation.sourcePage ?? null,
