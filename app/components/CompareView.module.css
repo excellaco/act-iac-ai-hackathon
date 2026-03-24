@@ -120,6 +120,16 @@
   color: #374151;
 }
 
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 16px 0;
+  margin: 0;
+}
+
 /* Sub-score bars */
 .subScores {
   padding: 14px 16px;
