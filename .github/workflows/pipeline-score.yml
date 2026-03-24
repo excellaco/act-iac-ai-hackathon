@@ -1,5 +1,4 @@
 name: Pipeline — Scoring
-# workflow_dispatch trigger is required — do not remove
 
 on:
   workflow_dispatch:
