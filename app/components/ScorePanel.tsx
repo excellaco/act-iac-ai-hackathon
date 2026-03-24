@@ -111,10 +111,6 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         </button>
       </p>
 
-      <p className={styles.disclaimer}>
-        This score measures regulatory constraint and does not recommend policy positions.
-      </p>
-
       {/* E8-1: What-If Simulation toggle */}
       <div className={styles.whatIfSection}>
         <div className={styles.whatIfHeader}>
