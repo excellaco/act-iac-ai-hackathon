@@ -8,39 +8,12 @@
   "include_in_load": true,
   "zones": [
     {
-      "zone_code": "R-A",
-      "zone_name": "Rural Agricultural",
-      "multifamily_classification": "permitted",
-      "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
-      "approved": true
-    },
-    {
-      "zone_code": "R-C",
-      "zone_name": "Residential Conservation",
-      "multifamily_classification": "permitted",
-      "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
-      "approved": true
-    },
-    {
-      "zone_code": "R-E",
-      "zone_name": "Residential Estate",
-      "multifamily_classification": "permitted",
-      "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
-      "approved": true
-    },
-    {
       "zone_code": "R-1",
       "zone_name": "Residential, One Du/Ac",
       "multifamily_classification": "permitted",
-      "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
+      "source_pages": [17, 18, 19, 20],
+      "include_in_extraction": false,
+      "include_in_load": false,
       "approved": true
     },
     {
@@ -48,8 +21,8 @@
       "zone_name": "Residential, Two Du/Ac",
       "multifamily_classification": "permitted",
       "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
+      "include_in_extraction": false,
+      "include_in_load": false,
       "approved": true
     },
     {
@@ -57,8 +30,8 @@
       "zone_name": "Residential, Three Du/Ac",
       "multifamily_classification": "permitted",
       "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
+      "include_in_extraction": false,
+      "include_in_load": false,
       "approved": true
     },
     {
@@ -66,8 +39,8 @@
       "zone_name": "Residential, Four Du/Ac",
       "multifamily_classification": "permitted",
       "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
+      "include_in_extraction": false,
+      "include_in_load": false,
       "approved": true
     },
     {
@@ -75,8 +48,8 @@
       "zone_name": "Residential, Five Du/Ac",
       "multifamily_classification": "permitted",
       "source_pages": [],
-      "include_in_extraction": true,
-      "include_in_load": true,
+      "include_in_extraction": false,
+      "include_in_load": false,
       "approved": true
     },
     {
@@ -109,6 +82,15 @@
     {
       "zone_code": "R-20",
       "zone_name": "Residential, Twenty Du/Ac",
+      "multifamily_classification": "primary",
+      "source_pages": [],
+      "include_in_extraction": true,
+      "include_in_load": true,
+      "approved": true
+    },
+    {
+      "zone_code": "R-30",
+      "zone_name": "Residential, Thirty Du/Ac",
       "multifamily_classification": "primary",
       "source_pages": [],
       "include_in_extraction": true,

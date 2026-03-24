@@ -232,7 +232,12 @@ async function main() {
     const { text, pages } = await parser.parse(bytes)
     logger.info(`PDF parsed: ${pages.length} pages`)
 
-    await extractStore.writePages(jur.slug, pages)
+    await extractStore.writePages(jur.slug, {
+      sourceDocument,
+      parsedAt: new Date().toISOString(),
+      extractionMethod: 'text',
+      pages,
+    })
 
     const chunks = chunkText(text)
     const limiter = createGeminiLimiter()
@@ -279,22 +284,11 @@ async function main() {
     const targetZones = zonesArtifact.zones.filter((z) => z.include_in_extraction)
     logger.info(`Extracting ${targetZones.length} zone(s)...`)
 
-    // Fetch pages (use cached artifact if available)
-    let pages: ParsedPage[]
-    let allChunks: TextChunk[]
-    try {
-      pages = await extractStore.readPages(jur.slug)
-      logger.info(`Using cached pages artifact (${pages.length} pages)`)
-      allChunks = chunkText(pages.map((p) => p.text).join('\n\n'))
-    } catch {
-      logger.info('Pages artifact not found — fetching PDF...')
-      const fetcher = process.env.RAW_DATA_BUCKET ? new GcsFetcher() : new LocalFetcher()
-      const { bytes } = await fetcher.fetch(jur.id, jur.slug)
-      const parsed = await new PdfParserImpl().parse(bytes)
-      pages = parsed.pages
-      allChunks = chunkText(parsed.text)
-      logger.info(`PDF parsed: ${pages.length} pages, ${allChunks.length} chunks`)
-    }
+    // Read pages artifact (written by the zones stage above)
+    const pagesArtifact = await extractStore.readPages(jur.slug)
+    const pages: ParsedPage[] = pagesArtifact.pages
+    logger.info(`Pages artifact loaded (${pages.length} pages)`)
+    const allChunks: TextChunk[] = chunkText(pages.map((p) => p.text).join('\n\n'))
 
     const extractors = buildZoneAwareExtractors()
 
