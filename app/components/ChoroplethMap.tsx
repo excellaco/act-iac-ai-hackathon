@@ -189,7 +189,8 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
         countyLayerRef.current = layer;
 
         const bounds = L.geoJSON(feature).getBounds();
-        map.fitBounds(bounds, { padding: [40, 40], animate: true, duration: 0.8 });
+        // Extra right padding accounts for the 380px score panel covering the map
+        map.fitBounds(bounds, { paddingTopLeft: [40, 40], paddingBottomRight: [400, 40], animate: true, duration: 0.8 });
       }
     } else {
       // Restore state choropleth to full opacity
