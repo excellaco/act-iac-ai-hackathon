@@ -10,7 +10,6 @@ import FeasibilityPanel from './FeasibilityPanel';
 import WhatIfPanel from './WhatIfPanel';
 import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
-import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
 
 /** Extracted fields that contribute to each sub-score */
@@ -32,16 +31,42 @@ const FIELD_LABELS: Record<string, string> = {
   discretionary_review_required: 'Discretionary review',
 }
 
+/** Map extraction field names to RegulationFields keys for displaying actual values */
+const FIELD_TO_KEY: Record<string, string> = {
+  min_lot_size_sqft:             'minLotSizeSqft',
+  height_limit_ft:               'heightLimitFt',
+  density_limit_units_per_acre:  'densityLimitUpa',
+  setback_front_ft:              'setbackFrontFt',
+  setback_side_ft:               'setbackSideFt',
+  setback_rear_ft:               'setbackRearFt',
+  parking_min_spaces_per_unit:   'parkingMinSpacesPerUnit',
+  discretionary_review_required: 'discretionaryReviewType',
+}
+
+const FIELD_UNITS: Record<string, string> = {
+  min_lot_size_sqft:             'sqft',
+  height_limit_ft:               'ft',
+  density_limit_units_per_acre:  'units/acre',
+  setback_front_ft:              'ft',
+  setback_side_ft:               'ft',
+  setback_rear_ft:               'ft',
+  parking_min_spaces_per_unit:   'spaces/unit',
+  discretionary_review_required: '',
+}
+
+function formatFieldValue(value: unknown, unit: string): string {
+  if (value == null) return '—';
+  if (typeof value === 'string') return value.replace(/-/g, ' ');
+  if (typeof value === 'number') {
+    const formatted = value >= 1000 ? value.toLocaleString() : String(value);
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+  return String(value);
+}
+
 interface Props {
   jurisdiction: JurisdictionData;
   onCompare: (peer: { id: string; name: string; state: string; ris: number }) => void;
-}
-
-interface PdfModalState {
-  fieldName: string;
-  sourcePage: number | null;
-  sourceSection: string | null;
-  fieldValueText: string | null;
 }
 
 /** Find the most permissive zone to use as default (highest-density primary zone). */
@@ -56,7 +81,6 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
   const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
-  const [pdfModal, setPdfModal] = useState<PdfModalState | null>(null);
   const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(() => defaultZoneCode(zoneScores));
 
   // Derive active fields/scores/feasibility from selected zone or jurisdiction average
@@ -178,18 +202,22 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                       return (
                         <li key={fieldName} className={styles.citationItem}>
                           <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                          <span className={styles.citationFieldValue}>
+                            {formatFieldValue(
+                              activeFields[FIELD_TO_KEY[fieldName] as keyof typeof activeFields],
+                              FIELD_UNITS[fieldName] ?? '',
+                            )}
+                          </span>
                           {citation?.fieldValueText && citation.fieldValueText !== 'Not found in document' && (
                             <span className={styles.citationQuote}>&ldquo;{citation.fieldValueText}&rdquo;</span>
                           )}
                           {hasSource && (
                             <button
                               className={styles.viewSourceLink}
-                              onClick={() => setPdfModal({
-                                fieldName,
-                                sourcePage: citation.sourcePage ?? null,
-                                sourceSection: citation.sourceSection ?? null,
-                                fieldValueText: citation.fieldValueText ?? null,
-                              })}
+                              onClick={() => {
+                                const pdfUrl = `/api/jurisdictions/${jurisdiction.id}/pdf${citation.sourcePage ? `#page=${citation.sourcePage}` : ''}`;
+                                window.open(pdfUrl, '_blank');
+                              }}
                             >
                               View source
                             </button>
@@ -219,16 +247,6 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />
-      )}
-
-      {pdfModal && (
-        <PdfModal
-          jurisdictionId={jurisdiction.id}
-          sourcePage={pdfModal.sourcePage}
-          sourceSection={pdfModal.sourceSection}
-          fieldValueText={pdfModal.fieldValueText}
-          onClose={() => setPdfModal(null)}
-        />
       )}
     </aside>
   );
