@@ -1,3 +1,15 @@
+# DEPRECATED — Migration period
+#
+# This workflow is superseded by four stage-specific workflows introduced in
+# the refactor/extraction-pipeline-v2 branch.  Please use those instead:
+#
+#   pipeline-zones.yml   — Stage 1: Zone Discovery
+#   pipeline-extract.yml — Stage 2: Field Extraction
+#   pipeline-load.yml    — Stage 3: Load to Database
+#   pipeline-score.yml   — Stage 4: Scoring
+#
+# This file will be removed once all teams have migrated to the new workflows.
+
 name: Extraction Pipeline
 
 on:

@@ -18,12 +18,16 @@
     "db:seed:market": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config db/seeds/marketData.ts",
     "db:seed:feasibility": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config db/seeds/feasibilityOutputs.ts",
     "db:seed:all": "npm run db:seed && npm run db:seed:scores && npm run db:seed:synthetic && npm run db:seed:market && npm run db:seed:feasibility",
-    "pipeline:run": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/run-pipeline.ts",
+    "pipeline:zones": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/zones.ts",
     "pipeline:extract": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/extract.ts",
     "pipeline:load": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/load.ts",
+    "pipeline:score": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/score.ts",
+    "pipeline:run": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/run-pipeline.ts",
     "pipeline:page-resolve": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/page-resolve.ts",
     "score:zones": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/score-zones.ts",
-    "pipeline:restore-mocks": "cp data/mocks/*.json data/extractions/"
+    "pipeline:restore-mocks": "cp data/mocks/*.json data/extractions/",
+    "artifacts:sync": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/artifacts-sync.ts",
+    "artifacts:migrate": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/migrate-artifacts.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

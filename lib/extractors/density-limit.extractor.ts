@@ -20,9 +20,9 @@ The density limit is the maximum number of dwelling units permitted per acre of 
 - Units per acre (e.g. "26 units per acre", "14 du/acre")
 - Floor area ratio / FAR (e.g. "FAR of 2.5")
 - Units per square foot
-- Minimum lot area per dwelling unit in square feet (e.g. "Lot area per dwelling unit: 1,680 sq. ft." or "minimum lot area per dwelling unit 1,677 sq. ft.") — this is the INVERSE: divide 43,560 by this number to get units/acre. Return the sq ft value as raw_value and use "sq ft per dwelling unit" as raw_unit.
+- Minimum lot area per dwelling unit in square feet (e.g. "Lot area per dwelling unit: 1,680 sq. ft." or "minimum lot area per dwelling unit 1,677 sq. ft.") — this is the INVERSE: the pipeline converts to units/acre automatically. Return the sq ft number as raw_value (digits only, no commas) and use "sqft/unit" as raw_unit.
 
-Focus on multifamily residential districts (RA, MF, R-M, RM, or similar). If the text shows a range (e.g. district named RA14-26), use the higher (more permissive) number. Return the value exactly as written — do not convert units. The pipeline will normalize to units per acre.
+Focus on multifamily residential districts (RA, MF, R-M, RM, or similar). If the text shows a range (e.g. district named RA14-26), use the higher (more permissive) number. Return raw_value as a plain number with no commas or formatting. Do not convert units — the pipeline normalizes to units per acre. Always include the verbatim ordinance quote in field_value_text even when converting units.
 
 Return a JSON object with this exact structure:
 {

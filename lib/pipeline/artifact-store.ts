@@ -1,72 +1,175 @@
 /**
- * E0-8: Artifact storage — read/write extraction artifacts.
+ * Artifact storage — v2 (pipeline refactor)
  *
  * Two implementations:
- *   GcsArtifactStore  — production; reads/writes gs://{bucket}/zoning/{slug}/extractions/latest.json
- *   LocalArtifactStore — development/synthetic; reads/writes data/extractions/{slug}.json
+ *   GcsArtifactStore  — used by Stage 1 (zones) and Stage 2 (extract) in production
+ *                       writes to gs://{bucket}/zoning/{slug}/artifacts/
+ *   LocalArtifactStore — used by Stage 3 (load) and Stage 4 (score) in all environments,
+ *                        and by all stages in local development
+ *                        reads/writes data/artifacts/{slug}/
  *
- * Selection follows the same RAW_DATA_BUCKET env var convention as the PDF fetchers.
+ * The repo is the source of truth. GCS is ephemeral working storage during cloud
+ * extraction runs. The sync script (npm run artifacts:sync) pulls GCS artifacts
+ * back to data/artifacts/ so load and score always read from the checked-out repo.
+ *
+ * buildExtractArtifactStore() — for Stage 1 + Stage 2 (write to GCS in prod)
+ * buildLoadArtifactStore()    — for Stage 3 + Stage 4 (always read from repo)
  */
 
 import { Storage } from '@google-cloud/storage'
 import fs from 'fs/promises'
 import path from 'path'
-import { ExtractionArtifact, ParsedPagesArtifact } from './artifact'
+import {
+  ExtractionArtifact,
+  ParsedPagesArtifact,
+  ScoresArtifact,
+  ZoneFieldsArtifact,
+  ZonesArtifact,
+  slugifyZoneCode,
+} from './artifact'
 
 // ─── interface ────────────────────────────────────────────────────────────────
 
 export interface ArtifactStore {
-  read(slug: string): Promise<ExtractionArtifact>
-  write(slug: string, artifact: ExtractionArtifact): Promise<void>
+  // ── v2 methods ──────────────────────────────────────────────────────────────
+  readZones(slug: string): Promise<ZonesArtifact>
+  writeZones(slug: string, artifact: ZonesArtifact): Promise<void>
+
+  readZoneFields(slug: string, zoneCode: string): Promise<ZoneFieldsArtifact>
+  writeZoneFields(slug: string, zoneCode: string, artifact: ZoneFieldsArtifact): Promise<void>
+
+  readScores(slug: string): Promise<ScoresArtifact>
+  writeScores(slug: string, artifact: ScoresArtifact): Promise<void>
+
+  // ── shared (pages artifact unchanged) ───────────────────────────────────────
   readPages(slug: string): Promise<ParsedPagesArtifact>
   writePages(slug: string, pages: ParsedPagesArtifact): Promise<void>
+
+  // ── legacy (retained for migration period) ──────────────────────────────────
+  read(slug: string): Promise<ExtractionArtifact>
+  write(slug: string, artifact: ExtractionArtifact): Promise<void>
 }
 
 // ─── local implementation ─────────────────────────────────────────────────────
 
 export class LocalArtifactStore implements ArtifactStore {
-  constructor(private readonly dir: string = 'data/extractions') {}
+  constructor(private readonly dir: string = 'data/artifacts') {}
 
-  async read(slug: string): Promise<ExtractionArtifact> {
-    const filePath = path.join(this.dir, `${slug}.json`)
+  private slugDir(slug: string): string {
+    return path.join(this.dir, slug)
+  }
+
+  private async ensureDir(slug: string): Promise<void> {
+    await fs.mkdir(this.slugDir(slug), { recursive: true })
+  }
+
+  private async readJson<T>(filePath: string, notFoundMsg: string): Promise<T> {
     try {
       const contents = await fs.readFile(filePath, 'utf-8')
-      return JSON.parse(contents) as ExtractionArtifact
+      return JSON.parse(contents) as T
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new Error(
-          `No artifact found at ${filePath} — run \`npm run pipeline:extract ${slug}\` first`,
-        )
+        throw new Error(notFoundMsg)
       }
       throw err
     }
   }
 
-  async write(slug: string, artifact: ExtractionArtifact): Promise<void> {
-    await fs.mkdir(this.dir, { recursive: true })
-    const filePath = path.join(this.dir, `${slug}.json`)
-    await fs.writeFile(filePath, JSON.stringify(artifact, null, 2), 'utf-8')
+  private async writeJson(filePath: string, data: unknown): Promise<void> {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
+  }
+
+  // ── v2 ──────────────────────────────────────────────────────────────────────
+
+  async readZones(slug: string): Promise<ZonesArtifact> {
+    const filePath = path.join(this.slugDir(slug), `${slug}_zones.json`)
+    return this.readJson<ZonesArtifact>(
+      filePath,
+      `No zones artifact at ${filePath} — run \`npm run pipeline:zones ${slug}\` first`,
+    )
+  }
+
+  async writeZones(slug: string, artifact: ZonesArtifact): Promise<void> {
+    await this.ensureDir(slug)
+    const filePath = path.join(this.slugDir(slug), `${slug}_zones.json`)
+    // Guard: never overwrite an approved zones artifact — all stage-level checks
+    // should catch this first, but this is a second line of defense.
+    try {
+      const existing = JSON.parse(await fs.readFile(filePath, 'utf-8')) as { approved?: boolean }
+      if (existing.approved) {
+        throw new Error(
+          `Refusing to overwrite approved zones artifact at ${filePath}. ` +
+          `Delete or rename the file before re-running zone discovery.`,
+        )
+      }
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err
+      // File does not exist — proceed normally
+    }
+    await this.writeJson(filePath, artifact)
+  }
+
+  async readZoneFields(slug: string, zoneCode: string): Promise<ZoneFieldsArtifact> {
+    const zoneSlug = slugifyZoneCode(zoneCode)
+    const filePath = path.join(this.slugDir(slug), `${slug}_${zoneSlug}_fields.json`)
+    return this.readJson<ZoneFieldsArtifact>(
+      filePath,
+      `No fields artifact at ${filePath} — run \`npm run pipeline:extract ${slug} ${zoneCode}\` first`,
+    )
+  }
+
+  async writeZoneFields(slug: string, zoneCode: string, artifact: ZoneFieldsArtifact): Promise<void> {
+    await this.ensureDir(slug)
+    const zoneSlug = slugifyZoneCode(zoneCode)
+    const filePath = path.join(this.slugDir(slug), `${slug}_${zoneSlug}_fields.json`)
+    await this.writeJson(filePath, artifact)
+  }
+
+  async readScores(slug: string): Promise<ScoresArtifact> {
+    const filePath = path.join(this.slugDir(slug), `${slug}_scores.json`)
+    return this.readJson<ScoresArtifact>(
+      filePath,
+      `No scores artifact at ${filePath} — run \`npm run pipeline:score ${slug}\` first`,
+    )
+  }
+
+  async writeScores(slug: string, artifact: ScoresArtifact): Promise<void> {
+    await this.ensureDir(slug)
+    const filePath = path.join(this.slugDir(slug), `${slug}_scores.json`)
+    await this.writeJson(filePath, artifact)
   }
 
   async readPages(slug: string): Promise<ParsedPagesArtifact> {
-    const filePath = path.join(this.dir, `${slug}.pages.json`)
-    try {
-      const contents = await fs.readFile(filePath, 'utf-8')
-      return JSON.parse(contents) as ParsedPagesArtifact
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new Error(
-          `No parsed-pages artifact at ${filePath} — run \`npm run pipeline:extract ${slug}\` first`,
-        )
-      }
-      throw err
-    }
+    const filePath = path.join(this.slugDir(slug), `${slug}_pages.json`)
+    return this.readJson<ParsedPagesArtifact>(
+      filePath,
+      `No parsed-pages artifact at ${filePath} — run \`npm run pipeline:zones ${slug}\` first`,
+    )
   }
 
   async writePages(slug: string, pages: ParsedPagesArtifact): Promise<void> {
-    await fs.mkdir(this.dir, { recursive: true })
-    const filePath = path.join(this.dir, `${slug}.pages.json`)
-    await fs.writeFile(filePath, JSON.stringify(pages, null, 2), 'utf-8')
+    await this.ensureDir(slug)
+    const filePath = path.join(this.slugDir(slug), `${slug}_pages.json`)
+    await this.writeJson(filePath, pages)
+  }
+
+  // ── legacy ───────────────────────────────────────────────────────────────────
+  // These methods intentionally hardcode 'data/extractions' and ignore this.dir.
+  // Legacy artifacts live in data/extractions/ regardless of the store's base dir.
+  // This asymmetry is intentional — do not "fix" it to use this.dir.
+
+  async read(slug: string): Promise<ExtractionArtifact> {
+    const filePath = path.join('data/extractions', `${slug}.json`)
+    return this.readJson<ExtractionArtifact>(
+      filePath,
+      `No legacy artifact at ${filePath}`,
+    )
+  }
+
+  async write(slug: string, artifact: ExtractionArtifact): Promise<void> {
+    await fs.mkdir('data/extractions', { recursive: true })
+    const filePath = path.join('data/extractions', `${slug}.json`)
+    await this.writeJson(filePath, artifact)
   }
 }
 
@@ -75,66 +178,102 @@ export class LocalArtifactStore implements ArtifactStore {
 export class GcsArtifactStore implements ArtifactStore {
   constructor(private readonly bucket: string) {}
 
-  private gcsPath(slug: string): string {
-    return `zoning/${slug}/extractions/latest.json`
+  private artifactsPath(slug: string, filename: string): string {
+    return `zoning/${slug}/artifacts/${filename}`
   }
 
-  async read(slug: string): Promise<ExtractionArtifact> {
+  private async readGcs<T>(gcsPath: string, notFoundMsg: string): Promise<T> {
     const storage = new Storage()
-    const file = storage.bucket(this.bucket).file(this.gcsPath(slug))
+    const file = storage.bucket(this.bucket).file(gcsPath)
     try {
       const [contents] = await file.download()
-      return JSON.parse(contents.toString('utf-8')) as ExtractionArtifact
+      return JSON.parse(contents.toString('utf-8')) as T
     } catch (err) {
       if ((err as { code?: number }).code === 404) {
-        throw new Error(
-          `No artifact found at gs://${this.bucket}/${this.gcsPath(slug)} — run \`npm run pipeline:extract ${slug}\` first`,
-        )
+        throw new Error(notFoundMsg)
       }
       throw err
     }
   }
 
-  async write(slug: string, artifact: ExtractionArtifact): Promise<void> {
+  private async writeGcs(gcsPath: string, data: unknown): Promise<void> {
     const storage = new Storage()
-    const file = storage.bucket(this.bucket).file(this.gcsPath(slug))
-    await file.save(JSON.stringify(artifact, null, 2), { contentType: 'application/json' })
+    const file = storage.bucket(this.bucket).file(gcsPath)
+    await file.save(JSON.stringify(data, null, 2), { contentType: 'application/json' })
   }
 
-  private gcsPagesPath(slug: string): string {
-    return `zoning/${slug}/extractions/parsed-pages.json`
+  // ── v2 ──────────────────────────────────────────────────────────────────────
+
+  async readZones(slug: string): Promise<ZonesArtifact> {
+    const p = this.artifactsPath(slug, `${slug}_zones.json`)
+    return this.readGcs<ZonesArtifact>(p, `No zones artifact at gs://${this.bucket}/${p}`)
+  }
+
+  async writeZones(slug: string, artifact: ZonesArtifact): Promise<void> {
+    await this.writeGcs(this.artifactsPath(slug, `${slug}_zones.json`), artifact)
+  }
+
+  async readZoneFields(slug: string, zoneCode: string): Promise<ZoneFieldsArtifact> {
+    const zoneSlug = slugifyZoneCode(zoneCode)
+    const p = this.artifactsPath(slug, `${slug}_${zoneSlug}_fields.json`)
+    return this.readGcs<ZoneFieldsArtifact>(p, `No fields artifact at gs://${this.bucket}/${p}`)
+  }
+
+  async writeZoneFields(slug: string, zoneCode: string, artifact: ZoneFieldsArtifact): Promise<void> {
+    const zoneSlug = slugifyZoneCode(zoneCode)
+    await this.writeGcs(this.artifactsPath(slug, `${slug}_${zoneSlug}_fields.json`), artifact)
+  }
+
+  async readScores(_slug: string): Promise<ScoresArtifact> {
+    throw new Error(
+      'Scores are never stored in GCS — use buildLoadArtifactStore() (LocalArtifactStore) for score read/write.',
+    )
+  }
+
+  async writeScores(_slug: string, _artifact: ScoresArtifact): Promise<void> {
+    throw new Error(
+      'Scores are never stored in GCS — use buildLoadArtifactStore() (LocalArtifactStore) for score read/write.',
+    )
   }
 
   async readPages(slug: string): Promise<ParsedPagesArtifact> {
-    const storage = new Storage()
-    const file = storage.bucket(this.bucket).file(this.gcsPagesPath(slug))
-    try {
-      const [contents] = await file.download()
-      return JSON.parse(contents.toString('utf-8')) as ParsedPagesArtifact
-    } catch (err) {
-      if ((err as { code?: number }).code === 404) {
-        throw new Error(
-          `No parsed-pages artifact at gs://${this.bucket}/${this.gcsPagesPath(slug)} — run \`npm run pipeline:extract ${slug}\` first`,
-        )
-      }
-      throw err
-    }
+    const p = this.artifactsPath(slug, `${slug}_pages.json`)
+    return this.readGcs<ParsedPagesArtifact>(p, `No parsed-pages artifact at gs://${this.bucket}/${p}`)
   }
 
   async writePages(slug: string, pages: ParsedPagesArtifact): Promise<void> {
-    const storage = new Storage()
-    const file = storage.bucket(this.bucket).file(this.gcsPagesPath(slug))
-    await file.save(JSON.stringify(pages, null, 2), { contentType: 'application/json' })
+    await this.writeGcs(this.artifactsPath(slug, `${slug}_pages.json`), pages)
+  }
+
+  // ── legacy ───────────────────────────────────────────────────────────────────
+
+  async read(slug: string): Promise<ExtractionArtifact> {
+    const p = `zoning/${slug}/extractions/latest.json`
+    return this.readGcs<ExtractionArtifact>(p, `No legacy artifact at gs://${this.bucket}/${p}`)
+  }
+
+  async write(slug: string, artifact: ExtractionArtifact): Promise<void> {
+    await this.writeGcs(`zoning/${slug}/extractions/latest.json`, artifact)
   }
 }
 
-// ─── factory ──────────────────────────────────────────────────────────────────
+// ─── factories ────────────────────────────────────────────────────────────────
 
 /**
- * Returns the appropriate ArtifactStore based on environment.
- * Mirrors the fetcher selection logic: GCS when RAW_DATA_BUCKET is set, local otherwise.
+ * For Stage 1 (zones) and Stage 2 (extract):
+ * Uses GcsArtifactStore when RAW_DATA_BUCKET is set (production cloud runs),
+ * falls back to LocalArtifactStore for local development.
  */
-export function buildArtifactStore(): ArtifactStore {
+export function buildExtractArtifactStore(): ArtifactStore {
   const bucket = process.env.RAW_DATA_BUCKET
   return bucket ? new GcsArtifactStore(bucket) : new LocalArtifactStore()
+}
+
+/**
+ * For Stage 3 (load) and Stage 4 (score):
+ * Always uses LocalArtifactStore pointed at data/artifacts/ —
+ * the repo is the source of truth; load/score never read from GCS directly.
+ */
+export function buildLoadArtifactStore(): ArtifactStore {
+  return new LocalArtifactStore()
 }

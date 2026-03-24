@@ -1,0 +1,89 @@
+name: Pipeline — Scoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      jurisdiction:
+        description: 'Jurisdiction slug'
+        required: true
+        type: choice
+        options:
+          - fairfax_va
+          - arlington_va
+          - loudoun_va
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  scoring:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
+          sleep 5
+
+      - name: Run scoring
+        run: npm run pipeline:score "${{ inputs.jurisdiction }}"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Commit scores to dedicated branch and auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JURISDICTION: ${{ inputs.jurisdiction }}
+          RUN_ID: ${{ github.run_id }}
+          BASE_BRANCH: ${{ github.ref_name }}
+        run: |
+          BRANCH="artifacts/${JURISDICTION}/scores-${RUN_ID}"
+          SCORES_FILE="data/artifacts/${JURISDICTION}/${JURISDICTION}_scores.json"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${SCORES_FILE}"
+
+          if git diff --cached --quiet; then
+            echo "No score changes to commit — skipping."
+            exit 0
+          fi
+
+          git commit -m "artifacts(${JURISDICTION}): update scores [run ${RUN_ID}]"
+          git push origin "${BRANCH}"
+
+          # Open PR targeting the branch that triggered the workflow, then immediately merge.
+          # Scores are fully pipeline-generated — no human review needed.
+          gh pr create \
+            --base "${BASE_BRANCH}" \
+            --head "${BRANCH}" \
+            --title "artifacts(${JURISDICTION}): update scores [run ${RUN_ID}]" \
+            --body "Automated scores update from Pipeline — Scoring workflow run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}).
+
+Scores are fully pipeline-generated. This PR is merged automatically." \
+            --label "automated"
+
+          gh pr merge "${BRANCH}" --squash --auto --delete-branch

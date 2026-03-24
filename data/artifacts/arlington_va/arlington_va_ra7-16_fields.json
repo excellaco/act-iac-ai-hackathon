@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "RA7-16",
+  "zoneName": "Multiple-family Dwelling District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T03:30:57.978Z",
+  "approved": true,
+  "fields": {
+    "density_limit_units_per_acre": {
+      "raw_value": "26",
+      "raw_unit": "units/acre",
+      "field_value": "26",
+      "field_value_text": "RA14-26, Multiple-family Dwelling District",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a76.2",
+      "district_context": "RA14-26, Multiple-family Dwelling District",
+      "reasoning": "The maximum density is derived from the most permissive multifamily district name 'RA14-26', where '26' indicates 26 units per acre as per the instruction to use the higher number in a range.",
+      "source_page": 5
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Parking and loading shall be provided in accordance with the requirements of \u00a714.3.",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "\u00a76.4.4.A",
+      "district_context": "RA7-16, Multiple-family Dwelling District",
+      "reasoning": "The text states that parking requirements are provided in accordance with \u00a714.3, but the content of \u00a714.3 is not present in the provided text chunk.",
+      "source_page": 79
+    },
+    "min_lot_size_sqft": {
+      "raw_value": "7,500",
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "Lot, minimum (sq. ft.)  Lot area 7,500",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a76.4",
+      "district_context": "RA7-16, Multiple-family (By-right)",
+      "reasoning": "The minimum lot size for multiple-family development in the RA7-16 district is explicitly stated as 7,500 sq. ft. in the 'Density and dimensional standards' table for by-right development.",
+      "source_page": 78
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a76.1.2",
+      "district_context": "RA14-26 Multiple-family Dwelling District",
+      "reasoning": "The use table explicitly states 'P' for Multiple-family dwellings in the RA14-26 district, and the key defines 'P' as 'allowed by-right', which is the most permissive option.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": 95,
+      "raw_unit": "feet",
+      "field_value": 95,
+      "field_value_text": "Height  Maximum (feet) 95",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a76.4.C",
+      "district_context": "RA7-16 (Special Exception)",
+      "reasoning": "The maximum height for multiple-family development in the RA7-16 district under special exception is 95 feet, which is the most permissive general multifamily height found in the provided text.",
+      "source_page": 78
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text chunk does not contain specific front setback requirements for residential multifamily districts.",
+      "source_page": null
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text chunk does not contain specific rear setback requirements for residential multifamily districts.",
+      "source_page": null
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text chunk does not contain specific side setback requirements for residential multifamily districts.",
+      "source_page": null
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "RA4.8",
+  "zoneName": "Multiple-Family Dwelling District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T03:32:41.871Z",
+  "approved": true,
+  "fields": {
+    "height_limit_ft": {
+      "raw_value": "125",
+      "raw_unit": "feet",
+      "field_value": "125",
+      "field_value_text": "building heights shall under no circumstances exceed 12 stories or 125 feet",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a76.3.4 D.1.(b)",
+      "district_context": "RA8-18, Revitalization Area of the \u201cFort Myer Heights North Special District\u201d",
+      "reasoning": "The text specifies a maximum building height of 125 feet for multifamily dwellings in the RA8-18 district under specific conditions, which is the most permissive height found.",
+      "source_page": 76
+    },
+    "min_lot_size_sqft": {
+      "raw_value": 3500,
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "Lot, minimum (sq. ft.) 3,500",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a76.3.4",
+      "district_context": "RA8-18 Multiple-family Dwelling District (for Two-family Dwellings)",
+      "reasoning": "The minimum lot size for two-family dwellings, a type of multifamily development, was found in the dimensional standards table for the RA8-18 district, representing the least restrictive value for multifamily in the provided text.",
+      "source_page": null
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": "One",
+      "raw_unit": "off-street space per dwelling unit",
+      "field_value": null,
+      "field_value_text": "Multiple-family dwelling: One off-street space per dwelling unit.",
+      "unit": "spaces_per_unit",
+      "confidence": "low",
+      "source_section": "\u00a77.2.4",
+      "district_context": "RA4.8, Multiple-family dwelling district",
+      "reasoning": "The ordinance specifies one off-street parking space per dwelling unit for multiple-family dwellings in the RA4.8 district.",
+      "source_page": null
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a77.1.2 COMMERCIAL/MIXED USE (C) DISTRICTS PRINCIPAL USE TABLE",
+      "district_context": "RA4.8",
+      "reasoning": "The 'COMMERCIAL/MIXED USE (C) DISTRICTS PRINCIPAL USE TABLE' indicates that 'Multiple-family' housing is 'P' (allowed by-right) in the RA4.8 district, which is the least restrictive option found in the provided text.",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "3500",
+      "raw_unit": "sqft/unit",
+      "field_value": 12.445714285714285,
+      "field_value_text": "Lot area per dwelling unit 3,500",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a76.3.4",
+      "district_context": "RA8-18",
+      "reasoning": "The value 3,500 sqft/unit is the lowest minimum lot area per dwelling unit explicitly stated for a multifamily district (RA8-18), representing the highest density.",
+      "source_page": 64
+    },
+    "setback_side_ft": {
+      "raw_value": "No",
+      "raw_unit": "yard shall be required",
+      "field_value": null,
+      "field_value_text": "No side or rear yard shall be required",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a73.2.6",
+      "district_context": "RA4.8, C, M and P-S districts, not including C-1-O",
+      "reasoning": "The text states 'No side or rear yard shall be required' for the RA4.8 multifamily district under certain conditions, which is the most permissive (0 feet) side setback found for a multifamily district in the provided text.",
+      "source_page": 24
+    },
+    "setback_rear_ft": {
+      "raw_value": "No",
+      "raw_unit": "yard shall be required",
+      "field_value": null,
+      "field_value_text": "No side or rear yard shall be required",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a73.2.6",
+      "district_context": "RA4.8, C, M and P-S districts, not including C-1-O",
+      "reasoning": "The text states 'No side or rear yard shall be required' for the RA4.8 multifamily district under certain conditions, which is the most permissive (0 feet) rear setback found for a multifamily district in the provided text.",
+      "source_page": 24
+    },
+    "setback_front_ft": {
+      "raw_value": "25",
+      "raw_unit": "feet",
+      "field_value": "25",
+      "field_value_text": "25 feet from any street right-of-way line",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a73.2.6",
+      "district_context": "all residential structures (excluding one- and two-family dwellings)",
+      "reasoning": "The text specifies a minimum front setback of '25 feet from any street right-of-way line' for 'all residential structures' (excluding one- and two-family dwellings), which includes multifamily districts not specifically covered by other clauses, representing the most permissive explicit property line setback for multifamily.",
+      "source_page": 24
+    }
+  }
+}

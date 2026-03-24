@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "R-C",
+  "zoneName": "Multiple-family Dwelling and Commercial District",
+  "multifamilyClassification": "permitted",
+  "extractedAt": "2026-03-24T03:33:14.594Z",
+  "approved": true,
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": "7,000",
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "Lot area 7,000",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a77.3.3.A",
+      "district_context": "R-C, Multiple-family Dwelling and Commercial District (By-right Development)",
+      "reasoning": "The minimum lot size for multiple-family dwellings under by-right development in the R-C district is explicitly stated as 7,000 sq. ft.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": 95,
+      "raw_unit": "feet",
+      "field_value": 95,
+      "field_value_text": "Under no circumstances shall the height of any building exceed 95 feet",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a77.3.4.C",
+      "district_context": "R-C, Multiple-family Dwelling and Commercial District (Site Plan approval)",
+      "reasoning": "The text specifies a maximum height of 95 feet for any building under the site plan standards within the R-C, Multiple-family Dwelling and Commercial District, which is the most permissive height found for multifamily development.",
+      "source_page": 97
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a77.1.2",
+      "district_context": "RA4.8 Multiple-family Dwelling District",
+      "reasoning": "The 'COMMERCIAL/MIXED USE (C) DISTRICTS PRINCIPAL USE TABLE' indicates that 'Multiple-family' dwellings are 'P = allowed by-right' in the RA4.8 district, which is the most permissive option found.",
+      "source_page": null
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Parking for new dwelling units shall be provided as required in \u00a714.3.",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "\u00a712.3.7",
+      "district_context": "RA districts (Low- and Moderate-Income Housing)",
+      "reasoning": "The text refers to \u00a714.3 for parking requirements for new dwelling units in residential multifamily districts but does not provide the specific value within this chunk.",
+      "source_page": 243
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "26",
+      "raw_unit": "units/acre",
+      "field_value": "26",
+      "field_value_text": "RA14-26 Multiple-family Dwelling",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a71.7. Zoning Districts Established General districts",
+      "district_context": "RA14-26 Multiple-family Dwelling",
+      "reasoning": "The RA14-26 district is identified as a Multiple-family Dwelling District, and the '26' in its name represents the maximum density in units per acre, which is the most permissive among the listed multifamily districts.",
+      "source_page": 10
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "For bulk, coverage and placement requirements not listed in this section see \u00a73.2.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a77.3.3.C",
+      "district_context": "R-C, Multiple-family Dwelling and Commercial District",
+      "reasoning": "The provided text does not specify front setback requirements for multifamily dwellings and refers to \u00a73.2 for bulk and placement requirements.",
+      "source_page": 37
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "For bulk, coverage and placement requirements not listed in this section see \u00a73.2.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a77.3.3.C",
+      "district_context": "R-C, Multiple-family Dwelling and Commercial District",
+      "reasoning": "The provided text does not specify side setback requirements for multifamily dwellings and refers to \u00a73.2 for bulk and placement requirements.",
+      "source_page": 37
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "For bulk, coverage and placement requirements not listed in this section see \u00a73.2.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a77.3.3.C",
+      "district_context": "R-C, Multiple-family Dwelling and Commercial District",
+      "reasoning": "The provided text does not specify rear setback requirements for multifamily dwellings and refers to \u00a73.2 for bulk and placement requirements.",
+      "source_page": 37
+    }
+  }
+}

@@ -1,0 +1,53 @@
+name: Pipeline — Load to Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      jurisdiction:
+        description: 'Jurisdiction slug'
+        required: true
+        type: choice
+        options:
+          - fairfax_va
+          - arlington_va
+          - loudoun_va
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  load-to-database:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      # setup-gcloud is intentionally omitted — load always reads from the repo
+      # (LocalArtifactStore) and never touches GCS directly. GCP auth is only
+      # needed for the Cloud SQL Auth Proxy below.
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
+          sleep 5
+
+      - name: Load artifacts to database
+        run: npm run pipeline:load ${{ inputs.jurisdiction }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}

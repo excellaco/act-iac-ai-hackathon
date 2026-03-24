@@ -96,7 +96,7 @@ export interface JurisdictionData {
 
 const JURISDICTION_FIELDS: Record<string, RegulationFields> = {
   // Real demo jurisdictions — slugs match db/seeds/jurisdictions.ts
-  'fairfax': {
+  'fairfax_va': {
     minLotSizeSqft:          43_560,  // R-MF zone: 1 acre minimum
     heightLimitFt:           45,      // R-MF: 45 ft height limit
     densityLimitUpa:         12,      // R-MF: up to 12 units/acre
@@ -107,10 +107,10 @@ const JURISDICTION_FIELDS: Record<string, RegulationFields> = {
     discretionaryReviewType: 'special-use-permit',
     permits5plus:            1842,    // Census BPS 2023
     totalPermits:            3284,
-    regionalMultiplier:      REGIONAL_MULTIPLIERS['fairfax'],
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['fairfax_va'],
     fmr2br:                  2280,    // HUD FY2025 DC MSA
   },
-  'arlington': {
+  'arlington_va': {
     minLotSizeSqft:          3_630,   // Rosslyn-Ballston MU corridor: ~1/12 acre
     heightLimitFt:           125,     // Mixed-use zone: 125 ft
     densityLimitUpa:         72,      // Rosslyn-Ballston: up to 72 du/acre
@@ -121,10 +121,10 @@ const JURISDICTION_FIELDS: Record<string, RegulationFields> = {
     discretionaryReviewType: 'by-right',
     permits5plus:            892,     // Census BPS 2023
     totalPermits:            987,
-    regionalMultiplier:      REGIONAL_MULTIPLIERS['arlington'],
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['arlington_va'],
     fmr2br:                  2280,
   },
-  'loudoun': {
+  'loudoun_va': {
     minLotSizeSqft:          57_000,  // ~1.3 acres (R-E residential estate zone)
     heightLimitFt:           50,      // PD-H multifamily: 50 ft
     densityLimitUpa:         6,       // PD-H2: 6 du/acre
@@ -135,7 +135,7 @@ const JURISDICTION_FIELDS: Record<string, RegulationFields> = {
     discretionaryReviewType: 'special-use-permit',
     permits5plus:            1203,    // Census BPS 2023
     totalPermits:            2891,
-    regionalMultiplier:      REGIONAL_MULTIPLIERS['loudoun'],
+    regionalMultiplier:      REGIONAL_MULTIPLIERS['loudoun_va'],
     fmr2br:                  2280,
   },
 }
@@ -209,9 +209,9 @@ function buildJurisdiction(
 }
 
 export const JURISDICTIONS: JurisdictionData[] = [
-  buildJurisdiction('fairfax-uuid',   'Fairfax County',   'VA', 'fairfax',   { dci: 75, dcoi: 70, pci: 65, crp: 80 }),
-  buildJurisdiction('arlington-uuid', 'Arlington County', 'VA', 'arlington', { dci: 40, dcoi: 50, pci: 35, crp: 45 }),
-  buildJurisdiction('loudoun-uuid',   'Loudoun County',   'VA', 'loudoun',   { dci: 80, dcoi: 55, pci: 60, crp: 60 }),
+  buildJurisdiction('fairfax-uuid',   'Fairfax County',   'VA', 'fairfax_va',   { dci: 75, dcoi: 70, pci: 65, crp: 80 }),
+  buildJurisdiction('arlington-uuid', 'Arlington County', 'VA', 'arlington_va', { dci: 40, dcoi: 50, pci: 35, crp: 45 }),
+  buildJurisdiction('loudoun-uuid',   'Loudoun County',   'VA', 'loudoun_va',   { dci: 80, dcoi: 55, pci: 60, crp: 60 }),
 ]
 
 /**

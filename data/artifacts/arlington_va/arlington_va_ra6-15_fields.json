@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "RA6-15",
+  "zoneName": "Multiple-family Dwelling District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T03:31:38.303Z",
+  "approved": true,
+  "fields": {
+    "density_limit_units_per_acre": {
+      "raw_value": "26",
+      "raw_unit": "units/acre",
+      "field_value": "26",
+      "field_value_text": "RA14-26, Multiple-family Dwelling District",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a76.2",
+      "district_context": "RA14-26, Multiple-family Dwelling District",
+      "reasoning": "The maximum density is derived from the most permissive multifamily district name 'RA14-26', where '26' indicates 26 units per acre as per the instruction to use the higher number in a range.",
+      "source_page": 5
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a76.1.2",
+      "district_context": "RA14-26 Multiple-family Dwelling District",
+      "reasoning": "The use table explicitly states 'P' for Multiple-family dwellings in the RA14-26 district, and the key defines 'P' as 'allowed by-right', which is the most permissive option.",
+      "source_page": null
+    },
+    "min_lot_size_sqft": {
+      "raw_value": "7,000",
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "Lot area 7,000",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a76.5.5",
+      "district_context": "RA6-15 Multiple-family Dwelling District (By-right)",
+      "reasoning": "The text provides a table of 'Density and dimensional standards' for the RA6-15 Multiple-family Dwelling District, where 'Lot area' for 'Multiple-family' is listed as '7,000 sq. ft.'.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": "125",
+      "raw_unit": "feet",
+      "field_value": "125",
+      "field_value_text": "dwellings may be increased to a height not to exceed either 12 stories or 125 feet",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a76.5.5.D.1(c)",
+      "district_context": "RA6-15 district (by site plan approval)",
+      "reasoning": "The RA6-15 Multiple-family Dwelling District allows for a modified height limit of up to 125 feet for dwellings by site plan approval, which is the most permissive height found for multifamily development in the provided text.",
+      "source_page": 82
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Parking for new dwelling units shall be provided as required in \u00a714.3.",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "\u00a712.3.7.A.3",
+      "district_context": "Low- and moderate-income housing (referencing RA14-26, RA7-16, RA4.8, R-C, RA-H, RA-H-3.2, RA8-18, RA6-15)",
+      "reasoning": "The text explicitly states that parking for new dwelling units shall be provided as required in \u00a714.3, but the content of \u00a714.3 is not present in the provided text chunk, therefore the specific minimum requirement cannot be extracted.",
+      "source_page": 243
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "The County Board may, in its discretion, approve variations in setback, yard, lot size, coverage, and parking requirements to achieve a design appropriate for the site and project.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a712.3. Residential Use Standards",
+      "district_context": "Residential Apartment (RA) districts",
+      "reasoning": "The provided text mentions setbacks as modifiable requirements but does not specify any numerical minimum front setback for multifamily districts.",
+      "source_page": 242
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "The County Board may, in its discretion, approve variations in setback, yard, lot size, coverage, and parking requirements to achieve a design appropriate for the site and project.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a712.3. Residential Use Standards",
+      "district_context": "Residential Apartment (RA) districts",
+      "reasoning": "The provided text mentions setbacks as modifiable requirements but does not specify any numerical minimum side setback for multifamily districts.",
+      "source_page": 242
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "The County Board may, in its discretion, approve variations in setback, yard, lot size, coverage, and parking requirements to achieve a design appropriate for the site and project.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a712.3. Residential Use Standards",
+      "district_context": "Residential Apartment (RA) districts",
+      "reasoning": "The provided text mentions setbacks as modifiable requirements but does not specify any numerical minimum rear setback for multifamily districts.",
+      "source_page": 242
+    }
+  }
+}
