@@ -5,10 +5,13 @@
  * Used after a cloud extraction run to bring artifacts back to the repo.
  *
  * Usage:
- *   npm run artifacts:sync <jurisdiction-slug>
+ *   npm run artifacts:sync <jurisdiction-slug> [--force]
  *
  * Never overwrites files that have "approved": true — those are human-verified
  * and must not be clobbered by a cloud run.
+ *
+ * --force  Override the approved guard and overwrite all local files from GCS.
+ *          Use with care — this will clobber any locally approved artifacts.
  */
 
 import { Storage } from '@google-cloud/storage'
@@ -18,11 +21,19 @@ import path from 'path'
 const LOCAL_ARTIFACTS_DIR = 'data/artifacts'
 
 async function main() {
-  const slug = process.argv[2]
+  const args = process.argv.slice(2)
+  const slug = args.find((a) => !a.startsWith('--'))
+  const force = args.includes('--force')
+
   if (!slug) {
-    console.error('Usage: npm run artifacts:sync <jurisdiction-slug>')
+    console.error('Usage: npm run artifacts:sync <jurisdiction-slug> [--force]')
     console.error('Example: npm run artifacts:sync arlington')
+    console.error('         npm run artifacts:sync fairfax_va --force')
     process.exit(1)
+  }
+
+  if (force) {
+    console.warn('WARNING: --force flag set — approved local artifacts will be overwritten.')
   }
 
   const bucket = process.env.RAW_DATA_BUCKET
@@ -77,8 +88,8 @@ async function main() {
       }
     }
 
-    // If local copy exists and is approved — skip with warning
-    if (localExists && localContent !== null) {
+    // If local copy exists and is approved — skip unless --force
+    if (!force && localExists && localContent !== null) {
       let parsed: unknown
       try {
         parsed = JSON.parse(localContent)
@@ -92,7 +103,7 @@ async function main() {
         'approved' in (parsed as Record<string, unknown>) &&
         (parsed as Record<string, unknown>).approved === true
       ) {
-        console.warn(`  SKIP (approved)  ${filename}  — local copy is approved, will not overwrite`)
+        console.warn(`  SKIP (approved)  ${filename}  — local copy is approved, use --force to overwrite`)
         skippedApproved++
         continue
       }
