@@ -57,6 +57,10 @@ jobs:
           JURISDICTION: ${{ inputs.jurisdiction }}
           RUN_ID: ${{ github.run_id }}
           BASE_BRANCH: ${{ github.ref_name }}
+          PR_BODY: |
+            Automated scores update from Pipeline — Scoring workflow run [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            Scores are fully pipeline-generated. This PR is merged automatically.
         run: |
           BRANCH="artifacts/${JURISDICTION}/scores-${RUN_ID}"
           SCORES_FILE="data/artifacts/${JURISDICTION}/${JURISDICTION}_scores.json"
@@ -77,13 +81,12 @@ jobs:
 
           # Open PR targeting the branch that triggered the workflow, then immediately merge.
           # Scores are fully pipeline-generated — no human review needed.
+          printf '%s' "$PR_BODY" > /tmp/pr-body.md
           gh pr create \
             --base "${BASE_BRANCH}" \
             --head "${BRANCH}" \
             --title "artifacts(${JURISDICTION}): update scores [run ${RUN_ID}]" \
-            --body "Automated scores update from Pipeline — Scoring workflow run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}).
-
-Scores are fully pipeline-generated. This PR is merged automatically." \
+            --body-file /tmp/pr-body.md \
             --label "automated"
 
           gh pr merge "${BRANCH}" --squash --auto --delete-branch

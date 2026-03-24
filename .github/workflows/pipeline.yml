@@ -101,6 +101,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           JURISDICTION: ${{ github.event.inputs.jurisdiction }}
           RUN_ID: ${{ github.run_id }}
+          PR_BODY: |
+            ## Zone Discovery Results — `${{ github.event.inputs.jurisdiction }}`
+
+            This PR was opened automatically by the **Extraction Pipeline** workflow (run [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+
+            ## Reviewer checklist
+
+            - [ ] Open `data/artifacts/${{ github.event.inputs.jurisdiction }}/${{ github.event.inputs.jurisdiction }}_zones.json` (or the equivalent zones file).
+            - [ ] Review the discovered zones for accuracy.
+            - [ ] Set `"approved": true` on each zone entry you want Stage 2 (Field Extraction) to process.
+            - [ ] Save the file and commit the change to this branch before merging.
+
+            > **Important:** Merging this PR without setting `approved: true` on at least one zone will cause Stage 2 (`pipeline-extract`) to skip all zones for this jurisdiction.
         run: |
           BRANCH="artifacts/${JURISDICTION}/zones-${RUN_ID}"
 
@@ -108,8 +121,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "${BRANCH}"
-
-          # Stage zones JSON files, excluding page-map artifacts
           git add "data/artifacts/${JURISDICTION}/" -- ':!*_pages.json'
 
           if git diff --cached --quiet; then
@@ -121,26 +132,15 @@ jobs:
           git push origin "${BRANCH}"
 
           EXISTING_PR=$(gh pr list --head "${BRANCH}" --json url --jq '.[0].url' 2>/dev/null || true)
-
           if [ -n "${EXISTING_PR}" ]; then
             echo "PR already exists: ${EXISTING_PR}"
           else
+            printf '%s' "$PR_BODY" > /tmp/pr-body.md
             gh pr create \
               --base main \
               --head "${BRANCH}" \
               --title "artifacts(${JURISDICTION}): zone discovery results" \
-              --body "## Zone Discovery Results — \`${JURISDICTION}\`
-
-This PR was opened automatically by the **Extraction Pipeline** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
-
-## Reviewer checklist
-
-- [ ] Open \`data/artifacts/${JURISDICTION}/${JURISDICTION}_zones.json\` (or the equivalent zones file).
-- [ ] Review the discovered zones for accuracy.
-- [ ] Set \`\"approved\": true\` on each zone entry you want Stage 2 (Field Extraction) to process.
-- [ ] Save the file and commit the change to this branch before merging.
-
-> **Important:** Merging this PR without setting \`approved: true\` on at least one zone will cause Stage 2 (\`pipeline-extract\`) to skip all zones for this jurisdiction."
+              --body-file /tmp/pr-body.md
           fi
 
       - name: Create PR with field extraction results
@@ -149,6 +149,19 @@ This PR was opened automatically by the **Extraction Pipeline** workflow (run [$
           GH_TOKEN: ${{ github.token }}
           JURISDICTION: ${{ github.event.inputs.jurisdiction }}
           RUN_ID: ${{ github.run_id }}
+          PR_BODY: |
+            ## Field Extraction Results — `${{ github.event.inputs.jurisdiction }}`
+
+            This PR was opened automatically by the **Extraction Pipeline** workflow (run [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+
+            ## Reviewer checklist
+
+            - [ ] Review each zone fields JSON file under `data/artifacts/${{ github.event.inputs.jurisdiction }}/`.
+            - [ ] Verify the extracted field values are accurate against the source zoning ordinance.
+            - [ ] Set `"approved": true` in each zone fields JSON file you want the Load stage to persist to the database.
+            - [ ] Save the files and commit the changes to this branch before merging.
+
+            > **Note:** Only zone fields files with `"approved": true` will be loaded into the database by Stage 3 (`pipeline-load`).
         run: |
           BRANCH="artifacts/${JURISDICTION}/extract-${RUN_ID}"
 
@@ -156,8 +169,6 @@ This PR was opened automatically by the **Extraction Pipeline** workflow (run [$
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "${BRANCH}"
-
-          # Stage field artifact files, excluding page-map artifacts
           git add "data/artifacts/${JURISDICTION}/" -- ':!*_pages.json'
 
           if git diff --cached --quiet; then
@@ -170,24 +181,13 @@ This PR was opened automatically by the **Extraction Pipeline** workflow (run [$
           git push origin "${BRANCH}"
 
           EXISTING_PR=$(gh pr list --head "${BRANCH}" --json url --jq '.[0].url' 2>/dev/null || true)
-
           if [ -n "${EXISTING_PR}" ]; then
             echo "PR already exists: ${EXISTING_PR}"
           else
+            printf '%s' "$PR_BODY" > /tmp/pr-body.md
             gh pr create \
               --base main \
               --head "${BRANCH}" \
               --title "artifacts(${JURISDICTION}): field extraction results" \
-              --body "## Field Extraction Results — \`${JURISDICTION}\`
-
-This PR was opened automatically by the **Extraction Pipeline** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
-
-## Reviewer checklist
-
-- [ ] Review each zone fields JSON file under \`data/artifacts/${JURISDICTION}/\`.
-- [ ] Verify the extracted field values are accurate against the source zoning ordinance.
-- [ ] Set \`\"approved\": true\` in each zone fields JSON file you want the Load stage to persist to the database.
-- [ ] Save the files and commit the changes to this branch before merging.
-
-> **Note:** Only zone fields files with \`\"approved\": true\` will be loaded into the database by Stage 3 (\`pipeline-load\`)."
+              --body-file /tmp/pr-body.md
           fi

@@ -63,6 +63,19 @@ jobs:
           JURISDICTION: ${{ inputs.jurisdiction }}
           ZONE: ${{ inputs.zone }}
           RUN_ID: ${{ github.run_id }}
+          PR_BODY: |
+            ## Field Extraction Results — `${{ inputs.jurisdiction }}` / zone: `${{ inputs.zone || 'all zones' }}`
+
+            This PR was opened automatically by the **Pipeline — Field Extraction** workflow (run [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+
+            ## Reviewer checklist
+
+            - [ ] Review each zone fields JSON file under `data/artifacts/${{ inputs.jurisdiction }}/`.
+            - [ ] Verify the extracted field values are accurate against the source zoning ordinance.
+            - [ ] Set `"approved": true` in each zone fields JSON file you want the Load stage to persist to the database.
+            - [ ] Save the files and commit the changes to this branch before merging.
+
+            > **Note:** Only zone fields files with `"approved": true` will be loaded into the database by Stage 3 (`pipeline-load`).
         run: |
           BRANCH="artifacts/${JURISDICTION}/extract-${RUN_ID}"
 
@@ -89,20 +102,10 @@ jobs:
           if [ -n "${EXISTING_PR}" ]; then
             echo "PR already exists: ${EXISTING_PR}"
           else
+            printf '%s' "$PR_BODY" > /tmp/pr-body.md
             gh pr create \
               --base main \
               --head "${BRANCH}" \
               --title "artifacts(${JURISDICTION}): field extraction results" \
-              --body "## Field Extraction Results — \`${JURISDICTION}\` / zone: \`${ZONE_LABEL}\`
-
-This PR was opened automatically by the **Pipeline — Field Extraction** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
-
-## Reviewer checklist
-
-- [ ] Review each zone fields JSON file under \`data/artifacts/${JURISDICTION}/\`.
-- [ ] Verify the extracted field values are accurate against the source zoning ordinance.
-- [ ] Set \`\"approved\": true\` in each zone fields JSON file you want the Load stage to persist to the database.
-- [ ] Save the files and commit the changes to this branch before merging.
-
-> **Note:** Only zone fields files with \`\"approved\": true\` will be loaded into the database by Stage 3 (\`pipeline-load\`)."
+              --body-file /tmp/pr-body.md
           fi

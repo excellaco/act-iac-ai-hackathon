@@ -57,6 +57,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           JURISDICTION: ${{ inputs.jurisdiction }}
           RUN_ID: ${{ github.run_id }}
+          PR_BODY: |
+            ## Zone Discovery Results — `${{ inputs.jurisdiction }}`
+
+            This PR was opened automatically by the **Pipeline — Zone Discovery** workflow (run [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})).
+
+            ## Reviewer checklist
+
+            - [ ] Open `data/artifacts/${{ inputs.jurisdiction }}/${{ inputs.jurisdiction }}_zones.json` (or the equivalent zones file).
+            - [ ] Review the discovered zones for accuracy.
+            - [ ] Set `"approved": true` on each zone entry you want Stage 2 (Field Extraction) to process.
+            - [ ] Save the file and commit the change to this branch before merging.
+
+            > **Important:** Merging this PR without setting `approved: true` on at least one zone will cause Stage 2 (`pipeline-extract`) to skip all zones for this jurisdiction.
         run: |
           BRANCH="artifacts/${JURISDICTION}/zones-${RUN_ID}"
 
@@ -82,20 +95,10 @@ jobs:
           if [ -n "${EXISTING_PR}" ]; then
             echo "PR already exists: ${EXISTING_PR}"
           else
+            printf '%s' "$PR_BODY" > /tmp/pr-body.md
             gh pr create \
               --base main \
               --head "${BRANCH}" \
               --title "artifacts(${JURISDICTION}): zone discovery results" \
-              --body "## Zone Discovery Results — \`${JURISDICTION}\`
-
-This PR was opened automatically by the **Pipeline — Zone Discovery** workflow (run [${RUN_ID}](https://github.com/${{ github.repository }}/actions/runs/${RUN_ID})).
-
-## Reviewer checklist
-
-- [ ] Open \`data/artifacts/${JURISDICTION}/${JURISDICTION}_zones.json\` (or the equivalent zones file).
-- [ ] Review the discovered zones for accuracy.
-- [ ] Set \`\"approved\": true\` on each zone entry you want Stage 2 (Field Extraction) to process.
-- [ ] Save the file and commit the change to this branch before merging.
-
-> **Important:** Merging this PR without setting \`approved: true\` on at least one zone will cause Stage 2 (\`pipeline-extract\`) to skip all zones for this jurisdiction."
+              --body-file /tmp/pr-body.md
           fi
