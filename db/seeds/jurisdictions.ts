@@ -2,9 +2,9 @@ import { db } from '../client'
 import { jurisdictions } from '../schema'
 
 const MVP_JURISDICTIONS = [
-  { name: 'Fairfax County',   state: 'VA', fipsState: '51', fipsCounty: '059', displayName: 'Fairfax County, VA',   slug: 'fairfax' },
-  { name: 'Arlington County', state: 'VA', fipsState: '51', fipsCounty: '013', displayName: 'Arlington County, VA', slug: 'arlington' },
-  { name: 'Loudoun County',   state: 'VA', fipsState: '51', fipsCounty: '107', displayName: 'Loudoun County, VA',   slug: 'loudoun' },
+  { name: 'Fairfax County',   state: 'VA', fipsState: '51', fipsCounty: '059', displayName: 'Fairfax County, VA',   slug: 'fairfax_va' },
+  { name: 'Arlington County', state: 'VA', fipsState: '51', fipsCounty: '013', displayName: 'Arlington County, VA', slug: 'arlington_va' },
+  { name: 'Loudoun County',   state: 'VA', fipsState: '51', fipsCounty: '107', displayName: 'Loudoun County, VA',   slug: 'loudoun_va' },
 ]
 
 async function seed() {

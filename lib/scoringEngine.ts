@@ -78,9 +78,9 @@ export function computeDCI(fields: DciInputs): number {
  */
 export const REGIONAL_MULTIPLIERS: Record<string, number> = {
   // Real demo jurisdictions (slugs from db/seeds/jurisdictions.ts)
-  'fairfax':                   1.12,
-  'arlington':                 1.15,
-  'loudoun':                   1.08,
+  'fairfax_va':                1.12,
+  'arlington_va':              1.15,
+  'loudoun_va':                1.08,
   // Synthetic peer jurisdictions (slugs from db/seeds/syntheticJurisdictions.ts)
   'montgomery-county-md':      1.11,
   "prince-george's-county-md": 1.05,
@@ -170,15 +170,15 @@ export function computePCI(inputs: PciInputs): number {
  */
 const PEER_COMPOSITES = [
   { slug: 'alexandria-city-va',        composite: 35 + 60 + 30 },   // 125
-  { slug: 'arlington',                 composite: 40 + 50 + 35 },   // 125
+  { slug: 'arlington_va',              composite: 40 + 50 + 35 },   // 125
   { slug: "prince-george's-county-md", composite: 50 + 55 + 45 },   // 150
   { slug: 'frederick-county-va',       composite: 75 + 35 + 50 },   // 160
   { slug: 'prince-william-county-va',  composite: 70 + 45 + 55 },   // 170
   { slug: 'montgomery-county-md',      composite: 65 + 65 + 55 },   // 185
   { slug: 'howard-county-md',          composite: 60 + 70 + 60 },   // 190
   { slug: 'stafford-county-va',        composite: 85 + 40 + 65 },   // 190
-  { slug: 'loudoun',                   composite: 80 + 55 + 60 },   // 195
-  { slug: 'fairfax',                   composite: 75 + 70 + 65 },   // 210
+  { slug: 'loudoun_va',                composite: 80 + 55 + 60 },   // 195
+  { slug: 'fairfax_va',               composite: 75 + 70 + 65 },   // 210
 ]
 
 export interface CrpInputs {

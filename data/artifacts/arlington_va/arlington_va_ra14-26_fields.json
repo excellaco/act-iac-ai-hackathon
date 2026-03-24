@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "RA14-26",
+  "zoneName": "Multiple-family Dwelling District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T03:26:24.712Z",
+  "approved": true,
+  "fields": {
+    "density_limit_units_per_acre": {
+      "raw_value": "1800",
+      "raw_unit": "sqft/unit",
+      "field_value": 24.2,
+      "field_value_text": "Lot area per dwelling unit 1,800",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a76.2.3.A",
+      "district_context": "RA14-26, Multiple-family Dwellings (by-right)",
+      "reasoning": "The text explicitly states 'Lot area per dwelling unit 1,800' for 'Multiple-family Dwellings' in the RA14-26 district, which represents the highest density (least restrictive) for multifamily use.",
+      "source_page": 98
+    },
+    "discretionary_review_required": {
+      "raw_value": "By-right",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a76.2. RA14-26, Multiple-family Dwelling District, Density and dimensional standards A. By-right",
+      "district_context": "RA14-26, Multiple-family Dwelling District",
+      "reasoning": "The text explicitly states that 'Multiple-family Dwellings' are 'By-right' in the RA14-26 district, subject to the listed standards.",
+      "source_page": null
+    },
+    "min_lot_size_sqft": {
+      "raw_value": "1,800",
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "Lot area 1,800",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a76.2. RA14-26, Multiple-family Dwelling District, A. By-right",
+      "district_context": "RA14-26, Townhouse Dwellings (by-right)",
+      "reasoning": "Identified the RA14-26 district as a multifamily district and found the minimum lot area for townhouse dwellings (a type of multifamily) in the by-right standards, which is the most permissive value.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": 60,
+      "raw_unit": "feet",
+      "field_value": 60,
+      "field_value_text": "dwellings may be erected to a height not to exceed either six stories or 60 feet",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a76.2.3.D.1",
+      "district_context": "RA14-26, Large-scale housing projects exception",
+      "reasoning": "The maximum height for large-scale housing projects, which are a type of multifamily development, is 60 feet in the RA14-26 district, representing the most permissive height found.",
+      "source_page": 73
+    },
+    "setback_rear_ft": {
+      "raw_value": "0",
+      "raw_unit": "feet",
+      "field_value": "0",
+      "field_value_text": "No side or rear yard shall be required",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a73.2.6.A.2(a)",
+      "district_context": "RA4.8",
+      "reasoning": "The RA4.8 district is identified as the most permissive multifamily district, and it explicitly states that no rear yard is required under general conditions.",
+      "source_page": 24
+    },
+    "setback_side_ft": {
+      "raw_value": "0",
+      "raw_unit": "feet",
+      "field_value": "0",
+      "field_value_text": "No side or rear yard shall be required",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a73.2.6.A.2(a)",
+      "district_context": "RA4.8",
+      "reasoning": "The RA4.8 district is identified as the most permissive multifamily district, and it explicitly states that no side yard is required under general conditions.",
+      "source_page": 24
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": "1",
+      "raw_unit": "for each additional dwelling unit",
+      "field_value": null,
+      "field_value_text": "Plus 1 for each additional dwelling unit",
+      "unit": "spaces_per_unit",
+      "confidence": "low",
+      "source_section": "\u00a714.3.7",
+      "district_context": "Dwellings, other than one- and two-family",
+      "reasoning": "Extracted the least restrictive per-unit parking requirement from the tiered structure for 'Dwellings, other than one- and two-family' as per the 'most permissive' instruction.",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "For projects having more than one main building, the front setback, side and rear yard requirement shall apply along the boundary lines of the project.",
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": "\u00a73.2.6.6",
+      "district_context": "RA14-26, Multiple-family Dwelling District",
+      "reasoning": "The text mentions a 'front setback' requirement for multiple building projects in multifamily districts but does not specify a numerical value.",
+      "source_page": 30
+    }
+  }
+}

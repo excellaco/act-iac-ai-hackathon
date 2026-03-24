@@ -84,13 +84,20 @@ async function extractFieldTwoPass(
   narrowChunks: string[],
   allChunks: string[],
   logger: { warn: (msg: string, ctx?: object) => void; debug?: (msg: string, ctx?: object) => void },
-): Promise<{ raw_value: number | null; raw_unit: string | null; field_value: number | null; field_value_text: string; unit: string | null; confidence: 'high' | 'medium' | 'low'; source_section: string | null; district_context: string | null; reasoning: string | null }> {
+): Promise<{ raw_value: number | null; raw_unit: string | null; field_value: number | null; field_value_text: string; unit: string | null; confidence: 'high' | 'medium' | 'low'; source_section: string | null; district_context: string | null; reasoning: string | null; _pass: 'narrow' | 'fallback' | 'none' }> {
   // Helper: run through a chunk list and find the best result
-  const scanChunks = async (chunks: string[]) => {
+  const scanChunks = async (chunks: string[], passLabel: string) => {
     let best: Awaited<ReturnType<FieldExtractor['extract']>> = null
     for (let i = 0; i < chunks.length; i++) {
       try {
         const result = await extractor.extract(chunks[i])
+        logger.debug?.(`[${extractor.fieldName}] ${passLabel} chunk ${i + 1}/${chunks.length} raw response`, {
+          raw_value: result?.raw_value ?? null,
+          field_value_text: result?.field_value_text ?? null,
+          confidence: result?.confidence ?? null,
+          source_section: result?.source_section ?? null,
+          reasoning: result?.reasoning ?? null,
+        })
         if (!result) continue
 
         const resultHasValue = result.raw_value !== null || result.field_value_text?.trim()
@@ -116,22 +123,12 @@ async function extractFieldTwoPass(
     return best
   }
 
-  // Pass 1: narrow chunks (zone-specific)
-  let result = narrowChunks.length > 0 ? await scanChunks(narrowChunks) : null
+  // Narrow chunks only — no fallback to all chunks
+  let result = narrowChunks.length > 0 ? await scanChunks(narrowChunks, 'narrow') : null
+  const usedPass: 'narrow' | 'fallback' | 'none' = result ? 'narrow' : 'none'
 
-  // Pass 2: fall back to all chunks if no high-confidence result
   if (!result || !isHighConfidenceWithValue(result)) {
-    const fallback = await scanChunks(allChunks)
-    const fallbackHasValue = fallback && (fallback.raw_value !== null || fallback.field_value_text?.trim())
-    if (
-      !result ||
-      (!result.raw_value && !result.field_value_text?.trim() && fallback) ||
-      // Only prefer fallback by confidence if the fallback also has a real value —
-      // avoids replacing a medium-confidence real value with a high-confidence "not found"
-      (fallbackHasValue && confidenceRank(fallback!.confidence) > confidenceRank(result.confidence))
-    ) {
-      result = fallback
-    }
+    logger.debug?.(`[${extractor.fieldName}] narrow pass result: ${result?.confidence ?? 'no result'} — no fallback`)
   }
 
   // Build a safe null result if nothing was found
@@ -163,6 +160,7 @@ async function extractFieldTwoPass(
     source_section:   validated.source_section || null,
     district_context: validated.district_context || null,
     reasoning:        validated.reasoning || null,
+    _pass:            result ? usedPass : 'none',
   }
 }
 
@@ -200,10 +198,24 @@ async function extractZone(
     // No artifact yet — proceed
   }
 
-  // Build narrow chunks: chunks containing the zone code (case-insensitive)
-  const narrowChunks = allChunks
-    .filter((c) => c.text.toLowerCase().includes(zone_code.toLowerCase()))
-    .map((c) => c.text)
+  // Build narrow chunks from source_pages if defined; fall back to zone-code text match
+  const sourcePageNums = zone.source_pages && zone.source_pages.length > 0
+    ? new Set(zone.source_pages)
+    : null
+  let narrowChunks: string[]
+  if (sourcePageNums) {
+    const zonePageText = pages
+      .filter((p) => sourcePageNums.has(p.page))
+      .map((p) => p.text)
+      .join('\n\n')
+    narrowChunks = chunkText(zonePageText).map((c) => c.text)
+    logger.debug?.(`Zone ${zone_code}: narrow chunks from ${sourcePageNums.size} source pages → ${narrowChunks.length} chunks`)
+  } else {
+    narrowChunks = allChunks
+      .filter((c) => c.text.toLowerCase().includes(zone_code.toLowerCase()))
+      .map((c) => c.text)
+    logger.debug?.(`Zone ${zone_code}: narrow chunks from zone-code text match → ${narrowChunks.length} chunks`)
+  }
   const allChunkTexts = allChunks.map((c) => c.text)
 
   logger.info(`Zone ${zone_code}: ${narrowChunks.length} narrow / ${allChunkTexts.length} total chunks`)
@@ -218,9 +230,11 @@ async function extractZone(
 
         // Resolve source_page inline from field_value_text
         const sourcePage = findSourcePage(pages, fieldResult.field_value_text)
+        logger.debug?.(`[${extractor.fieldName}] result — pass: ${fieldResult._pass}, confidence: ${fieldResult.confidence}, value: ${fieldResult.field_value ?? fieldResult.field_value_text}, source_page: ${sourcePage ?? 'not found'}`)
 
+        const { _pass, ...fieldResultWithoutPass } = fieldResult
         fields[extractor.fieldName] = {
-          ...fieldResult,
+          ...fieldResultWithoutPass,
           source_page: sourcePage,
         }
       } catch (err) {
@@ -341,6 +355,18 @@ async function main() {
       console.error(`ERROR: Zone "${zoneArg}" not found in zones artifact.`)
       console.error(`  Available zones: ${zonesArtifact.zones.map((z) => z.zone_code).join(', ')}`)
       process.exit(1)
+    }
+    if (!found.include_in_extraction) {
+      const { createInterface } = await import('readline')
+      const rl = createInterface({ input: process.stdin, output: process.stdout })
+      const answer = await new Promise<string>((resolve) => {
+        rl.question(`  WARN Zone "${zoneArg}" has include_in_extraction: false. Run anyway? [y/N] `, resolve)
+      })
+      rl.close()
+      if (answer.trim().toLowerCase() !== 'y') {
+        console.log('Aborted.')
+        process.exit(0)
+      }
     }
     targetZones = [found]
   } else {

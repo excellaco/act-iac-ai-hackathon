@@ -1,6 +1,6 @@
 {
   "jurisdictionId": "aae6124f-9ff7-42ad-90ef-33090f51c280",
-  "slug": "arlington",
+  "slug": "arlington_va",
   "sourceDocument": "gs://parcela-490518-raw-data/zoning/arlington/arlington_aczo_2026_downloaded_20260316.pdf",
   "extractedAt": "2026-03-23T06:17:07.119Z",
   "fields": {

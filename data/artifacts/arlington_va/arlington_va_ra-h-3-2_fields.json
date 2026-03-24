@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "0a3b825d-ce6b-40f9-a5a4-1c43d358e5f9",
+  "slug": "arlington_va",
+  "zoneCode": "RA-H-3.2",
+  "zoneName": "Multiple-Family Dwelling and Hotel District",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T03:34:20.747Z",
+  "approved": true,
+  "fields": {
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "\u00a77.1.2",
+      "district_context": "RA4.8 Multiple-family Dwelling District",
+      "reasoning": "The 'COMMERCIAL/MIXED USE (C) DISTRICTS PRINCIPAL USE TABLE' indicates that 'Multiple-family' dwellings are 'P = allowed by-right' in the RA4.8 district, which is the most permissive option found.",
+      "source_page": null
+    },
+    "height_limit_ft": {
+      "raw_value": "180",
+      "raw_unit": "feet",
+      "field_value": "180",
+      "field_value_text": "180 including mechanical penthouse and parapet walls",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "\u00a77.5.4 B",
+      "district_context": "RA-H-3.2, Multiple-Family Dwelling and Hotel District (Special Exception)",
+      "reasoning": "The text specifies a maximum height of 180 feet for Multiple-family Dwellings under special exception in the RA-H-3.2 district, which is the most permissive height found for multifamily.",
+      "source_page": 101
+    },
+    "min_lot_size_sqft": {
+      "raw_value": "7,000",
+      "raw_unit": "sq. ft.",
+      "field_value": null,
+      "field_value_text": "7,000",
+      "unit": "sqft",
+      "confidence": "low",
+      "source_section": "\u00a77.5.1 A",
+      "district_context": "RA-H-3.2, Multiple-family Dwellings (By-right Development)",
+      "reasoning": "The minimum lot size for 'Multiple-family Dwellings' in the RA-H-3.2 district under 'By-right Development' is listed as 7,000 sq. ft., which is the most permissive value found for multifamily development.",
+      "source_page": 64
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Parking for new dwelling units shall be provided as required in \u00a714.3.",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "\u00a712.3.7",
+      "district_context": "RA districts (e.g., RA14-26, RA7-16, RA4.8, R-C, RA-H, RA-H-3.2, RA8-18, RA6-15) for new dwelling units in low- and moderate-income housing projects",
+      "reasoning": "The text states that parking for new dwelling units shall be provided as required in \u00a714.3, but the content of \u00a714.3 is not included in the provided text chunk, therefore the specific numerical requirement cannot be extracted.",
+      "source_page": 243
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "26",
+      "raw_unit": "units/acre",
+      "field_value": "26",
+      "field_value_text": "RA14-26 Multiple-family Dwelling",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "\u00a71.7. Zoning Districts Established General districts",
+      "district_context": "RA14-26 Multiple-family Dwelling",
+      "reasoning": "The RA14-26 district is identified as a Multiple-family Dwelling District, and the '26' in its name represents the maximum density in units per acre, which is the most permissive among the listed multifamily districts.",
+      "source_page": 10
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "Residential Apartment (RA) districts (e.g., RA14-26, RA8-18, RA7-16, RA6-15, RA4.8, R-C, RA-H-3.2)",
+      "reasoning": "The provided text lists multifamily zoning districts but does not contain specific side setback requirements for any of them.",
+      "source_page": null
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "Residential Apartment (RA) districts (e.g., RA14-26, RA8-18, RA7-16, RA6-15, RA4.8, R-C, RA-H-3.2)",
+      "reasoning": "The provided text lists multifamily zoning districts but does not contain specific rear setback requirements for any of them.",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "Residential Apartment (RA) districts (e.g., RA14-26, RA8-18, RA7-16, RA6-15, RA4.8, R-C, RA-H-3.2)",
+      "reasoning": "The provided text lists multifamily zoning districts but does not contain specific front setback requirements for any of them.",
+      "source_page": null
+    }
+  }
+}

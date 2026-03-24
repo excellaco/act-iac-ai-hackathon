@@ -21,7 +21,7 @@ import { computeFeasibility } from '../lib/feasibility'
 import { computeRIS } from '../lib/scoring'
 import type { ReviewType } from '../lib/scoringEngine'
 
-const REAL_JURISDICTION_SLUGS = ['fairfax', 'arlington', 'loudoun']
+const REAL_JURISDICTION_SLUGS = ['fairfax_va', 'arlington_va', 'loudoun_va']
 
 function parseNum(v: string | null | undefined, fallback: number): number {
   if (v == null) return fallback
