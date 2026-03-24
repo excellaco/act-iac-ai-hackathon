@@ -35,7 +35,9 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
-      - uses: google-github-actions/setup-gcloud@v2
+      # setup-gcloud is intentionally omitted — load always reads from the repo
+      # (LocalArtifactStore) and never touches GCS directly. GCP auth is only
+      # needed for the Cloud SQL Auth Proxy below.
 
       - name: Start Cloud SQL Auth Proxy
         run: |

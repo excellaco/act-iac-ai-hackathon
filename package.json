@@ -26,8 +26,8 @@
     "pipeline:page-resolve": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/page-resolve.ts",
     "score:zones": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/score-zones.ts",
     "pipeline:restore-mocks": "cp data/mocks/*.json data/extractions/",
-    "artifacts:sync": "tsx scripts/artifacts-sync.ts",
-    "artifacts:migrate": "tsx scripts/migrate-artifacts.ts"
+    "artifacts:sync": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/artifacts-sync.ts",
+    "artifacts:migrate": "DOTENV_CONFIG_PATH=.env.local tsx -r dotenv/config scripts/migrate-artifacts.ts"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.19.0",

@@ -44,7 +44,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
 
       - name: Run field extraction
-        run: npm run pipeline:extract ${{ inputs.jurisdiction }} ${{ inputs.zone }}
+        run: npm run pipeline:extract "${{ inputs.jurisdiction }}" "${{ inputs.zone }}"
         env:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
           RAW_DATA_BUCKET: parcela-490518-raw-data

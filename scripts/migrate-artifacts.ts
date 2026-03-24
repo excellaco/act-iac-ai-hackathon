@@ -74,6 +74,9 @@ function buildJurisdictionZoneFields(artifact: ExtractionArtifact): ZoneFieldsAr
     slug: artifact.slug,
     zoneCode: '__jurisdiction__',
     zoneName: 'Jurisdiction-level (synthetic)',
+    // NOTE: 'primary' is a default — the legacy artifact format does not carry
+    // multifamilyClassification at the jurisdiction level. Do not treat migrated
+    // data as accurate on this field without verifying against the source ordinance.
     multifamilyClassification: 'primary',
     extractedAt: artifact.extractedAt,
     approved: true,

@@ -92,6 +92,20 @@ export class LocalArtifactStore implements ArtifactStore {
   async writeZones(slug: string, artifact: ZonesArtifact): Promise<void> {
     await this.ensureDir(slug)
     const filePath = path.join(this.slugDir(slug), `${slug}_zones.json`)
+    // Guard: never overwrite an approved zones artifact — all stage-level checks
+    // should catch this first, but this is a second line of defense.
+    try {
+      const existing = JSON.parse(await fs.readFile(filePath, 'utf-8')) as { approved?: boolean }
+      if (existing.approved) {
+        throw new Error(
+          `Refusing to overwrite approved zones artifact at ${filePath}. ` +
+          `Delete or rename the file before re-running zone discovery.`,
+        )
+      }
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err
+      // File does not exist — proceed normally
+    }
     await this.writeJson(filePath, artifact)
   }
 
@@ -140,6 +154,9 @@ export class LocalArtifactStore implements ArtifactStore {
   }
 
   // ── legacy ───────────────────────────────────────────────────────────────────
+  // These methods intentionally hardcode 'data/extractions' and ignore this.dir.
+  // Legacy artifacts live in data/extractions/ regardless of the store's base dir.
+  // This asymmetry is intentional — do not "fix" it to use this.dir.
 
   async read(slug: string): Promise<ExtractionArtifact> {
     const filePath = path.join('data/extractions', `${slug}.json`)
@@ -207,13 +224,16 @@ export class GcsArtifactStore implements ArtifactStore {
     await this.writeGcs(this.artifactsPath(slug, `${slug}_${zoneSlug}_fields.json`), artifact)
   }
 
-  async readScores(slug: string): Promise<ScoresArtifact> {
-    const p = this.artifactsPath(slug, `${slug}_scores.json`)
-    return this.readGcs<ScoresArtifact>(p, `No scores artifact at gs://${this.bucket}/${p}`)
+  async readScores(_slug: string): Promise<ScoresArtifact> {
+    throw new Error(
+      'Scores are never stored in GCS — use buildLoadArtifactStore() (LocalArtifactStore) for score read/write.',
+    )
   }
 
-  async writeScores(slug: string, artifact: ScoresArtifact): Promise<void> {
-    await this.writeGcs(this.artifactsPath(slug, `${slug}_scores.json`), artifact)
+  async writeScores(_slug: string, _artifact: ScoresArtifact): Promise<void> {
+    throw new Error(
+      'Scores are never stored in GCS — use buildLoadArtifactStore() (LocalArtifactStore) for score read/write.',
+    )
   }
 
   async readPages(slug: string): Promise<ParsedPagesArtifact> {

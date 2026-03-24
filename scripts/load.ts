@@ -120,11 +120,24 @@ async function main() {
     process.exit(0)
   }
 
+  // Guard: two different zone codes must not slugify to the same string.
+  // If they do (e.g. "R-MF" and "R/MF" → "r-mf"), the wrong zone_code would
+  // be used for the DB upsert — a silent data integrity issue.
+  const slugsSeen = new Map<string, string>()
+  for (const z of zonesArtifact.zones) {
+    const zSlug = slugifyZoneCode(z.zone_code)
+    if (slugsSeen.has(zSlug)) {
+      console.error(`ERROR: Zone codes "${slugsSeen.get(zSlug)}" and "${z.zone_code}" both slugify to "${zSlug}".`)
+      console.error(`  Correct the zone codes in the zones artifact before loading.`)
+      process.exit(1)
+    }
+    slugsSeen.set(zSlug, z.zone_code)
+  }
+
   // Build a lookup: zoneSlug → ZoneEntry
   const zoneBySlug = new Map(
     zonesArtifact.zones.map((z) => [slugifyZoneCode(z.zone_code), z]),
   )
-  const zoneByCode = new Map(zonesArtifact.zones.map((z) => [z.zone_code, z]))
 
   // 3. Find all field files on disk
   const fieldFiles = await findZoneFieldFiles(jur.slug)

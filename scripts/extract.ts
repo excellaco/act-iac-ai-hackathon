@@ -122,10 +122,13 @@ async function extractFieldTwoPass(
   // Pass 2: fall back to all chunks if no high-confidence result
   if (!result || !isHighConfidenceWithValue(result)) {
     const fallback = await scanChunks(allChunks)
+    const fallbackHasValue = fallback && (fallback.raw_value !== null || fallback.field_value_text?.trim())
     if (
       !result ||
       (!result.raw_value && !result.field_value_text?.trim() && fallback) ||
-      (fallback && confidenceRank(fallback.confidence) > confidenceRank(result.confidence))
+      // Only prefer fallback by confidence if the fallback also has a real value —
+      // avoids replacing a medium-confidence real value with a high-confidence "not found"
+      (fallbackHasValue && confidenceRank(fallback!.confidence) > confidenceRank(result.confidence))
     ) {
       result = fallback
     }
@@ -183,8 +186,10 @@ async function extractZone(
       logger.info(`Zone ${zone_code}: fields artifact already approved — skipping.`)
       return { skipped: true }
     } else {
-      logger.warn(`Zone ${zone_code}: fields artifact already exists with approved: false.`)
-      logger.warn(`  Delete or rename the file before re-running extraction for this zone.`)
+      // Unapproved conflict — this is an error condition, not a routine skip.
+      // The caller checks for error presence and exits non-zero.
+      logger.error(`Zone ${zone_code}: fields artifact already exists with approved: false.`)
+      logger.error(`  Delete or rename the file before re-running extraction for this zone.`)
       return { skipped: true, error: `fields artifact conflict for zone ${zone_code}` }
     }
   } catch (err) {
@@ -414,7 +419,10 @@ async function main() {
   console.log(`  2. Set "approved": true on zones you want loaded.`)
   console.log(`  3. Run: npm run pipeline:load ${slugArg}`)
 
-  process.exit(0)
+  // Exit non-zero if any zone had a conflict (approved: false artifact exists).
+  // Routine skips (approved: true) are not errors.
+  const hasConflicts = results.some((r) => r.error?.includes('conflict'))
+  process.exit(hasConflicts ? 1 : 0)
 }
 
 main().catch((err) => { console.error(err); process.exit(1) })
