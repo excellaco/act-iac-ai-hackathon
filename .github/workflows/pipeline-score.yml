@@ -1,0 +1,71 @@
+name: Pipeline — Scoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      jurisdiction:
+        description: 'Jurisdiction slug'
+        required: true
+        type: choice
+        options:
+          - fairfax_va
+          - arlington_va
+          - loudoun_va
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  scoring:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Start Cloud SQL Auth Proxy
+        run: |
+          curl -sLo cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.15.2/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+          ./cloud-sql-proxy ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela --port=5432 &
+          sleep 5
+
+      - name: Run scoring
+        run: npm run pipeline:score ${{ inputs.jurisdiction }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Commit scores artifact to branch
+        env:
+          JURISDICTION: ${{ inputs.jurisdiction }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SCORES_FILE="data/artifacts/${JURISDICTION}/${JURISDICTION}_scores.json"
+
+          git add "${SCORES_FILE}"
+
+          if git diff --cached --quiet; then
+            echo "No score changes to commit."
+            exit 0
+          fi
+
+          git commit -m "artifacts(${JURISDICTION}): update scores [run ${RUN_ID}]"
+          git push origin HEAD
