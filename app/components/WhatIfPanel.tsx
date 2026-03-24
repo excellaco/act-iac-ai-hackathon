@@ -108,7 +108,7 @@ function generateNarrative(
   }
 
   if (changes.length === 0) {
-    return 'Adjust the sliders above to model the impact of regulatory changes.';
+    return '';
   }
 
   const changeSummary = changes.join('; ').replace(/;([^;]*)$/, ' and$1') + '.';
@@ -201,7 +201,7 @@ export default function WhatIfPanel({
   // E8-6: Plain-language narrative
   const narrative = useMemo(() => {
     const base = generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility);
-    if (zoneLabel && base !== 'Adjust the sliders above to model the impact of regulatory changes.') {
+    if (zoneLabel && base) {
       return `[Simulating ${zoneLabel}] ${base}`;
     }
     return base;
@@ -342,10 +342,12 @@ export default function WhatIfPanel({
         </div>
       </div>
 
-      {/* E8-6: Plain-language narrative */}
-      <div className={styles.narrative}>
-        <p className={styles.narrativeText}>{narrative}</p>
-      </div>
+      {/* E8-6: Plain-language narrative — hidden until sliders are moved */}
+      {narrative && (
+        <div className={styles.narrative}>
+          <p className={styles.narrativeText}>{narrative}</p>
+        </div>
+      )}
 
       {/* E8-5: Reset button */}
       {hasChanges && (
