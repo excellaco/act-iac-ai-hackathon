@@ -263,7 +263,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       <ComparePeers current={jurisdiction} onCompare={onCompare} />
 
       {/* Zoning Atlas link — shown for jurisdictions with atlas pages */}
-      {ZONING_ATLAS_IDS[jurisdiction.slug] && (
+      {ZONING_ATLAS_IDS[jurisdiction.slug] != null && (
         <p className={styles.atlasLink}>
           Learn more about {name} at the{' '}
           <a
