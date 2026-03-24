@@ -17,7 +17,7 @@
       "source_section": "Table 2102.21",
       "district_context": "R-30 Residential District, stacked townhouses and multifamily dwellings",
       "reasoning": "Table 2102.21 (R-30 Lot and Building Standards) specifies a minimum lot area of 10,000 square feet for stacked townhouses and multifamily dwellings in the R-30 district.",
-      "source_page": 52
+      "source_page": 53
     },
     "discretionary_review_required": {
       "raw_value": "P",
@@ -29,7 +29,7 @@
       "source_section": "Table 4101.1",
       "district_context": "R-30 Residential District",
       "reasoning": "The use table indicates 'P' for 'Dwelling, Multifamily' in the R-30 district, and the legend defines 'P' as 'permitted', which means by-right.",
-      "source_page": null
+      "source_page": 141
     },
     "density_limit_units_per_acre": {
       "raw_value": "30",
@@ -41,7 +41,7 @@
       "source_section": "Table 2100.1",
       "district_context": "R-30 Residential District",
       "reasoning": "The R-30 district is named 'Residential District, Thirty Dwelling Units/Acre', explicitly stating a base density of 30 du/ac. The 36 du/ac figure extracted previously was an ADU bonus density, not the standard maximum. Corrected manually.",
-      "source_page": null
+      "source_page": 7
     },
     "height_limit_ft": {
       "raw_value": 150,
@@ -65,7 +65,7 @@
       "source_section": "Table 2102.22a",
       "district_context": "R-30 ADU (Affordable Dwelling Unit Development) for Stacked townhouses and multifamily dwellings",
       "reasoning": "The minimum rear setback for multifamily dwellings in the R-30 ADU district is 15 feet, as extracted from Table 2102.22a, which is the most permissive multifamily district found.",
-      "source_page": 1
+      "source_page": 56
     },
     "parking_min_spaces_per_unit": {
       "raw_value": 1.45,
@@ -89,7 +89,7 @@
       "source_section": "Table 2102.22a",
       "district_context": "R-30 ADU (Affordable Dwelling Unit Development) for Stacked townhouses and multifamily dwellings",
       "reasoning": "The minimum front setback for multifamily dwellings in the R-30 ADU district is 15 feet, as extracted from Table 2102.22a, which is the most permissive multifamily district found.",
-      "source_page": 1
+      "source_page": 56
     },
     "setback_side_ft": {
       "raw_value": "10",
@@ -101,7 +101,7 @@
       "source_section": "Table 2102.22a",
       "district_context": "R-30 ADU (Affordable Dwelling Unit Development) for Stacked townhouses and multifamily dwellings",
       "reasoning": "The minimum side setback for multifamily dwellings in the R-30 ADU district is 10 feet, as extracted from Table 2102.22a, which is the most permissive multifamily district found.",
-      "source_page": 3
+      "source_page": 56
     }
   }
 }

@@ -17,7 +17,7 @@
       "source_section": "Table 2102.17",
       "district_context": "R-16 Residential District, Multifamily dwellings",
       "reasoning": "The R-16 district, which permits multifamily dwellings, explicitly states 'No requirement' for minimum lot area for multifamily dwellings in Table 2102.17 and Table 2102.18.",
-      "source_page": 9
+      "source_page": 45
     },
     "height_limit_ft": {
       "raw_value": 65,
@@ -29,7 +29,7 @@
       "source_section": "Table 2102.17",
       "district_context": "R-16 Residential District (Multifamily dwellings)",
       "reasoning": "The maximum building height for multifamily dwellings in the R-16 Residential District is explicitly stated as 65 feet in Table 2102.17, which is the most permissive multifamily district detailed in the provided text.",
-      "source_page": 33
+      "source_page": 45
     },
     "discretionary_review_required": {
       "raw_value": "P",
@@ -41,7 +41,7 @@
       "source_section": "TABLE 4101.1",
       "district_context": "R-30 Residential District",
       "reasoning": "The use table indicates 'P' (permitted) for 'Dwelling, Multifamily' in the R-30 district, which means it is allowed by right without discretionary approval.",
-      "source_page": null
+      "source_page": 141
     },
     "density_limit_units_per_acre": {
       "raw_value": "16",
@@ -53,7 +53,7 @@
       "source_section": "Table 2100.1",
       "district_context": "R-16 Residential District",
       "reasoning": "The R-16 district is named 'Residential, Sixteen Du/Ac', explicitly stating a maximum density of 16 du/ac. Corrected from low-confidence extraction that erroneously captured an adjacent zone's density.",
-      "source_page": null
+      "source_page": 7
     },
     "setback_rear_ft": {
       "raw_value": 25,
@@ -65,7 +65,7 @@
       "source_section": "Table 2102.17a",
       "district_context": "R-16 Multifamily",
       "reasoning": "Identified the minimum rear setback for multifamily dwellings in the R-16 district from Table 2102.17a, selecting the lowest value across all height ranges.",
-      "source_page": 11
+      "source_page": 46
     },
     "setback_side_ft": {
       "raw_value": 10,
@@ -77,7 +77,7 @@
       "source_section": "Table 2102.17a",
       "district_context": "R-16 Multifamily",
       "reasoning": "Identified the minimum side setback for multifamily dwellings in the R-16 district from Table 2102.17a, selecting the lowest value across all height ranges.",
-      "source_page": 3
+      "source_page": 46
     },
     "parking_min_spaces_per_unit": {
       "raw_value": 1.45,
@@ -101,7 +101,7 @@
       "source_section": "Table 2102.17a",
       "district_context": "R-16 Residential District, Multifamily dwellings",
       "reasoning": "Extracted from Table 2102.17a for R-16 Multifamily dwellings, taking the minimum setback value corresponding to the lowest building height.",
-      "source_page": null
+      "source_page": 46
     }
   }
 }

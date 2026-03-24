@@ -17,7 +17,7 @@
       "source_section": "TABLE 4101.1",
       "district_context": "R-5, R-8, R-12, R-16, R-20, R-30 Residential Districts",
       "reasoning": "The use table indicates that 'Dwelling, Multifamily' is 'P' (permitted) in the R-5, R-8, R-12, R-16, R-20, and R-30 Residential Districts, which means it is permitted by right.",
-      "source_page": null
+      "source_page": 141
     },
     "height_limit_ft": {
       "raw_value": 65,
@@ -29,7 +29,7 @@
       "source_section": "Table 2102.15",
       "district_context": "R-12 Residential District, Multifamily dwellings",
       "reasoning": "The maximum building height for multifamily dwellings in the R-12 Residential District is explicitly stated as 65 feet in Table 2102.15.",
-      "source_page": 33
+      "source_page": 41
     },
     "density_limit_units_per_acre": {
       "raw_value": "12",
@@ -41,7 +41,7 @@
       "source_section": "Table 2100.1",
       "district_context": "R-12 Residential District",
       "reasoning": "The R-12 district is named 'Residential District, Twelve Dwelling Units/Acre', explicitly stating a maximum density of 12 du/ac. Corrected from low-confidence extraction that erroneously captured an adjacent zone's density.",
-      "source_page": null
+      "source_page": 7
     },
     "min_lot_size_sqft": {
       "raw_value": null,
@@ -53,7 +53,7 @@
       "source_section": "Table 2102.15",
       "district_context": "R-12 Residential District (Multifamily dwellings)",
       "reasoning": "The R-12 Residential District, which permits multifamily dwellings, explicitly states 'No requirement' for minimum lot area for multifamily dwellings in Table 2102.15.",
-      "source_page": 9
+      "source_page": 41
     },
     "parking_min_spaces_per_unit": {
       "raw_value": 1.45,
@@ -75,9 +75,9 @@
       "unit": "ft",
       "confidence": "high",
       "source_section": "Table 2102.16",
-      "district_context": "R-12 Lot and Building Standards – Affordable Dwelling Unit Development (Multifamily dwellings)",
+      "district_context": "R-12 Lot and Building Standards \u2013 Affordable Dwelling Unit Development (Multifamily dwellings)",
       "reasoning": "The minimum rear setback for multifamily dwellings in the R-12 ADU district is 16 feet, as specified in Table 2102.16, which represents the most permissive multifamily district found in the text.",
-      "source_page": null
+      "source_page": 42
     },
     "setback_front_ft": {
       "raw_value": 5,
@@ -89,7 +89,7 @@
       "source_section": "Table 2102.16",
       "district_context": "R-12 Residential District, Twelve Dwelling Units/Acre (Affordable Dwelling Unit Development)",
       "reasoning": "The minimum front setback for multifamily dwellings in the R-12 ADU district is explicitly stated as 5 feet in Table 2102.16, which represents the most permissive multifamily district detailed in the text.",
-      "source_page": null
+      "source_page": 42
     },
     "setback_side_ft": {
       "raw_value": 8,
@@ -99,9 +99,9 @@
       "unit": "ft",
       "confidence": "high",
       "source_section": "Table 2102.16",
-      "district_context": "R-12 Lot and Building Standards – Affordable Dwelling Unit Development (Multifamily dwellings)",
+      "district_context": "R-12 Lot and Building Standards \u2013 Affordable Dwelling Unit Development (Multifamily dwellings)",
       "reasoning": "The minimum side setback for multifamily dwellings in the R-12 ADU district is 8 feet, as specified in Table 2102.16, which represents the most permissive multifamily district found in the text.",
-      "source_page": null
+      "source_page": 42
     }
   }
 }
