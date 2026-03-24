@@ -203,13 +203,15 @@ describe('Home', () => {
     expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument();
   });
 
-  it('shows disclaimer in score panel', async () => {
+  it('shows disclaimer in methodology modal', async () => {
     render(<Home />);
     fireEvent.focus(screen.getByPlaceholderText('Find your county or municipality'));
     await waitFor(() => screen.getByText('Arlington County'));
     fireEvent.mouseDown(screen.getByText('Arlington County'));
+    await waitFor(() => screen.getByText('About this score'));
+    fireEvent.click(screen.getByText('About this score'));
     await waitFor(() =>
-      expect(screen.getByText(/does not recommend policy positions/i)).toBeInTheDocument()
+      expect(screen.getByText(/does not recommend any policy position/i)).toBeInTheDocument()
     );
   });
 });
