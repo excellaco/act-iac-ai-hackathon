@@ -29,6 +29,7 @@ INCLUDE only districts that meet ALL of these criteria:
 - Standalone base district (not an overlay applied on top of another district)
 - Residential use is the primary purpose of the district
 - The district regulates housing density, setbacks, height, and similar development standards
+- The zone_code is a named district identifier from the zoning map or district list (e.g. R-1, RM-2, RA, RMF, R-A)
 
 DO NOT include any of the following — even if they appear in the same section as residential zones:
 - Overlay districts (e.g. "Transit Overlay", "Historic Overlay", "Entrance Corridor", "Airport Impact")
@@ -39,6 +40,12 @@ DO NOT include any of the following — even if they appear in the same section 
 - Mixed-use districts where commercial or office is the primary use
 - Special purpose, transition, or buffer districts
 - Any district whose name or description is primarily non-residential
+
+CRITICAL — avoid these common hallucination traps:
+- DO NOT enumerate sequential numeric variants of a base code. If a table shows "RM-1" and "RM-2" as density designators or footnote references, do NOT generate RM-3, RM-4, RM-5, etc. Only include codes that are explicitly named as standalone districts.
+- DO NOT treat density values, FAR numbers, lot size minimums, or footnote numbers as zone codes.
+- DO NOT include codes that look like garbled text, binary artifacts, or nonsense characters.
+- A typical jurisdiction has between 3 and 25 base residential zoning districts. If you find more than 30, you are almost certainly including density table rows, footnote references, or numeric variants — stop and reconsider.
 
 When uncertain whether a district is a base residential district, DO NOT include it. A false negative (missing a zone) is far less harmful than a false positive (including hundreds of non-residential zones).
 
@@ -53,9 +60,17 @@ Return the zone_code exactly as it appears in the text. Return only valid JSON �
 function buildDiscoveryPrompt(chunk: string): string {
   return `Identify BASE residential zoning districts from the following zoning ordinance text.
 
-INCLUDE only standalone residential base districts (e.g. R-1, R-2, RM-2, RA, RMF) whose primary purpose is housing.
+INCLUDE only standalone residential base districts (e.g. R-1, R-2, RM-2, RA, RMF) whose primary purpose is housing and that appear as named districts in a district list, table of contents, or district description section.
 
-DO NOT include: overlay districts, planned development districts, commercial zones, industrial zones, agricultural zones, mixed-use zones where commercial is primary, or any district where residential is a secondary or conditional use. If uncertain, exclude it.
+DO NOT include:
+- Overlay districts, planned development districts, commercial zones, industrial zones, agricultural zones
+- Mixed-use zones where commercial is primary, or any district where residential is a secondary or conditional use
+- Density values, FAR numbers, lot size minimums, or footnote numbers masquerading as zone codes
+- Sequential numeric variants you are inferring — only include codes explicitly stated as district names
+
+If this chunk is a use table, density table, footnote list, or index rather than a district description or district list, return [].
+
+Return at most 10 distinct zone codes from this chunk. If you think you see more than 10, re-read carefully — you are likely confusing table rows or numeric parameters with zone codes.
 
 Return a JSON array (or [] if no base residential districts appear in this chunk):
 [
@@ -73,6 +88,28 @@ ${chunk}`
 /** Normalize zone codes to a consistent key for deduplication. */
 function normalizeCode(code: string): string {
   return code.toLowerCase().replace(/[\s\-_]+/g, '-').trim()
+}
+
+/**
+ * Returns true if the zone code looks like a legitimate district identifier.
+ * Rejects garbled PDF artifacts (non-ASCII, control characters, pure symbols)
+ * and suspiciously large sequential numeric suffixes that indicate density
+ * table rows rather than real zone codes (e.g. RM-250, RA-1000).
+ */
+function isPlausibleZoneCode(code: string): boolean {
+  // Must contain at least one ASCII letter
+  if (!/[A-Za-z]/.test(code)) return false
+  // Must be printable ASCII only
+  if (/[^\x20-\x7E]/.test(code)) return false
+  // Must not be mostly symbols/punctuation (allow hyphens and dots as separators)
+  const letters = (code.match(/[A-Za-z0-9]/g) ?? []).length
+  if (letters < 2) return false
+  // Reject codes where the numeric suffix is unrealistically large (> 30),
+  // which indicates a density value rather than a district designator.
+  // Real zone codes like R-1, RM-4, RA-20 are fine; RM-250 or RA-1000 are not.
+  const numericSuffix = code.match(/(\d+)$/)
+  if (numericSuffix && parseInt(numericSuffix[1], 10) > 30) return false
+  return true
 }
 
 /**
@@ -142,6 +179,10 @@ export async function discoverZones(
   for (const results of chunkResults) {
     for (const r of results) {
       if (!r.zone_code || !r.multifamily_classification) continue
+      if (!isPlausibleZoneCode(r.zone_code)) {
+        logger.debug?.(`zone discovery: skipping implausible code "${r.zone_code}"`)
+        continue
+      }
       const key = normalizeCode(r.zone_code)
       const existing = byCode.get(key)
       if (
