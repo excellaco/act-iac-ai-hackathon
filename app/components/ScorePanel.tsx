@@ -182,17 +182,30 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                             <span className={styles.citationQuote}>&ldquo;{citation.fieldValueText}&rdquo;</span>
                           )}
                           {hasSource && (
-                            <button
-                              className={styles.viewSourceBtn}
+                            <a
+                              className={styles.viewSourceLink}
+                              role="button"
+                              tabIndex={0}
                               onClick={() => setPdfModal({
                                 fieldName,
                                 sourcePage: citation.sourcePage ?? null,
                                 sourceSection: citation.sourceSection ?? null,
                                 fieldValueText: citation.fieldValueText ?? null,
                               })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  setPdfModal({
+                                    fieldName,
+                                    sourcePage: citation.sourcePage ?? null,
+                                    sourceSection: citation.sourceSection ?? null,
+                                    fieldValueText: citation.fieldValueText ?? null,
+                                  })
+                                }
+                              }}
                             >
                               View source
-                            </button>
+                            </a>
                           )}
                         </li>
                       );
