@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "TRC",
+  "zoneName": "Transit Related Center",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:40:25.015Z",
+  "approved": true,
+  "fields": {
+    "height_limit_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Not found in document",
+      "unit": null,
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "TRC",
+      "reasoning": "Extraction failed",
+      "source_page": null
+    },
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Not found in document",
+      "unit": null,
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "TRC",
+      "reasoning": "Extraction failed",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "No max",
+      "raw_unit": "FAR",
+      "field_value": null,
+      "field_value_text": "No max",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "Table 2.01.01-1",
+      "district_context": "TRC Zoning District, Inner Core subarea",
+      "reasoning": "The maximum FAR for the Inner Core subarea of the TRC Zoning District is explicitly stated as 'No max' in the dimensional standards table, representing the most permissive density limit.",
+      "source_page": 14
+    },
+    "setback_front_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No min",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.01.01-1",
+      "district_context": "TRC Zoning District (Inner Core, Outer Core, TDSA)",
+      "reasoning": "The table explicitly states 'No min' for 'Front Yard (min)' in all multifamily subareas of the TRC district, which is the most permissive value.",
+      "source_page": 14
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No min",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.01.01-1",
+      "district_context": "TRC Zoning District (Inner Core, Outer Core, TDSA)",
+      "reasoning": "The table explicitly states 'No min' for 'Rear Yard (min)' in all multifamily subareas of the TRC district, which is the most permissive value.",
+      "source_page": 14
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No min",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.01.01-1",
+      "district_context": "TRC Zoning District (Inner Core, Outer Core, TDSA)",
+      "reasoning": "The table explicitly states 'No min' for 'Side Yard (min)' in all multifamily subareas of the TRC district, which is the most permissive value.",
+      "source_page": 14
+    },
+    "discretionary_review_required": {
+      "raw_value": "Maximum FAR and floor area for Inner Core and Outer Core must be provided on approved Concept Development Plan (CDP).",
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "special_use_permit",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "Table 2.01.01-1, TABLE NOTES 1",
+      "district_context": "Transit Related Center (TRC) Zoning District, Inner Core and Outer Core subareas",
+      "reasoning": "The text indicates that multifamily development within the TRC district requires an 'approved Concept Development Plan (CDP)' and is established via a 'Zoning Map Amendment' by the Board of Supervisors, which are legislative or quasi-judicial approvals, classifying it as a special use permit.",
+      "source_page": null
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Refer to Section 7.06.02.",
+      "unit": "spaces_per_unit",
+      "confidence": "low",
+      "source_section": "4.05.16.3",
+      "district_context": "Not specified in this section, general reference.",
+      "reasoning": "The provided text refers to Section 7.06.02 for parking requirements, but that section is not included in the text chunk, so the specific value cannot be extracted.",
+      "source_page": 257
+    }
+  }
+}

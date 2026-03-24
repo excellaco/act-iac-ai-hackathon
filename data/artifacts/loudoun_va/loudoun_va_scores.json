@@ -1,0 +1,74 @@
+{
+  "jurisdictionId": "306f1ec1-a9b9-4e92-8395-12c54c9f88de",
+  "slug": "loudoun_va",
+  "scoredAt": "2026-03-24T15:54:09.107Z",
+  "jurisdiction": {
+    "ris_composite": 44,
+    "dci": 64,
+    "dcoi": 51,
+    "pci": 32,
+    "crp": 22
+  },
+  "zones": [
+    {
+      "zone_code": "R-24",
+      "zone_name": "Multifamily Residential - R-24 (Legacy District)",
+      "multifamily_classification": "primary",
+      "ris_composite": 45,
+      "dci": 67,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    },
+    {
+      "zone_code": "R-16",
+      "zone_name": "Townhouse/Multifamily Residential - R-16 (Legacy District)",
+      "multifamily_classification": "primary",
+      "ris_composite": 45,
+      "dci": 69,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    },
+    {
+      "zone_code": "SCN-16",
+      "zone_name": "SCN-16 Zoning District",
+      "multifamily_classification": "primary",
+      "ris_composite": 44,
+      "dci": 66,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    },
+    {
+      "zone_code": "SCN-24",
+      "zone_name": "SCN-24 Zoning District",
+      "multifamily_classification": "primary",
+      "ris_composite": 44,
+      "dci": 66,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    },
+    {
+      "zone_code": "TCN",
+      "zone_name": null,
+      "multifamily_classification": "primary",
+      "ris_composite": 44,
+      "dci": 64,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    },
+    {
+      "zone_code": "TRC",
+      "zone_name": "Transit Related Center",
+      "multifamily_classification": "primary",
+      "ris_composite": 41,
+      "dci": 54,
+      "dcoi": 51,
+      "pci": 32,
+      "crp": 22
+    }
+  ]
+}

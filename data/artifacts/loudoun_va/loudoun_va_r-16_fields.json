@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "R-16",
+  "zoneName": "Townhouse/Multifamily Residential - R-16 (Legacy District)",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:40:27.713Z",
+  "approved": true,
+  "fields": {
+    "height_limit_ft": {
+      "raw_value": 55,
+      "raw_unit": "ft",
+      "field_value": 55,
+      "field_value_text": "Up to 55 ft if the structure is set back from streets or lot lines 1 ft for each 1 ft that exceeds 45 ft in addition to each required minimum yard",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.04-1",
+      "district_context": "R-16 Legacy Zoning District (MFS and MFA)",
+      "reasoning": "The R-16 Legacy Zoning District's dimensional standards table specifies a maximum building height of 55 ft for multifamily stacked (MFS) and multifamily attached (MFA) structures under certain setback conditions.",
+      "source_page": null
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "Table 3.02.02-1. Principal Use Table for Legacy Suburban Zoning Districts",
+      "district_context": "Multifamily Residential - R-24 (Legacy District)",
+      "reasoning": "Extracted \"P\" from use table \u2014 P means permitted by right; manually corrected.",
+      "source_page": 1
+    },
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Not found in document",
+      "unit": null,
+      "confidence": "low",
+      "source_section": null,
+      "district_context": "R-16",
+      "reasoning": "Extraction failed",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "19.2",
+      "raw_unit": "dwelling units per acre",
+      "field_value": "19.2",
+      "field_value_text": "19.2 dwelling units per acre if ADUS are provided \u00b9",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.04-1",
+      "district_context": "R-16 (Legacy District)",
+      "reasoning": "The text explicitly states the maximum residential density for the R-16 multifamily district, including a higher limit if ADUs are provided, which is the most permissive value found.",
+      "source_page": 55
+    },
+    "setback_side_ft": {
+      "raw_value": 10,
+      "raw_unit": "ft",
+      "field_value": 10,
+      "field_value_text": "MFS and MFA 10 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.04-1",
+      "district_context": "R-16 Legacy Zoning District (MFS and MFA)",
+      "reasoning": "The side yard setback for multifamily stacked (MFS) and multifamily attached (MFA) in the R-16 district is explicitly stated as 10 ft in the dimensional standards table.",
+      "source_page": null
+    },
+    "setback_rear_ft": {
+      "raw_value": 25,
+      "raw_unit": "ft",
+      "field_value": 25,
+      "field_value_text": "MFS and MFA 25 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.04-1",
+      "district_context": "R-16 Legacy Zoning District (MFS and MFA)",
+      "reasoning": "The rear yard setback for multifamily stacked (MFS) and multifamily attached (MFA) in the R-16 district is explicitly stated as 25 ft in the dimensional standards table.",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": 25,
+      "raw_unit": "ft",
+      "field_value": 25,
+      "field_value_text": "MF 25 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.04-1",
+      "district_context": "R-16 Legacy Zoning District (Multifamily)",
+      "reasoning": "The front setback for multifamily (MF) is explicitly stated as 25 ft in the R-16 district's dimensional standards table.",
+      "source_page": null
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text discusses principal use tables, adaptive reuse, and open space requirements, but does not contain any information regarding minimum off-street parking requirements for residential multifamily development.",
+      "source_page": null
+    }
+  }
+}

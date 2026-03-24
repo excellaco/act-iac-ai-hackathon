@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "TCN",
+  "zoneName": null,
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:39:53.002Z",
+  "approved": true,
+  "fields": {
+    "height_limit_ft": {
+      "raw_value": 50,
+      "raw_unit": "ft",
+      "field_value": 50,
+      "field_value_text": "50 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.03.03-1",
+      "district_context": "Transition Compact Neighborhood (TCN) Zoning District",
+      "reasoning": "The maximum building height limit for multifamily-like development (duplex, triplex, quadruplex) in the Transition Compact Neighborhood (TCN) Zoning District is explicitly stated as 50 feet in Table 2.03.03-1.",
+      "source_page": 14
+    },
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No min",
+      "unit": "sqft",
+      "confidence": "high",
+      "source_section": "Table 2.03.04-1",
+      "district_context": "TCC (Transition Community Center)",
+      "reasoning": "The TCC district explicitly allows multifamily dwelling units and states 'No min' for the minimum lot size, which is the most permissive value found.",
+      "source_page": 14
+    },
+    "setback_rear_ft": {
+      "raw_value": 15,
+      "raw_unit": "ft",
+      "field_value": 15,
+      "field_value_text": "15 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.03.03-1",
+      "district_context": "TCN Zoning District (SFA Duplex, Triplex, or Quadruplex)",
+      "reasoning": "The TCN district explicitly states a minimum residential rear yard setback for multifamily dwelling units (SFA Duplex, Triplex, or Quadruplex), which is the most permissive among identified multifamily options.",
+      "source_page": 27
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Multifamily\u00b3 or Live/Work Dwelling Unit\n3 Must be provided pursuant to Section 4.02.08.D.",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "Table 2.03.04-2",
+      "district_context": "TCC Zoning District",
+      "reasoning": "The provided text indicates that multifamily dwelling requirements, which would include parking, are 'provided pursuant to Section 4.02.08.D.', but this section is not present in the text chunk.",
+      "source_page": null
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "Table 3.02.03-1",
+      "district_context": "TCC Zoning District",
+      "reasoning": "Table 3.02.03-1 explicitly lists 'Dwelling, Multifamily' as 'P' (Permitted) in the TCC Zoning District, which means it is by-right.",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "6",
+      "raw_unit": "dwelling units per acre with ADUs\u00b9",
+      "field_value": null,
+      "field_value_text": "6 dwelling units per acre with ADUs\u00b9",
+      "unit": "units_per_acre",
+      "confidence": "low",
+      "source_section": "Table 2.03.03-1",
+      "district_context": "TCN Zoning District",
+      "reasoning": "The TCN Zoning District is a multifamily-like district that allows for duplex, triplex, and quadruplex dwelling units, and specifies a maximum residential density of 6 dwelling units per acre with ADUs, which is the most permissive direct units per acre value found in a relevant district.",
+      "source_page": 87
+    },
+    "setback_front_ft": {
+      "raw_value": "15",
+      "raw_unit": "ft",
+      "field_value": "15",
+      "field_value_text": "15 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.03.03-1",
+      "district_context": "TCN (Transition Compact Neighborhood) for SFA Duplex, Triplex, or Quadruplex",
+      "reasoning": "Extracted the minimum front setback for residential multifamily (SFA Duplex, Triplex, or Quadruplex) from the TCN district, which is the most relevant and clearly defined multifamily district for minimum setbacks.",
+      "source_page": 27
+    },
+    "setback_side_ft": {
+      "raw_value": 5,
+      "raw_unit": "ft",
+      "field_value": 5,
+      "field_value_text": "12 Residential Side Yard (min) 5 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.03.03-1",
+      "district_context": "TCN Zoning District (SFA Duplex, Triplex, or Quadruplex)",
+      "reasoning": "The TCN district explicitly states a minimum residential side yard setback of 5 ft, which is more permissive than the TCC district's 10 ft.",
+      "source_page": null
+    }
+  }
+}
