@@ -226,6 +226,12 @@ export default function WhatIfPanel({
 
   return (
     <div className={styles.panel}>
+      {/* Issue #7: Scope note */}
+      <p className={styles.scopeNote}>
+        This simulation models regulatory constraint only. It does not predict housing production,
+        developer response, or approval outcomes.
+      </p>
+
       {/* E8-3: Score comparison */}
       <div className={styles.scoreBlock}>
         <div className={styles.scoreItem}>

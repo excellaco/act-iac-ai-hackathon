@@ -325,6 +325,143 @@
   margin-top: -8px;
 }
 
+/* Issue #6: Data vintage disclosure */
+.dataVintage {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.4;
+  font-style: italic;
+  margin: -12px 0 0;
+}
+
+/* Issue #2: Default used badge on citation items */
+.citationFieldHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.defaultBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #d97706;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 4px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+/* Issue #3: AI extraction reasoning */
+.reasoningDetails {
+  margin-top: 4px;
+}
+
+.reasoningSummary {
+  font-size: 11px;
+  color: #2563eb;
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+.reasoningSummary::-webkit-details-marker {
+  display: none;
+}
+
+.reasoningSummary::before {
+  content: '▶';
+  font-size: 8px;
+  transition: transform 0.15s;
+}
+
+.reasoningDetails[open] .reasoningSummary::before {
+  transform: rotate(90deg);
+}
+
+.reasoningText {
+  font-size: 11px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 4px 0 0 12px;
+  font-style: italic;
+}
+
+/* Issues #1 and #5: CRP peer set disclosure */
+.crpPeerSet {
+  background: #f8faff;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crpPeerSetTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0;
+}
+
+.crpPeerSetNote {
+  font-size: 11px;
+  color: #4b5563;
+  line-height: 1.4;
+  margin: 0;
+  font-style: italic;
+}
+
+.crpPeerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.crpPeerItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.crpPeerName {
+  font-size: 11px;
+  color: #374151;
+}
+
+.crpPeerBadge {
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.crpPeerBadgeReal {
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+}
+
+.crpPeerBadgeModeled {
+  color: #7c3aed;
+  background: #ede9fe;
+  border: 1px solid #ddd6fe;
+}
+
 .analysisStats {
   font-size: 12px;
   color: #6b7280;

@@ -413,6 +413,7 @@ export async function runLoadStage(
         sourceDocument: artifact.sourceDocument,
         sourceSection:  clean(validated.source_section),
         districtContext: clean(validated.district_context),
+        reasoning:      clean(fa.reasoning),
         pipelineRunId:  run!.id,
       }
     })
@@ -434,6 +435,7 @@ export async function runLoadStage(
             sourceDocument:  sql`excluded.source_document`,
             sourceSection:   sql`excluded.source_section`,
             districtContext: sql`excluded.district_context`,
+            reasoning:       sql`excluded.reasoning`,
             pipelineRunId:   sql`excluded.pipeline_run_id`,
             extractedAt:     sql`now()`,
           },
@@ -457,6 +459,7 @@ export async function runLoadStage(
         unit:                      clean(zf.unit),
         confidence:                zf.confidence,
         sourceSection:             clean(zf.source_section),
+        reasoning:                 clean(zf.reasoning),
         pipelineRunId:             run!.id,
       }))
 
@@ -478,6 +481,7 @@ export async function runLoadStage(
               unit:                       sql`excluded.unit`,
               confidence:                 sql`excluded.confidence`,
               sourceSection:              sql`excluded.source_section`,
+              reasoning:                  sql`excluded.reasoning`,
               pipelineRunId:              sql`excluded.pipeline_run_id`,
               extractedAt:                sql`now()`,
             },

@@ -41,7 +41,7 @@ export const FAIRFAX: JurisdictionData = deepFreeze({
   id: 'uuid-fairfax',
   name: 'Fairfax County',
   state: 'VA',
-  slug: 'fairfax',
+  slug: 'fairfax_va',
   ris: 73,
   subScores: {
     dci:  { score: 75, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },
@@ -72,7 +72,7 @@ export const ARLINGTON: JurisdictionData = deepFreeze({
   id: 'uuid-arlington',
   name: 'Arlington County',
   state: 'VA',
-  slug: 'arlington',
+  slug: 'arlington_va',
   ris: 43,
   subScores: {
     dci:  { score: 40, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },
@@ -131,7 +131,7 @@ export const LOUDOUN: JurisdictionData = deepFreeze({
   id: 'uuid-loudoun',
   name: 'Loudoun County',
   state: 'VA',
-  slug: 'loudoun',
+  slug: 'loudoun_va',
   ris: 65,
   subScores: {
     dci:  { score: 80, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },

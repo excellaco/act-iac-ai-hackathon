@@ -47,6 +47,7 @@ export const extractedFields = pgTable('extracted_fields', {
   sourceSection: text('source_section'),
   sourcePage: integer('source_page'),
   districtContext: text('district_context'),
+  reasoning: text('reasoning'),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
   extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [unique().on(t.jurisdictionId, t.fieldName)])
@@ -113,6 +114,7 @@ export const zoneExtractedFields = pgTable('zone_extracted_fields', {
   confidence: confidenceTier('confidence').notNull(),
   sourceSection: text('source_section'),
   sourcePage: integer('source_page'),
+  reasoning: text('reasoning'),
   pipelineRunId: uuid('pipeline_run_id').references(() => pipelineRuns.id),
   extractedAt: timestamp('extracted_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

@@ -195,18 +195,52 @@ export interface PeerComposite {
  * will drift as formulas change. Re-seeding synthetic jurisdictions and passing
  * live peerSet from the DB is the authoritative path (see issue #235).
  */
-export const FALLBACK_PEER_COMPOSITES: PeerComposite[] = [
-  { slug: 'alexandria-city-va',        composite: 35 + 60 + 30 },   // 125
-  { slug: 'arlington_va',              composite: 40 + 50 + 35 },   // 125
-  { slug: "prince-george's-county-md", composite: 50 + 55 + 45 },   // 150
-  { slug: 'frederick-county-va',       composite: 75 + 35 + 50 },   // 160
-  { slug: 'prince-william-county-va',  composite: 70 + 45 + 55 },   // 170
-  { slug: 'montgomery-county-md',      composite: 65 + 65 + 55 },   // 185
-  { slug: 'howard-county-md',          composite: 60 + 70 + 60 },   // 190
-  { slug: 'stafford-county-va',        composite: 85 + 40 + 65 },   // 190
-  { slug: 'loudoun_va',                composite: 80 + 55 + 60 },   // 195
-  { slug: 'fairfax_va',               composite: 75 + 70 + 65 },   // 210
+/**
+ * Real slugs — these jurisdictions have zoning ordinances extracted by the
+ * pipeline. All others are synthetic (modeled estimates).
+ */
+const REAL_SLUGS = new Set(['fairfax_va', 'arlington_va', 'loudoun_va'])
+
+export interface PeerJurisdiction {
+  slug: string
+  displayName: string
+  /** 'extracted' = real ordinance data; 'modeled' = synthetic/estimated scores */
+  dataSource: 'extracted' | 'modeled'
+  composite: number
+}
+
+/**
+ * Full peer set used by the CRP calculation. Exported so the UI can display
+ * an accurate peer set disclosure without duplicating this list.
+ */
+export const PEER_COMPOSITES: PeerJurisdiction[] = [
+  { slug: 'alexandria-city-va',        displayName: 'Alexandria City, VA',          dataSource: 'modeled',    composite: 35 + 60 + 30 },   // 125
+  { slug: 'arlington_va',              displayName: 'Arlington County, VA',          dataSource: 'extracted',  composite: 40 + 50 + 35 },   // 125
+  { slug: "prince-george's-county-md", displayName: "Prince George's County, MD",   dataSource: 'modeled',    composite: 50 + 55 + 45 },   // 150
+  { slug: 'frederick-county-va',       displayName: 'Frederick County, VA',          dataSource: 'modeled',    composite: 75 + 35 + 50 },   // 160
+  { slug: 'prince-william-county-va',  displayName: 'Prince William County, VA',     dataSource: 'modeled',    composite: 70 + 45 + 55 },   // 170
+  { slug: 'montgomery-county-md',      displayName: 'Montgomery County, MD',         dataSource: 'modeled',    composite: 65 + 65 + 55 },   // 185
+  { slug: 'howard-county-md',          displayName: 'Howard County, MD',             dataSource: 'modeled',    composite: 60 + 70 + 60 },   // 190
+  { slug: 'stafford-county-va',        displayName: 'Stafford County, VA',           dataSource: 'modeled',    composite: 85 + 40 + 65 },   // 190
+  { slug: 'loudoun_va',                displayName: 'Loudoun County, VA',            dataSource: 'extracted',  composite: 80 + 55 + 60 },   // 195
+  { slug: 'fairfax_va',                displayName: 'Fairfax County, VA',            dataSource: 'extracted',  composite: 75 + 70 + 65 },   // 210
 ]
+
+/** Backward-compatible alias used by score.ts, score-zones.ts, and tests. */
+export const FALLBACK_PEER_COMPOSITES: PeerComposite[] = PEER_COMPOSITES
+
+// Keep backward-compatible internal reference pointing at the same array
+const _PEER_COMPOSITES = PEER_COMPOSITES
+
+/** Validate that REAL_SLUGS is consistent with the peer list */
+if (process.env.NODE_ENV !== 'production') {
+  for (const peer of _PEER_COMPOSITES) {
+    const expected: PeerJurisdiction['dataSource'] = REAL_SLUGS.has(peer.slug) ? 'extracted' : 'modeled'
+    if (peer.dataSource !== expected) {
+      throw new Error(`PEER_COMPOSITES dataSource mismatch for slug "${peer.slug}": expected ${expected}`)
+    }
+  }
+}
 
 export interface CrpInputs {
   dci: number
