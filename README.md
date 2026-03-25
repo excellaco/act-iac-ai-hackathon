@@ -56,31 +56,29 @@ The platform could be extended to cover all Virginia jurisdictions, then all 50 
 
 | Name | Role |
 |------|------|
-| Jeff Gallimore | Team Lead / Architecture & Engineering |
+| Jeff Gallimore | Team Lead, Architect & Lead AI Engineer |
 | Kathy Chiao | Market Research & Engagement |
-| Mimi Chen | Product / UX |
-| Charles Fiery | Engineering |
-| Jay Jemal | Engineering |
+| Mimi Chen | UX Designer |
+| Charles Fiery | AI Engineer |
+| Jay Jemal | AI Engineer |
 
 ---
 
 ### AI Tools Used
 
-| Name | Tools Used |
-|------|------------|
-| Jeff Gallimore | Claude Desktop (Sonnet 4.6 & Opus 4.6), Claude Code (with agent teams), OpenAI Codex, Gemini 2.5 Flash, Vertex AI, GitHub Copilot, Snyk (security vulnerability patching) |
-| Kathy Chiao | Claude, ChatGPT, Adobe Photoshop (Firefly & embedded Nano Banana) |
-| Mimi Chen | Figma (Design & Figma Make), Claude Sonnet 4.6, GitHub Issues, GitHub Repo |
-| Charles Fiery | Claude Code with Opus 4.6 (primary development), GitHub Copilot (PR reviews & Copilot Chat), OpenAI Codex, GPT-4 (code & architectural reviews) |
-| Jay Jemal | Claude Code (with agent teams), Claude Haiku 4.5, Claude Sonnet 4.6 Desktop, VS Code GitHub Copilot, GPT-4, Google Colab, Vertex AI, Gemini 2.5 Flash, Google ADK, Jupyter Notebook, GitHub Issues |
-
-**In development:**
-- Claude (Anthropic) — code generation, architecture design, documentation
-- GitHub Copilot — inline code completion
-
 **In the solution:**
-- Google Gemini (via Vertex AI) — zone discovery and regulatory field extraction from zoning ordinance PDFs
-- Google ADK for TypeScript — pipeline orchestration (SequentialAgent, ParallelAgent, LlmAgent)
+- **Google Gemini 2.5 Flash** (via Vertex AI) — zone discovery, regulatory field extraction from zoning ordinance PDFs, chat agent responses
+- **Google ADK for TypeScript** (`@google/adk` v0.5.0) — LlmAgent orchestration for the chat interface with declared tools
+
+**In development (per team member):**
+
+| Name | AI Tools |
+|------|----------|
+| Jeff Gallimore | Claude Desktop (Sonnet 4.6, Opus 4.6), Claude Code (agent teams), OpenAI Codex, Gemini 2.5 Flash, Vertex AI, GitHub Copilot, Snyk |
+| Kathy Chiao | Claude, ChatGPT, Adobe Photoshop (Firefly & Nano Banana) |
+| Mimi Chen | Figma (Design & Figma Make), Claude Sonnet 4.6 |
+| Charles Fiery | Claude Code (Opus 4.6), GitHub Copilot Code Review, OpenAI Codex (GPT-5.4) |
+| Jay Jemal | VS Code Copilot, Claude Sonnet 4.6 Desktop, GPT 5.4, Google Colab, Gemini 2.5 Flash |
 
 ---
 
