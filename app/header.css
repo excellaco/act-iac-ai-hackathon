@@ -41,6 +41,17 @@
   font-weight: 400;
   border-left: 1px solid #e5e7eb;
   padding-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Hide the tagline on narrow screens where it would crowd the logo */
+@media (max-width: 600px) {
+  .app-tagline {
+    display: none;
+  }
 }
 
 /* Push page content below fixed header */
