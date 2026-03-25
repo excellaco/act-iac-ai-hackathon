@@ -151,7 +151,7 @@ function AddCard({ onAdd }: AddCardProps) {
       .then((all) =>
         setOptions(
           all.filter(
-            (j) => j.dataType === 'real' && j.risComposite != null,
+            (j) => j.risComposite != null,
           ),
         )
       )
