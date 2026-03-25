@@ -54,12 +54,6 @@ See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-a
 ### Scoring & feasibility engine (E3/E4/E9)
 Deterministic TypeScript calculations served via Next.js API routes, backed by Cloud SQL (PostgreSQL). Computes the composite Regulatory Impact Score (RIS) and feasibility outputs (unit yield, buildable area, cost per unit) from structured pipeline outputs.
 
-**Implementation status (as of March 2026):**
-- E3-5 composite formula (`RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`) and E3-6 DB storage: Done
-- E3-1 DCI, E3-2 DCOI, E3-3 PCI sub-score calculations: Done — `lib/scoringEngine.ts`
-- E3-4 CRP: Done — peer-set percentile in `lib/scoringEngine.ts`
-- E4 feasibility modeling: Done — `lib/feasibility.ts` computes unit yield, parking footprint, cost per unit, and rent feasibility; `FeasibilityPanel` renders in UI; `feasibility_outputs` table seeded via `db/seeds/feasibilityOutputs.ts`
-
 **RIS composite formula:** `RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`
 
 | Sub-score | Weight | Rationale |
@@ -105,7 +99,7 @@ The system surfaces several layers of transparency to support explainable, respo
 | Equity framing | Methodology modal | Acknowledges documented disparate impacts of restrictive zoning on race and income |
 | What-If scope note | What-If panel | Notes that simulation models regulatory constraint only, not housing production or approval outcomes |
 | Chat scope disclosure | Chat panel | States answers are grounded in extracted data; directs users to verify against the official ordinance |
-| Pipeline approval gates | Pipeline scripts | Zone discovery and field extraction artifacts require manual review and approval before data is loaded into the database |
+| Pipeline approval gates | Pipeline scripts | Zone discovery and field extraction artifacts require manual review and approval before data is loaded into the database — see [`docs/data-pipeline.md`](data-pipeline.md) for the approval workflow |
 | Prohibit fabrication | Gemini system prompt | Extractors are instructed to return verbatim quotes; low-confidence fields are labeled, not hallucinated |
 | Disclaimer | Score panel | "This score measures regulatory constraint and does not recommend policy positions" |
 

@@ -172,6 +172,21 @@ After the artifact is written, a reviewer must:
 
 The pipeline:zones script will refuse to re-run if an artifact already exists with `approved: false` (to avoid overwriting a partially-reviewed artifact). Delete or rename the file to start over.
 
+### Rejection and recovery
+
+**If the zones artifact is substantially wrong** (e.g. hundreds of spurious zone codes, clearly hallucinated results):
+1. Delete the artifact file: `rm data/artifacts/<slug>/<slug>_zones.json`
+2. Re-run `pipeline:zones` — the script refuses to overwrite an existing artifact, so the file must be deleted first
+3. If results are consistently poor, check that `pipeline:parse` produced a clean pages artifact — OCR quality issues upstream will degrade zone discovery
+
+**If only a few zones are wrong:**
+1. Edit the artifact directly — correct or remove the bad zone entries
+2. Set `"include_in_extraction": false` on any zones you want to skip without deleting them
+3. Set `"approved": true` and proceed
+
+**If a zone should be excluded from scoring but kept for reference:**
+- Set `"include_in_load": false` on that zone — it will be extracted but not written to the database
+
 ### Usage
 
 ```bash
@@ -255,6 +270,24 @@ After extraction, a reviewer must:
 4. Commit the approved artifacts to the repo
 
 Only artifacts with `approved: true` will be loaded into the database by Stage 3.
+
+### Rejection and recovery
+
+**If a zone fields artifact is substantially wrong:**
+1. Delete the artifact: `rm data/artifacts/<slug>/<slug>_<zone-slug>_fields.json`
+2. Re-run extraction for that specific zone: `npm run pipeline:extract <slug> <ZONE-CODE>`
+3. Review the new artifact — if Gemini is consistently extracting bad values, check that the zone's `source_pages` in the zones artifact are pointing to the right pages
+
+**If only some fields in an artifact are wrong:**
+- You can manually correct field values in the JSON before setting `"approved": true`
+- The `source_section` and `source_page` fields tell you exactly where to verify against the source ordinance
+- Leave `"approved": false` on any artifact you are not confident in — it will be skipped by `pipeline:load`
+
+**If you want to re-extract a single zone without re-running all zones:**
+```bash
+npm run pipeline:extract fairfax_va PDH-4
+```
+This overwrites only that zone's fields artifact, leaving others untouched.
 
 ### Usage
 
@@ -345,17 +378,30 @@ npm run pipeline:score fairfax_va
 
 **Script:** `scripts/ocr-pdf.ts`
 
-Runs Google Cloud Vision OCR on a zoning ordinance PDF and writes output JSON files to GCS. Use this as a prerequisite for `pipeline:parse` in OCR mode.
+Runs Google Cloud Vision OCR on a zoning ordinance PDF and writes output JSON files to GCS. Use this as a prerequisite for `pipeline:parse` in OCR mode. Only needed for scanned PDFs where `pdf-parse` produces empty or garbled text.
 
 ```bash
 npm run ocr:pdf fairfax_va
 ```
 
-This is a long-running operation (several minutes for large PDFs). The script:
+**Run time:** 10–30 minutes for a large zoning ordinance PDF (100–500 pages). The script submits an async batch job to Cloud Vision and polls for completion — do not interrupt it.
+
+The script:
 1. Finds the source PDF in `gs://<RAW_DATA_BUCKET>/zoning/<slug>/`
-2. Submits an async OCR job to Cloud Vision
-3. Waits for completion
-4. Downloads and assembles the output JSON files
+2. Submits an async OCR job to Cloud Vision (`ASYNC_BATCH_ANNOTATE_FILES`)
+3. Polls for completion (logs progress every 30 seconds)
+4. Downloads and assembles the per-page output JSON files to `gs://<RAW_DATA_BUCKET>/zoning/<slug>/ocr/`
+
+**Verifying OCR output quality:**
+- OCR output files are written to GCS at `gs://<RAW_DATA_BUCKET>/zoning/<slug>/ocr/`
+- Each file is a Cloud Vision JSON response for a batch of pages
+- After `pipeline:parse` runs in OCR mode, inspect `data/artifacts/<slug>/<slug>_pages.json` — each page entry should have readable text (not garbled characters or empty strings)
+- If pages are blank or unreadable, the source PDF may be a scanned image with low resolution — check that the PDF is at least 150 DPI before re-running
+
+**Re-running a failed OCR job:**
+- If the script fails mid-run, the partial GCS output may still exist — check `gs://<RAW_DATA_BUCKET>/zoning/<slug>/ocr/` before re-running to avoid duplicate output files
+- Delete any existing OCR output files before re-running: `gcloud storage rm -r gs://<RAW_DATA_BUCKET>/zoning/<slug>/ocr/`
+- Then re-run `npm run ocr:pdf <slug>`
 
 After OCR completes, configure `data/config/<slug>.json` with `"pdf_extraction": "ocr"` and `"ocr_source"` pointing to the GCS output prefix, then run `pipeline:parse`.
 
