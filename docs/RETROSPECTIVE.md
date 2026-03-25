@@ -24,11 +24,17 @@
 
 - **SonarCloud "new code" coverage gate** — The 80% threshold on *new code* (not overall) meant every feature PR had to ship with tests or risk blocking the deploy pipeline. This was good discipline but added time to every change.
 
+- **Real-world zoning data is structurally inconsistent at every layer** — Even across just three Virginia jurisdictions, the pipeline had to handle two fundamentally different document types: Arlington's zoning code was a searchable PDF that pdf-parse could extract directly; Fairfax's was a scanned image PDF that required a separate Cloud Vision OCR batch job before any text was available. That's before touching content inconsistency — different section structures, different terminology for the same concepts, zone codes with no standardized naming convention. Scaling to even a single state, let alone nationally, would require automated document discovery and format detection rather than per-jurisdiction manual configuration. And even with more automation, human review will likely remain a necessary part of the ingestion process — the variation in source material is too high to trust extraction results without verification.
+
+- **LLM accuracy and reliability in extraction** — Zone discovery produced hallucinated zone codes that didn't exist in the ordinance, requiring prompt engineering to correct. Field extraction had its own reliability challenges: the model would sometimes pull values from the wrong sections of the document, returning a number that was technically present in the ordinance but not the right regulatory field. This points to a broader challenge with using LLMs for structured extraction from dense documents — accuracy requires iteration on prompts, chunking strategy, and human review of results, not just a single well-crafted prompt.
+
 - **Coordinating parallel workstreams** — The extraction pipeline refactoring and our UI/UX work occasionally collided (schema changes breaking local dev, branch conflicts, test fixtures going stale). Communication via Slack and GitHub issues kept it manageable but not frictionless. Adopting Git worktrees for multi-agent development, allowing multiple AI coding agents to work on separate branches simultaneously in isolated working directories, helped mitigate collisions later in the build.
 
 ---
 
 ## What We'd Do Differently
+
+- **Do more domain research before building the pipeline** — We did some upfront domain research, but getting our hands on a larger variety of zoning ordinance documents from different jurisdictions, and having more conversations with people who work directly with zoning data, would likely have surfaced the document heterogeneity problem before we were deep into pipeline implementation. Discovering it through the build required mid-stream architectural decisions. Had we understood the scope of the problem earlier, it might have affected our initial concept for the solution. That said, the tooling allowed us to respond quickly and effectively when those issues did surface — making it a mitigated risk rather than a critical failure.
 
 - **Establish the UX review loop from day 1** — Our designer's feedback in the final days was the most impactful work we did. If we'd started that feedback cycle earlier, we'd have caught the information hierarchy issues (disclaimer placement, accordion content, comparison card ordering) before building features on top of them.
 
