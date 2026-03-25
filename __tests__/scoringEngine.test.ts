@@ -38,7 +38,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 1,       // min density
       setbackFrontFt: 40,
       setbackSideFt: 40,
-      setbackRearFt: 40,        // total 120 = max setbacks
+      setbackRearFt: 40,        // effective total 160 ft (front + 2×side + rear) — clamped to max
     }
     expect(computeDCI(restrictive)).toBeGreaterThanOrEqual(95)
   })
@@ -50,7 +50,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 150,     // max density
       setbackFrontFt: 5,
       setbackSideFt: 5,
-      setbackRearFt: 5,         // total 15 = min setbacks
+      setbackRearFt: 5,         // effective total 15 ft (front + 2×side + rear) = min setbacks
     }
     expect(computeDCI(permissive)).toBeLessThanOrEqual(5)
   })
@@ -86,7 +86,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 0.5,      // below 1 min
       setbackFrontFt: 50,
       setbackSideFt: 50,
-      setbackRearFt: 50,         // total 150, beyond 120 max
+      setbackRearFt: 50,         // effective total 200 ft (front + 2×side + rear), beyond 140 max — clamped
     }
     const score = computeDCI(beyondMax)
     expect(score).toBeLessThanOrEqual(100)

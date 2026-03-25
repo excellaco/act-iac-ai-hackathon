@@ -41,7 +41,7 @@ const DCI_RANGES = {
   lotSizeSqft:  { min: 3_000,  max: 87_120 }, // ~0.07 ac (urban) → 2 ac (rural)
   heightFt:     { min: 25,     max: 250 },     // residential low-rise → urban high-rise
   densityUpa:   { min: 1,      max: 150 },     // rural → high-density urban
-  setbacksTotalFt: { min: 15,  max: 120 },     // combined front+side+rear
+  setbacksTotalFt: { min: 15,  max: 140 },     // combined front + 2×side + rear
 }
 
 export interface DciInputs {
@@ -62,7 +62,9 @@ export function computeDCI(fields: DciInputs): number {
   const lotScore     = normalize(fields.minLotSizeSqft, DCI_RANGES.lotSizeSqft)
   const heightScore  = 100 - normalize(fields.heightLimitFt, DCI_RANGES.heightFt)   // inverse
   const densityScore = 100 - normalize(fields.densityLimitUpa, DCI_RANGES.densityUpa) // inverse
-  const setbacks     = fields.setbackFrontFt + fields.setbackSideFt + fields.setbackRearFt
+  // Side setbacks apply to both sides of the parcel, consuming 2× the stated
+  // value from buildable width, so we double setbackSideFt here.
+  const setbacks     = fields.setbackFrontFt + (2 * fields.setbackSideFt) + fields.setbackRearFt
   const setbackScore = normalize(setbacks, DCI_RANGES.setbacksTotalFt)
 
   const raw = 0.35 * lotScore + 0.20 * heightScore + 0.35 * densityScore + 0.10 * setbackScore
@@ -93,7 +95,12 @@ export const REGIONAL_MULTIPLIERS: Record<string, number> = {
 
 export const DEFAULT_REGIONAL_MULTIPLIER = 1.00
 
-/** National baseline multifamily construction cost (BLS OES-derived, 2024). */
+/**
+ * National baseline multifamily construction cost per unit (2024 estimate).
+ * Source: NAHB construction cost surveys and Census Bureau Construction Put in
+ * Place (CPP) data. BLS OES measures occupational wages, not construction costs
+ * — see issue #203 for a proposed update to a rigorously sourced figure.
+ */
 export const BASE_COST_PER_UNIT = 180_000
 
 /** Surface parking stall cost including land opportunity cost ($/stall). */
@@ -102,10 +109,17 @@ export const PARKING_STALL_COST = 25_000
 /** Unit size assumption for construction cost calculation (sq ft). */
 export const UNIT_SIZE_SQFT = 900
 
-/** Peer-set cost range for DCOI normalization. */
+/**
+ * Peer-set cost range for DCOI normalization.
+ * Defined as absolute dollar values so that changes to BASE_COST_PER_UNIT
+ * do not silently shift the normalization bounds and break score comparability.
+ * Derived from the peer-set extremes: ~$153K (low-cost region, zero parking)
+ * to ~$309K (most-expensive peer region, 3 stalls at $25K/stall).
+ * Update these if the peer set or parking cost assumptions change materially.
+ */
 const DCOI_COST_RANGE = {
-  min: BASE_COST_PER_UNIT * 0.85,                              // ~$153K: low-cost, zero parking
-  max: BASE_COST_PER_UNIT * 1.30 + 3.0 * PARKING_STALL_COST,  // ~$309K: expensive region, 3 stalls
+  min: 153_000, // low-cost peer region, zero parking requirement
+  max: 309_000, // high-cost peer region (1.15× baseline) + 3 stalls × $25K
 }
 
 export interface DcoiInputs {
@@ -163,12 +177,25 @@ export function computePCI(inputs: PciInputs): number {
 
 // ── E3-4: Comparative Restrictiveness Percentile (CRP) ────────────────────
 
+/** A peer jurisdiction entry used for CRP percentile comparison. */
+export interface PeerComposite {
+  slug: string
+  /** Sum of DCI + DCOI + PCI sub-scores for this peer. */
+  composite: number
+}
+
 /**
- * Pre-computed composite (DCI+DCOI+PCI) sums for the 10-jurisdiction peer set.
- * Used as reference distribution for CRP percentile calculation.
- * Source: seeded RIS scores for 3 real + 7 synthetic jurisdictions.
+ * Fallback pre-computed composite (DCI+DCOI+PCI) sums for the 10-jurisdiction
+ * peer set. These are used when no live peer data is supplied (e.g. client-side
+ * What-If simulation). Server-side scoring in score-zones.ts should load live
+ * composites from the ris_scores table and pass them via CrpInputs.peerSet so
+ * that CRP stays in sync with the current scoring formula.
+ *
+ * WARNING: These hardcoded values are derived from synthetic seed scores and
+ * will drift as formulas change. Re-seeding synthetic jurisdictions and passing
+ * live peerSet from the DB is the authoritative path (see issue #235).
  */
-const PEER_COMPOSITES = [
+export const FALLBACK_PEER_COMPOSITES: PeerComposite[] = [
   { slug: 'alexandria-city-va',        composite: 35 + 60 + 30 },   // 125
   { slug: 'arlington_va',              composite: 40 + 50 + 35 },   // 125
   { slug: "prince-george's-county-md", composite: 50 + 55 + 45 },   // 150
@@ -187,16 +214,29 @@ export interface CrpInputs {
   pci: number
   /** Slug of the jurisdiction being scored (excluded from peer comparison). */
   slug?: string
+  /**
+   * Optional live peer composites loaded from the ris_scores table.
+   * When provided, these take precedence over FALLBACK_PEER_COMPOSITES so that
+   * CRP is computed against the current scoring output rather than stale
+   * hardcoded values.  Server-side scoring (score-zones.ts) should always pass
+   * this field; client-side What-If simulation uses the fallback.
+   */
+  peerSet?: PeerComposite[]
 }
 
 /**
  * E3-4: Compute Comparative Restrictiveness Percentile (0–100).
  * Returns the fraction of peer jurisdictions with a lower composite score,
  * scaled to [0, 100]. Higher = more restrictive than peers.
+ *
+ * Pass `inputs.peerSet` (loaded from the ris_scores table) for accurate
+ * server-side scoring. Omit it for client-side What-If simulation, which falls
+ * back to FALLBACK_PEER_COMPOSITES.
  */
 export function computeCRP(inputs: CrpInputs): number {
   const composite = inputs.dci + inputs.dcoi + inputs.pci
-  const peers = PEER_COMPOSITES.filter((p) => p.slug !== inputs.slug)
+  const allPeers = inputs.peerSet ?? FALLBACK_PEER_COMPOSITES
+  const peers = allPeers.filter((p) => p.slug !== inputs.slug)
   const below = peers.filter((p) => p.composite < composite).length
   return clamp(Math.round((below / peers.length) * 100), 0, 100)
 }
@@ -231,7 +271,7 @@ export interface ZoneRISResult {
   multifamilyClassification: 'primary' | 'permitted' | 'limited' | 'none'
   dci: number
   dcoi: number
-  /** PCI is jurisdiction-level (no per-zone permit data) — inherited from fallback. */
+  /** PCI uses zone-level review type when available, with jurisdiction-level permit data. */
   pci: number
   /** CRP computed after averaging all zones — set to 0 until averageZoneRIS runs. */
   crp: number
@@ -242,7 +282,9 @@ export interface ZoneRISResult {
  * E2-155: Compute RIS for a single zone.
  *
  * Zone-level scoring uses the zone's own field values for DCI and DCOI.
- * PCI uses jurisdiction-level values (no per-zone permit data exists).
+ * PCI uses the zone-level discretionary_review_required when available
+ * (because review type is 70% of PCI and varies per zone), falling back to
+ * the jurisdiction-level value for permit ratio data (no per-zone permit data).
  * CRP is computed at jurisdiction level after averaging all zones.
  *
  * @param zoneFields  Partial inputs from zone-extracted fields
@@ -251,6 +293,8 @@ export interface ZoneRISResult {
  * @param zoneCode    Zone identifier
  * @param zoneName    Optional zone display name
  * @param classification  Zone multifamily classification
+ * @param zoneReviewType  Optional zone-level discretionary review type; overrides
+ *                        pciInputs.discretionaryReviewType when provided
  */
 export function computeZoneRIS(
   zoneFields: Partial<DciInputs & DcoiInputs>,
@@ -259,6 +303,7 @@ export function computeZoneRIS(
   zoneCode: string,
   zoneName: string | null,
   classification: 'primary' | 'permitted' | 'limited' | 'none',
+  zoneReviewType?: ReviewType,
 ): ZoneRISResult {
   const dciInputs: DciInputs = {
     minLotSizeSqft:   zoneFields.minLotSizeSqft   ?? fallbacks.minLotSizeSqft,
@@ -274,9 +319,15 @@ export function computeZoneRIS(
     regionalMultiplier:      fallbacks.regionalMultiplier, // always jurisdiction-level
   }
 
+  // Use zone-level review type when available (it's 70% of PCI and may differ
+  // per zone), but keep jurisdiction-level permit data (no per-zone permit data).
+  const effectivePciInputs: PciInputs = zoneReviewType
+    ? { ...pciInputs, discretionaryReviewType: zoneReviewType }
+    : pciInputs
+
   const dci  = computeDCI(dciInputs)
   const dcoi = computeDCOI(dcoiInputs)
-  const pci  = computePCI(pciInputs)
+  const pci  = computePCI(effectivePciInputs)
   // CRP is unknown until averageZoneRIS runs; use 0 as placeholder so the
   // formula stays consistent with computeRIS — callers must call averageZoneRIS
   // to get the final risComposite with CRP filled in.
@@ -301,10 +352,15 @@ export function computeZoneRIS(
  *
  * Only 'primary' and 'permitted' zones are included in the average.
  * 'limited' and 'none' zones are returned in the array but excluded from averaging.
+ *
+ * @param peerSet  Optional live peer composites from the ris_scores table.
+ *                 When provided, CRP is computed against the current scoring
+ *                 output rather than the hardcoded fallback values.
  */
 export function averageZoneRIS(
   zoneScores: ZoneRISResult[],
   slug?: string,
+  peerSet?: PeerComposite[],
 ): { zoneScores: ZoneRISResult[]; averaged: { dci: number; dcoi: number; pci: number; crp: number; risComposite: number } } {
   const scoredZones = zoneScores.filter(
     (z) => z.multifamilyClassification === 'primary' || z.multifamilyClassification === 'permitted',
@@ -324,8 +380,9 @@ export function averageZoneRIS(
     pci  = Math.round(scoredZones.reduce((s, z) => s + z.pci,  0) / scoredZones.length)
   }
 
-  // CRP is always computed at jurisdiction level after averaging
-  const crp = computeCRP({ dci, dcoi, pci, slug })
+  // CRP is always computed at jurisdiction level after averaging.
+  // Pass live peerSet when available so CRP reflects current DB scores.
+  const crp = computeCRP({ dci, dcoi, pci, slug, peerSet })
   const risComposite = computeRIS({ dci, dcoi, pci, crp })
 
   // Back-fill CRP and recompute risComposite for each zone using the weighted formula

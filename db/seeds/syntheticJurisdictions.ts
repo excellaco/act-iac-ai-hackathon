@@ -5,14 +5,17 @@ import { computeRIS } from '../../lib/scoring'
 
 // ~7 synthetic jurisdictions to expand the CRP peer comparison set.
 // All values are plausible but fabricated — not from official zoning sources.
+// Slugs must match the keys used in PEER_COMPOSITES and REGIONAL_MULTIPLIERS
+// in lib/scoringEngine.ts so that CRP self-exclusion and regional multiplier
+// lookups work correctly.
 const SYNTHETIC_JURISDICTIONS = [
-  { name: 'Montgomery County',    state: 'MD', fipsState: '24', fipsCounty: '031', displayName: 'Montgomery County, MD',    slug: 'montgomery-md' },
-  { name: "Prince George's County", state: 'MD', fipsState: '24', fipsCounty: '033', displayName: "Prince George's County, MD", slug: 'prince-georges-md' },
-  { name: 'Alexandria City',      state: 'VA', fipsState: '51', fipsCounty: '510', displayName: 'Alexandria City, VA',      slug: 'alexandria-va' },
-  { name: 'Prince William County', state: 'VA', fipsState: '51', fipsCounty: '153', displayName: 'Prince William County, VA', slug: 'prince-william-va' },
-  { name: 'Stafford County',      state: 'VA', fipsState: '51', fipsCounty: '179', displayName: 'Stafford County, VA',      slug: 'stafford-va' },
-  { name: 'Frederick County',     state: 'VA', fipsState: '51', fipsCounty: '069', displayName: 'Frederick County, VA',     slug: 'frederick-va' },
-  { name: 'Howard County',        state: 'MD', fipsState: '24', fipsCounty: '027', displayName: 'Howard County, MD',        slug: 'howard-md' },
+  { name: 'Montgomery County',    state: 'MD', fipsState: '24', fipsCounty: '031', displayName: 'Montgomery County, MD',    slug: 'montgomery-county-md' },
+  { name: "Prince George's County", state: 'MD', fipsState: '24', fipsCounty: '033', displayName: "Prince George's County, MD", slug: "prince-george's-county-md" },
+  { name: 'Alexandria City',      state: 'VA', fipsState: '51', fipsCounty: '510', displayName: 'Alexandria City, VA',      slug: 'alexandria-city-va' },
+  { name: 'Prince William County', state: 'VA', fipsState: '51', fipsCounty: '153', displayName: 'Prince William County, VA', slug: 'prince-william-county-va' },
+  { name: 'Stafford County',      state: 'VA', fipsState: '51', fipsCounty: '179', displayName: 'Stafford County, VA',      slug: 'stafford-county-va' },
+  { name: 'Frederick County',     state: 'VA', fipsState: '51', fipsCounty: '069', displayName: 'Frederick County, VA',     slug: 'frederick-county-va' },
+  { name: 'Howard County',        state: 'MD', fipsState: '24', fipsCounty: '027', displayName: 'Howard County, MD',        slug: 'howard-county-md' },
 ]
 
 const SYNTHETIC_SCORES: Record<string, { dci: number; dcoi: number; pci: number; crp: number }> = {
@@ -31,10 +34,10 @@ export async function seedSyntheticJurisdictions() {
   for (const j of SYNTHETIC_JURISDICTIONS) {
     const [inserted] = await db
       .insert(jurisdictions)
-      .values({ ...j, dataType: 'real' })
+      .values({ ...j, dataType: 'synthetic' })
       .onConflictDoUpdate({
         target: [jurisdictions.fipsState, jurisdictions.fipsCounty],
-        set: { dataType: 'real' },
+        set: { dataType: 'synthetic', slug: j.slug },
       })
       .returning()
 
@@ -61,7 +64,7 @@ export async function seedSyntheticJurisdictions() {
       })
       .onConflictDoNothing()
 
-    console.log(`  ✓ ${j.displayName} (real) — RIS ${risComposite}`)
+    console.log(`  ✓ ${j.displayName} (synthetic) — RIS ${risComposite}`)
   }
 
   console.log('Done.')

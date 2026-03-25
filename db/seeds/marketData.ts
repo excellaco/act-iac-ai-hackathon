@@ -32,10 +32,18 @@ const JURISDICTIONS = [
 // ── FMR fallback (FY2025, Washington-Arlington-Alexandria DC MSA) ──────────
 // Source: HUD FY2025 FMR documentation
 // https://www.huduser.gov/portal/datasets/fmr.html
+//
+// NOTE: These are metro-wide (non-SAFMR) FMR values. HUD's Small Area FMR
+// (SAFMR) methodology varies FMR by ZIP code within a metro to capture
+// intra-metro housing cost differences — it does NOT imply a single MSA-wide
+// value. Using one figure for all three counties is a simplification: Loudoun
+// County's housing market differs meaningfully from Arlington's. For a more
+// accurate model, fetch ZIP-code level SAFMRs from the HUD API or use
+// county-level FMR data (see issue #203 for the proposed improvement).
 const FMR_FALLBACK: Record<string, number> = {
-  '51-059': 2280, // Fairfax County
-  '51-013': 2280, // Arlington County (same MSA)
-  '51-107': 2280, // Loudoun County (same MSA)
+  '51-059': 2280, // Fairfax County (Washington-Arlington-Alexandria DC MSA, FY2025 metro FMR)
+  '51-013': 2280, // Arlington County (same MSA — likely understates higher Arlington costs)
+  '51-107': 2280, // Loudoun County (same MSA — likely understates Loudoun suburban premium)
 }
 
 // ── BPS fallback (2023 annual, 5+ unit permits) ────────────────────────────
