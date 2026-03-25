@@ -81,7 +81,7 @@ The platform was validated with housing non-profit stakeholders through a [user 
 | Name | AI Tools |
 |------|----------|
 | Jeff Gallimore | Claude Desktop (Sonnet 4.6, Opus 4.6), Claude Code (agent teams), OpenAI Codex, Gemini 2.5 Flash, Vertex AI, GitHub Copilot, Snyk |
-| Kathy Chiao | Claude, ChatGPT, Adobe Photoshop (Firefly & Nano Banana) |
+| Kathy Chiao | Claude Sonnet 4.6, OpenAI ChatGPT 5.3, Adobe Photoshop Firefly, Gemini 3 Nano Banana Pro |
 | Mimi Chen | Figma (Design & Figma Make), Claude Sonnet 4.6 |
 | Charles Fiery | Claude Code (Opus 4.6), GitHub Copilot Code Review, OpenAI Codex (GPT-5.4) |
 | Jay Jemal | VS Code Copilot, Claude Sonnet 4.6 Desktop, GPT 5.4, Google Colab, Gemini 2.5 Flash |
