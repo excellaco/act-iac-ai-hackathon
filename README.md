@@ -109,6 +109,7 @@ Key dependencies and tools (full list in `package.json`):
 | ESLint | Code quality linting |
 | SonarCloud | Static analysis and coverage gates |
 | Snyk | Dependency vulnerability scanning |
+| Syft (via `anchore/sbom-action`) | Container image SBOM generation |
 | Terraform | Infrastructure as Code (GCS bucket, IAM) |
 
 ---
