@@ -47,7 +47,7 @@ The 5-stop BuPu scale stops should reflect meaningful categorical distinctions i
 
 - Mimi's recommendation, agreed by the team.
 - BuPu is a sequential palette well-suited for single-variable choropleth maps where a continuous range (0–100 RIS) is encoded in color intensity.
-- Blue-purple avoids the red/green connotations of a traffic-light palette, which would imply a normative stance on what RIS score is "good" or "bad." Parcela's disclaimer (E6-6) states the RIS is descriptive, not prescriptive — the palette supports this by avoiding loaded color associations.
+- Blue-purple avoids the red/green connotations of a traffic-light palette, which would imply a normative stance on what RIS score is "good" or "bad." Parcella's disclaimer (E6-6) states the RIS is descriptive, not prescriptive — the palette supports this by avoiding loaded color associations.
 - 5 stops is appropriate for MVP; standard guidance recommends 5–7 stops for choropleth maps. 5 was chosen to keep the legend readable given the score panel layout constraints.
 
 ### Secondary palette: diverging (pink-to-green)

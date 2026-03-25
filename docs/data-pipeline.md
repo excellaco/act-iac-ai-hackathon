@@ -1,6 +1,6 @@
 # Data Pipeline
 
-This document describes the Parcela data pipeline end-to-end: how zoning ordinance PDFs are fetched, parsed, analyzed by Gemini, loaded into the database, and scored to produce Regulatory Impact Scores (RIS).
+This document describes the Parcella data pipeline end-to-end: how zoning ordinance PDFs are fetched, parsed, analyzed by Gemini, loaded into the database, and scored to produce Regulatory Impact Scores (RIS).
 
 ---
 

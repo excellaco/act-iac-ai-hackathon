@@ -1,12 +1,12 @@
 # CI/CD and Infrastructure Pipelines
 
-This document describes the GitHub Actions workflows and Terraform infrastructure pipeline for Parcela.
+This document describes the GitHub Actions workflows and Terraform infrastructure pipeline for Parcella.
 
 ---
 
 ## Overview
 
-Parcela has two categories of automated workflows:
+Parcella has two categories of automated workflows:
 
 1. **CI/CD** (`ci-cd.yml`) — triggered on every push to `main`; runs quality checks then deploys to Cloud Run
 2. **Data pipeline** (`pipeline-*.yml`) — manually triggered; runs individual stages of the zoning data extraction pipeline
@@ -196,7 +196,7 @@ This workflow is superseded by the four stage-specific workflows above. It remai
 - Automatically on pull requests that touch files under `infra/`
 - Manually via **Actions → Infrastructure → Run workflow** (choose `plan` or `apply`)
 
-**Purpose:** Validates and applies Terraform infrastructure changes for the Parcela GCP environment. Infrastructure is defined in the `infra/` directory.
+**Purpose:** Validates and applies Terraform infrastructure changes for the Parcella GCP environment. Infrastructure is defined in the `infra/` directory.
 
 | Step | Purpose |
 |------|---------|
