@@ -33,8 +33,7 @@ export default function JurisdictionSearch({
       )
     : jurisdictions;
 
-  // Only show real jurisdictions in the dropdown — synthetic are for scoring context only
-  const visibleMatches = matches.filter(j => j.dataType === 'real');
+  const visibleMatches = matches;
 
   function handleSelect(j: JurisdictionSummary) {
     setOpen(false);

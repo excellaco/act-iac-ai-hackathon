@@ -20,7 +20,7 @@ export default function ComparePeers({ current, onCompare }: Props) {
       .then((all) =>
         setPeers(
           all
-            .filter((j) => j.id !== current.id && j.dataType === 'real' && j.risComposite != null)
+            .filter((j) => j.id !== current.id && j.risComposite != null)
             .sort((a, b) => parseFloat(a.risComposite!) - parseFloat(b.risComposite!))
         )
       )

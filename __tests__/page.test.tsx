@@ -42,14 +42,13 @@ describe('Home', () => {
     expect(heading.compareDocumentPosition(searchInput) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('shows real jurisdiction options on focus after API loads', async () => {
+  it('shows all jurisdiction options on focus after API loads', async () => {
     render(<Home />);
     fireEvent.focus(screen.getByPlaceholderText('Find your county or municipality'));
     await waitFor(() => expect(screen.getByText('Fairfax County')).toBeInTheDocument());
     expect(screen.getByText('Arlington County')).toBeInTheDocument();
     expect(screen.getByText('Loudoun County')).toBeInTheDocument();
-    // Synthetic jurisdictions should not appear in the dropdown
-    expect(screen.queryByText('Howard County')).not.toBeInTheDocument();
+    expect(screen.getByText('Howard County')).toBeInTheDocument();
   });
 
   it('filters autocomplete options by query', async () => {
