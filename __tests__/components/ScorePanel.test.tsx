@@ -117,12 +117,18 @@ describe('ScorePanel — PDF citations', () => {
         sourceSection: '§ 4-102',
         sourcePage: 42,
         sourceDocument: 'gs://test/fairfax.pdf',
+        confidence: 'high',
+        reasoning: null,
+        usingDefault: false,
       },
       parking_min_spaces_per_unit: {
         fieldValueText: 'Two spaces per dwelling unit',
         sourceSection: '§ 8102.04',
         sourcePage: 87,
         sourceDocument: 'gs://test/fairfax.pdf',
+        confidence: 'high',
+        reasoning: null,
+        usingDefault: false,
       },
     },
   }
