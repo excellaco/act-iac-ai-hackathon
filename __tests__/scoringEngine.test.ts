@@ -243,6 +243,29 @@ describe('computeCRP', () => {
     const high = computeCRP({ dci: 80, dcoi: 70, pci: 60 })   // composite 210
     expect(high).toBeGreaterThan(low)
   })
+
+  it('does not produce NaN when the live peer set contains only the scored jurisdiction', () => {
+    // Simulates scoring the first jurisdiction on a fresh DB: the live peerSet
+    // has one entry which is self-excluded, leaving peers.length === 0.
+    // The guard should fall back to FALLBACK_PEER_COMPOSITES and return a number.
+    const score = computeCRP({
+      dci: 50, dcoi: 50, pci: 50,
+      slug: 'fairfax_va',
+      peerSet: [{ slug: 'fairfax_va', composite: 150 }],
+    })
+    expect(typeof score).toBe('number')
+    expect(Number.isNaN(score)).toBe(false)
+    expect(score).toBeGreaterThanOrEqual(0)
+    expect(score).toBeLessThanOrEqual(100)
+  })
+
+  it('does not produce NaN when passed an empty live peer set', () => {
+    const score = computeCRP({ dci: 50, dcoi: 50, pci: 50, peerSet: [] })
+    expect(typeof score).toBe('number')
+    expect(Number.isNaN(score)).toBe(false)
+    expect(score).toBeGreaterThanOrEqual(0)
+    expect(score).toBeLessThanOrEqual(100)
+  })
 })
 
 // ── computeAllSubScores ───────────────────────────────────────────────────

@@ -236,7 +236,19 @@ export interface CrpInputs {
 export function computeCRP(inputs: CrpInputs): number {
   const composite = inputs.dci + inputs.dcoi + inputs.pci
   const allPeers = inputs.peerSet ?? FALLBACK_PEER_COMPOSITES
-  const peers = allPeers.filter((p) => p.slug !== inputs.slug)
+  let peers = allPeers.filter((p) => p.slug !== inputs.slug)
+
+  // Guard: if the live peer set is empty after self-exclusion (e.g. scoring the
+  // first jurisdiction on a fresh DB before any other scores exist), fall back
+  // to FALLBACK_PEER_COMPOSITES so we never produce NaN.  Self-exclude from the
+  // fallback set too so the behaviour is consistent.
+  if (peers.length === 0) {
+    peers = FALLBACK_PEER_COMPOSITES.filter((p) => p.slug !== inputs.slug)
+  }
+
+  // Final safety net: if the fallback set is also somehow empty, return 50.
+  if (peers.length === 0) return 50
+
   const below = peers.filter((p) => p.composite < composite).length
   return clamp(Math.round((below / peers.length) * 100), 0, 100)
 }
