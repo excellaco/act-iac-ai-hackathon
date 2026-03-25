@@ -13,8 +13,15 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 - [ ] Expand to 10+ real jurisdictions (S-3)
 - [ ] Natural language search — "most restrictive counties near DC" (S-5)
 - [ ] Automated zoning document update monitoring (S-2)
-- [ ] Developer persona — evaluating municipalities for private development projects
 - [ ] What-If simulation sliders in comparison view (#233)
+
+---
+
+## User Research
+
+- [ ] Validate user needs with actual domain experts (housing policy analysts, municipal planners, housing finance agency staff) to ensure the solution addresses real workflow pain points and priorities
+- [ ] Develop a second persona for a government employee in a smaller, less-resourced jurisdiction — these users may have different needs, fewer analytical tools, and no dedicated policy staff (informed by the Homestretch interview where Falls Church staff wear multiple hats)
+- [ ] Developer persona — evaluating municipalities for private development projects (a distinct use case from the policy analyst persona, requiring different data emphasis and workflow)
 
 ---
 
