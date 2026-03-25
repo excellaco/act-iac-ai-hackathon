@@ -1,7 +1,5 @@
 # User Research — Homestretch Interview
 
-> **TODO:** Fill in findings from the interview. Suggested structure below. See [issue #244](https://github.com/excellaco/act-iac-ai-hackathon/issues/244) for context.
-
 **Organization:** Homestretch
 **Context:** Non-profit working with the City of Falls Church on housing issues
 **Date:** March 23, 2026
