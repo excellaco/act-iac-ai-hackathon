@@ -78,12 +78,9 @@ interface Props {
   onCompare: (peer: { id: string; name: string; state: string; ris: number }) => void;
 }
 
-/** Find the most permissive zone to use as default (highest-density primary zone). */
-function defaultZoneCode(zones: ZoneScore[]): string | '__avg__' {
-  const primaryZones = zones.filter((z) => z.multifamilyClassification === 'primary');
-  const pool = primaryZones.length > 0 ? primaryZones : zones;
-  if (pool.length === 0) return '__avg__';
-  return pool.reduce((best, z) => (z.risComposite > best.risComposite ? z : best), pool[0]).zoneCode;
+/** Default to averaged view so the score panel RIS matches the map popup. */
+function defaultZoneCode(): '__avg__' {
+  return '__avg__';
 }
 
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
@@ -91,7 +88,7 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
   const [pdfModal, setPdfModal] = useState<{ sourcePage: number | null; sourceSection: string | null; fieldValueText: string | null } | null>(null);
-  const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(() => defaultZoneCode(zoneScores));
+  const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(defaultZoneCode);
 
   // Derive active fields/scores/feasibility from selected zone or jurisdiction average
   const activeZone = selectedZoneCode !== '__avg__' ? zoneScores.find((z) => z.zoneCode === selectedZoneCode) : null;

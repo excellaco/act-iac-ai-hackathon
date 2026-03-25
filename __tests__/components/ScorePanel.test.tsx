@@ -190,11 +190,10 @@ describe('ScorePanel — ZoneSelector (E2-155)', () => {
     expect(screen.getByRole('combobox', { name: 'Select zoning district' })).toBeInTheDocument()
   })
 
-  it('defaults to the most permissive primary zone', () => {
+  it('defaults to all zones averaged', () => {
     render(<ScorePanel jurisdiction={ARLINGTON_WITH_ZONES} onCompare={mockOnCompare} />)
     const select = screen.getByRole('combobox', { name: 'Select zoning district' }) as HTMLSelectElement
-    // RA6-15 is the primary zone and should be the default
-    expect(select.value).toBe('RA6-15')
+    expect(select.value).toBe('__avg__')
   })
 
   it('updates the displayed RIS when a different zone is selected', () => {
