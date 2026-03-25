@@ -68,6 +68,8 @@ Builds and deploys the application to Cloud Run after `quality` passes.
 
 All pipeline workflows are triggered manually via **Actions → [workflow name] → Run workflow**. Each prompts for a jurisdiction slug and (where applicable) a zone code.
 
+> **Operational reference:** For the end-to-end pipeline runbook — including stage-by-stage commands, artifact structure, approval gate instructions, and rejection/recovery guidance — see [`docs/data-pipeline.md`](data-pipeline.md). This section describes the CI infrastructure; that document describes how to operate it.
+
 ### Pipeline — Document Pre-processing (`pipeline-parse.yml`)
 
 **Trigger:** Manual dispatch — select jurisdiction (`fairfax_va`, `arlington_va`, `loudoun_va`)

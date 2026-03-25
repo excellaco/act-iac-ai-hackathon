@@ -463,3 +463,7 @@ projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-po
 | [`docs/adr/0003-database-access-and-migrations.md`](docs/adr/0003-database-access-and-migrations.md) | ADR: Drizzle ORM, Docker Compose local dev, auto-apply migrations |
 | [`docs/data-pipeline.md`](docs/data-pipeline.md) | End-to-end data pipeline — stages, commands, artifact approval workflow |
 | [`docs/cicd-infrastructure.md`](docs/cicd-infrastructure.md) | GitHub Actions CI/CD workflows and infrastructure pipeline |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Post-hackathon next steps and improvement opportunities |
+| [`docs/RETROSPECTIVE.md`](docs/RETROSPECTIVE.md) | Team learnings from the hackathon build |
+| [`docs/research/`](docs/research/) | User research — interviews and findings |
+| [`docs/notional/`](docs/notional/) | Pre-build vision artifacts — aspirational architecture and design materials (not current system docs) |

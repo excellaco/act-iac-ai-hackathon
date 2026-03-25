@@ -171,9 +171,66 @@ CREATE TABLE feasibility_outputs (
   estimated_cost_per_unit     NUMERIC(10,2),    -- USD: cost_per_sqft × unit_size_sqft + parking_cost_uplift
   regional_cost_multiplier    NUMERIC(4,3),     -- (0.55 × BLS OES labor index) + (0.45 × BEA RPP goods index)
   fmr_2br                     NUMERIC(8,2),     -- HUD 2BR FMR used in calculation (monthly, USD)
-  rent_feasibility_ratio      NUMERIC(6,3),     -- (fmr_2br × 12) / estimated_cost_per_unit; >1.0 = rents can support construction cost
+  rent_feasibility_ratio      NUMERIC(6,3),     -- required_rent / fmr_2br; <1.0 = market rents cover construction cost (Feasible)
   scored_at                   TIMESTAMPTZ NOT NULL DEFAULT now(),
   pipeline_run_id             UUID REFERENCES pipeline_runs(id)
+);
+```
+
+---
+
+### `zone_extracted_fields`
+
+Stores per-zone regulatory fields extracted by the pipeline (E2-155). One row per zone per field per jurisdiction. Written by `pipeline:load`; read by `pipeline:score`.
+
+```sql
+CREATE TYPE multifamily_classification AS ENUM ('primary', 'permitted', 'limited', 'none');
+
+CREATE TABLE zone_extracted_fields (
+  id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  jurisdiction_id           UUID NOT NULL REFERENCES jurisdictions(id),
+  zone_code                 TEXT NOT NULL,                 -- e.g. "PDH-4", "R-12"
+  zone_name                 TEXT,                          -- e.g. "Planned Development Housing"
+  multifamily_classification multifamily_classification NOT NULL,
+  field_name                TEXT NOT NULL,                 -- same field names as extracted_fields
+  raw_value                 NUMERIC,
+  raw_unit                  TEXT,
+  field_value               NUMERIC,
+  field_value_text          TEXT,                          -- verbatim quote or categorical value
+  unit                      TEXT,
+  confidence                confidence_tier NOT NULL,
+  source_section            TEXT,
+  source_page               INTEGER,
+  reasoning                 TEXT,
+  pipeline_run_id           UUID REFERENCES pipeline_runs(id),
+  extracted_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (jurisdiction_id, zone_code, field_name)
+);
+```
+
+**Relationship to `extracted_fields`:** `zone_extracted_fields` stores per-zone data; `extracted_fields` is the older jurisdiction-level table retained for backward compatibility. The scoring engine reads from `zone_extracted_fields` and averages zone scores to produce jurisdiction-level RIS values.
+
+---
+
+### `zone_ris_scores`
+
+Stores per-zone RIS scores computed by the scoring engine (E2-155). One row per zone per jurisdiction. The jurisdiction-level `ris_scores` row is derived by averaging these.
+
+```sql
+CREATE TABLE zone_ris_scores (
+  id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  jurisdiction_id           UUID NOT NULL REFERENCES jurisdictions(id),
+  zone_code                 TEXT NOT NULL,
+  zone_name                 TEXT,
+  multifamily_classification multifamily_classification NOT NULL,
+  ris_composite             NUMERIC(5,2) NOT NULL,
+  dci                       NUMERIC(5,2) NOT NULL,
+  dcoi                      NUMERIC(5,2) NOT NULL,
+  pci                       NUMERIC(5,2) NOT NULL,
+  crp                       NUMERIC(5,2) NOT NULL,
+  scored_at                 TIMESTAMPTZ NOT NULL DEFAULT now(),
+  pipeline_run_id           UUID REFERENCES pipeline_runs(id),
+  UNIQUE (jurisdiction_id, zone_code)
 );
 ```
 
@@ -183,16 +240,19 @@ CREATE TABLE feasibility_outputs (
 
 ```
 jurisdictions
-  ├── extracted_fields    (one jurisdiction → many fields, one per field_name)
-  ├── pipeline_runs       (one jurisdiction → many runs)
-  ├── market_data         (one jurisdiction → one current row)
-  ├── ris_scores          (one jurisdiction → one current score)
-  └── feasibility_outputs (one jurisdiction → one current output)
+  ├── extracted_fields         (one jurisdiction → many fields, one per field_name) [legacy]
+  ├── zone_extracted_fields    (one jurisdiction → many zone+field rows)
+  ├── pipeline_runs            (one jurisdiction → many runs)
+  ├── market_data              (one jurisdiction → one current row)
+  ├── ris_scores               (one jurisdiction → one current score, jurisdiction-level average)
+  ├── zone_ris_scores          (one jurisdiction → many zone scores)
+  └── feasibility_outputs      (one jurisdiction → one row per zone + one __avg__ row)
 
 pipeline_runs
-  ├── extracted_fields    (one run → many fields)
-  ├── ris_scores          (one run → one score)
-  └── feasibility_outputs (one run → one output)
+  ├── zone_extracted_fields    (one run → many zone fields)
+  ├── zone_ris_scores          (one run → many zone scores)
+  ├── ris_scores               (one run → one jurisdiction score)
+  └── feasibility_outputs      (one run → one or more outputs)
 ```
 
 ---
@@ -205,6 +265,7 @@ pipeline_runs
 - `peer_set` on `ris_scores` stores the array of jurisdiction IDs used for min-max normalization — important for reproducing scores and explaining the CRP sub-score to users.
 - `regional_cost_multiplier` on `feasibility_outputs` is derived from BLS OES (labor, 55% weight) and BEA RPP Goods component (materials, 45% weight) — not RSMeans. See `docs/DATA_SOURCES.md` sections 5 and 6 for the full formula.
 - `cost_per_sqft` is stored as an intermediate value (`national_baseline_cost × regional_cost_multiplier`) to support UI display and debugging independently of unit size assumptions.
-- `rent_feasibility_ratio` = `(fmr_2br × 12) / estimated_cost_per_unit` — the gross rent-to-cost ratio. A ratio above ~1.0 indicates annual rents can theoretically cover construction cost (ignoring financing, land, and operating costs). This is the primary output for E4-4 and gives Val a single number to cite when comparing jurisdictions on development viability.
-- **Storage model: latest-state only.** `extracted_fields`, `ris_scores`, and `feasibility_outputs` store one current row per jurisdiction, upserted on each pipeline run. `pipeline_runs` provides the audit trail. Historical per-run snapshots are out of scope for MVP.
+- `rent_feasibility_ratio` = `required_rent / fmr_2br` — where `required_rent` is the minimum monthly gross rent needed to cover debt service (computed as `monthlyDebtService × DSCR_MIN / (1 − OPERATING_EXPENSE_RATIO)`). A ratio **below 1.0** means market rents (FMR) exceed required rent → Feasible; 1.0–1.3 → Marginal; above 1.3 → Infeasible. This is the primary output for E4-4 and gives Val a single number to cite when comparing jurisdictions on development viability.
+- **Storage model: latest-state only.** `extracted_fields`, `ris_scores`, and `feasibility_outputs` store one current row per jurisdiction, upserted on each pipeline run. `zone_extracted_fields` and `zone_ris_scores` store one row per zone per jurisdiction. `pipeline_runs` provides the audit trail. Historical per-run snapshots are out of scope for MVP.
+- **`feasibility_outputs.zone_code`** uses the sentinel value `__avg__` for the jurisdiction-level averaged row. Per-zone rows use the actual zone code (e.g. `PDH-4`). The UI reads the `__avg__` row by default and switches to per-zone rows when a zone is selected.
 - No soft deletes — the MVP does not need audit history beyond what `pipeline_runs` provides.
