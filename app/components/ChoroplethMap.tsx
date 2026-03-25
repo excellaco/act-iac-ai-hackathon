@@ -153,9 +153,9 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
     }
 
     if (selected) {
-      // Fade state choropleth so the selected county stands out
+      // Hide state choropleth so only the selected county is visible
       if (statesLayerRef.current) {
-        statesLayerRef.current.setStyle({ fillOpacity: 0.15, weight: 0.5 });
+        statesLayerRef.current.setStyle({ fillOpacity: 0, weight: 0 });
       }
 
       const fips = NAME_TO_FIPS[selected.name];
