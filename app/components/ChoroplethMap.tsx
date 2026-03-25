@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
 import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
 import { NAME_TO_FIPS } from '../../lib/fips';
@@ -40,6 +40,9 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
   const statesLayerRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leafletRef = useRef<any>(null);
+  // Tracks when the map and county GeoJSON are both ready so the selection
+  // effect re-runs after async initialization completes.
+  const [mapReady, setMapReady] = useState(false);
 
   // ── Re-center: fit map to selected county bounds ─────────────────────────
 
@@ -113,7 +116,12 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
 
       fetch('/geo/target-counties.json')
         .then((res) => res.json())
-        .then((geojson) => { countiesRef.current = geojson; })
+        .then((geojson) => {
+          countiesRef.current = geojson;
+          // Signal that the map and county data are ready so the selection
+          // effect can zoom to the selected jurisdiction.
+          setMapReady(true);
+        })
         .catch((err) => console.error('Failed to load county GeoJSON:', err));
     });
 
@@ -130,18 +138,13 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
   }, []);
 
   // ── Handle selection changes — zoom to county or reset to national ────────
+  // `mapReady` is included so this effect re-runs after async initialization
+  // (e.g. returning from CompareView remounts the map and re-loads GeoJSON).
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapReady || !mapRef.current) return;
 
     const L = leafletRef.current;
-    if (!L) {
-      import('leaflet').then((mod) => {
-        leafletRef.current = mod;
-      });
-      return;
-    }
-
     const map = mapRef.current;
 
     if (countyLayerRef.current) {
@@ -200,7 +203,7 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
       map.dragging.disable();
       map.setView([38, -97], 4, { animate: true, duration: 0.8 });
     }
-  }, [selected]);
+  }, [selected, mapReady]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
