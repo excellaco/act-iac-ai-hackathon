@@ -157,15 +157,15 @@ export async function GET(
           fmr2br:              feasibility.fmr2br,
         }
       : null,
+    zoningExtractedAt,
     marketData: market
       ? {
-          fmr2br:             market.fmr2br,
-          permits5plus:       market.permits5plus,
-          totalPermits:       market.totalPermits,
-          fmrVintage:         market.fmrVintage,
-          permitsVintage:     market.permitsVintage,
-          retrievedAt:        market.retrievedAt,
-          zoningExtractedAt:  zoningExtractedAt,
+          fmr2br:         market.fmr2br,
+          permits5plus:   market.permits5plus,
+          totalPermits:   market.totalPermits,
+          fmrVintage:     market.fmrVintage,
+          permitsVintage: market.permitsVintage,
+          retrievedAt:    market.retrievedAt,
         }
       : null,
     zoneScores,

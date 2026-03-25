@@ -170,5 +170,8 @@ describe('GET /api/jurisdictions/[id]/score', () => {
       },
     })
     expect(zone.feasibility).toEqual(expect.objectContaining({ maxUnitsPerAcre: 72 }))
+    // zoningExtractedAt must be a top-level key, not buried inside marketData
+    expect(body.zoningExtractedAt).toBe(mockExtractedAt.toISOString())
+    expect(body.marketData).toBeNull()
   })
 })

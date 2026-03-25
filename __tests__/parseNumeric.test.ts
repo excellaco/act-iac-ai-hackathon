@@ -209,6 +209,60 @@ describe('scoreResponseToJurisdictionData', () => {
     expect(result!.zoneScores[0].citations).toEqual({})
   })
 
+  it('sets usingDefault=false for categorical fields that have fieldValueText but no numeric fieldValue', () => {
+    const withCategorical = {
+      ...validResponse,
+      extractedFields: [
+        {
+          fieldName: 'discretionary_review_required',
+          fieldValue: null,
+          fieldValueText: 'special use permit',
+          unit: null,
+          confidence: 'high',
+          sourceDocument: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withCategorical)
+    expect(result).not.toBeNull()
+    expect(result!.citations['discretionary_review_required'].usingDefault).toBe(false)
+  })
+
+  it('sets usingDefault=true only when both fieldValue and fieldValueText are absent', () => {
+    const withNoValue = {
+      ...validResponse,
+      extractedFields: [
+        {
+          fieldName: 'height_limit_ft',
+          fieldValue: null,
+          fieldValueText: null,
+          unit: null,
+          confidence: 'low',
+          sourceDocument: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withNoValue)
+    expect(result).not.toBeNull()
+    expect(result!.citations['height_limit_ft'].usingDefault).toBe(true)
+  })
+
+  it('reads zoningExtractedAt from the top-level response field, not marketData', () => {
+    const ts = '2025-03-15T00:00:00.000Z'
+    const withVintage = {
+      ...validResponse,
+      zoningExtractedAt: ts,
+      marketData: {
+        fmr2br: '2280',
+        permits5plus: 1000,
+        totalPermits: 2000,
+      },
+    }
+    const result = scoreResponseToJurisdictionData(withVintage)
+    expect(result).not.toBeNull()
+    expect(result!.dataVintage?.zoningExtractedAt).toBe(ts)
+  })
+
   it('falls back to null feasibility when zone cost is unparsable', () => {
     const withBadZoneFeasibility = {
       ...validResponse,

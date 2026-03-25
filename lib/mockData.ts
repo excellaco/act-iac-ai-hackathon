@@ -245,7 +245,9 @@ export function scoreResponseToJurisdictionData(
   apiResponse: {
     jurisdiction: { id: string; name: string; state: string; slug: string; dataType: string }
     score: { risComposite: string; dci: string; dcoi: string; pci: string; crp: string } | null
-    extractedFields?: Array<{ fieldName: string; fieldValue: string | null; unit: string | null; confidence: string; sourceDocument: string | null; reasoning?: string | null }>
+    extractedFields?: Array<{ fieldName: string; fieldValue: string | null; fieldValueText?: string | null; unit: string | null; confidence: string; sourceDocument: string | null; reasoning?: string | null }>
+    /** ISO timestamp of the most recent zoning field extraction, returned unconditionally from the API. */
+    zoningExtractedAt?: string | Date | null
     feasibility?: {
       maxUnitsPerAcre: string | null
       parkingFootprintPct: string | null
@@ -259,7 +261,6 @@ export function scoreResponseToJurisdictionData(
       fmrVintage?: string | null
       permitsVintage?: string | null
       retrievedAt?: string | Date | null
-      zoningExtractedAt?: string | Date | null
     } | null
     zoneScores?: Array<{
       zoneCode: string
@@ -301,10 +302,16 @@ export function scoreResponseToJurisdictionData(
       const parsed = parseFloat(f.fieldValue)
       if (!isNaN(parsed)) fieldMap[f.fieldName] = parsed
     }
-    // usingDefault = true when no numeric value was extracted (field_value is null)
-    const hasExtractedValue = f.fieldValue != null && !isNaN(parseFloat(f.fieldValue))
+    // usingDefault = true only when the pipeline found nothing at all and fell
+    // back to a hardcoded default. A categorical field (e.g. discretionary_review_required)
+    // can have a null fieldValue but a non-null fieldValueText, meaning it was
+    // successfully extracted — that is NOT a default. Only flag as default when
+    // both fieldValue (numeric) and fieldValueText (categorical) are absent.
+    const hasExtractedValue =
+      (f.fieldValue != null && !isNaN(parseFloat(f.fieldValue))) ||
+      (f.fieldValueText != null && f.fieldValueText.trim() !== '')
     citations[f.fieldName] = {
-      fieldValueText: (f as { fieldValueText?: string | null }).fieldValueText ?? null,
+      fieldValueText: f.fieldValueText ?? null,
       sourceSection: (f as { sourceSection?: string | null }).sourceSection ?? null,
       sourcePage: (f as { sourcePage?: number | null }).sourcePage ?? null,
       sourceDocument: f.sourceDocument ?? null,
@@ -402,8 +409,11 @@ export function scoreResponseToJurisdictionData(
     const zoneCitations: Record<string, FieldCitation> = {}
     if (zs.citations) {
       for (const [fieldName, c] of Object.entries(zs.citations)) {
-        // usingDefault = true when the zone field has no numeric value (fieldValue is null)
-        const zoneHasExtractedValue = c.fieldValue != null && !isNaN(parseFloat(c.fieldValue))
+        // usingDefault = true only when neither a numeric nor a categorical value
+        // was extracted — same logic as jurisdiction-level citations above.
+        const zoneHasExtractedValue =
+          (c.fieldValue != null && !isNaN(parseFloat(c.fieldValue))) ||
+          (c.fieldValueText != null && c.fieldValueText.trim() !== '')
         zoneCitations[fieldName] = {
           fieldValueText: c.fieldValueText,
           sourceSection: c.sourceSection,
@@ -453,8 +463,8 @@ export function scoreResponseToJurisdictionData(
       retrievedAt:       apiResponse.marketData?.retrievedAt
         ? new Date(apiResponse.marketData.retrievedAt as string | Date).toISOString()
         : null,
-      zoningExtractedAt: apiResponse.marketData?.zoningExtractedAt
-        ? new Date(apiResponse.marketData.zoningExtractedAt as string | Date).toISOString()
+      zoningExtractedAt: apiResponse.zoningExtractedAt
+        ? new Date(apiResponse.zoningExtractedAt as string | Date).toISOString()
         : null,
     },
   }
