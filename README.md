@@ -37,7 +37,7 @@ Parcella is an AI-powered Regulatory Impact Scoring (RIS) platform that solves t
 - **LLM + deterministic hybrid**: Gemini handles the hard part (reading unstructured PDFs and extracting structured data) while a transparent, deterministic TypeScript engine does the scoring. This means the RIS is reproducible and auditable, not a black box.
 - **Human-in-the-loop pipeline**: Every Gemini extraction is gated behind a human approval step before data enters the database. Reviewers see verbatim citations, confidence scores, and source page references.
 - **Responsible AI by design**: Confidence badges, verbatim citations, and a methodology disclosure modal are built into the UI. The RIS is explicitly framed as descriptive, not prescriptive.
-- **Real public data**: Market inputs (Fair Market Rents, building permits, ACS housing data) are pulled live from HUD, Census, and BLS APIs.
+- **Real public data**: Market inputs (Fair Market Rents, building permits, ACS housing data) are sourced from HUD, Census, and BLS public datasets.
 
 ### Real-World Impact
 
@@ -45,9 +45,11 @@ Parcella is designed for HUD policy analysts and state housing finance agency st
 
 - Identify which jurisdictions have the most restrictive zoning and quantify by how much
 - Model the impact of specific policy reforms (e.g., "what if Fairfax County eliminated parking minimums?")
-- Generate data-backed recommendations for zoning reform that could increase housing supply
+- Generate data-backed analysis to inform zoning reform discussions that could increase housing supply
 
 The platform could be extended to cover all Virginia jurisdictions, then all 50 states, providing a national-scale regulatory intelligence layer for federal housing programs.
+
+The platform was validated with housing non-profit stakeholders through a [user research interview](docs/research/homestretch-interview.md) with Homestretch, a Falls Church, VA housing organization.
 
 ---
 
@@ -148,7 +150,7 @@ Parcella is designed for a government audience that needs to **trust and defend*
 | **Source attribution** | Every extracted field links to the specific page and section of the source ordinance PDF |
 | **Confidence badges** | High / Medium / Low tiers on every data point — users see where the AI is confident and where it isn't |
 | **Verbatim quotes** | Extracted fields include the exact text from the ordinance, not paraphrases |
-| **No policy recommendations** | The platform quantifies regulatory constraint — it does not recommend changes. A persistent disclaimer states: *"This score measures regulatory constraint and does not recommend policy positions."* |
+| **No policy recommendations** | The platform quantifies regulatory constraint — it does not recommend changes. The methodology modal states: *"The RIS is descriptive, not prescriptive — it does not recommend any policy position."* |
 | **Descriptive, not prescriptive** | The RIS is explicitly framed as a descriptive index, not a normative judgment |
 | **Public data sources** | All market data (HUD FMR, Census ACS, Census Building Permits) comes from publicly accessible federal datasets with documented vintage and methodology |
 | **Synthetic data clearly labeled** | Illustrative peer jurisdictions used for comparative scoring are flagged as "Illustrative data — not from official sources" in the UI |
