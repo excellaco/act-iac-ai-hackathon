@@ -69,7 +69,7 @@ Generates a Software Bill of Materials after a successful deploy.
 | Checkout | `actions/checkout@v5` | Fetch source code |
 | Generate SBOM | `anchore/sbom-action@v0` | Run Syft against the repo; upload SBOM as a workflow artifact |
 
-**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, downloadable from the Actions run under **Artifacts**.
+**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, downloadable from the [Actions tab](https://github.com/excellaco/act-iac-ai-hackathon/actions/workflows/ci-cd.yml) under **Artifacts** on the latest CI/CD run. Artifacts are retained for 90 days.
 
 **Permissions required:** `contents: write`
 

@@ -168,6 +168,7 @@ Parcella is built with a realistic path to production deployment in a federal en
 - **Infrastructure as Code** — Terraform manages cloud resources; CI/CD via GitHub Actions with Workload Identity Federation (no static keys)
 - **Scalable architecture** — adding a new jurisdiction requires uploading a PDF and running the extraction pipeline. No code changes needed.
 - **Security posture** — Snyk dependency scanning, SonarCloud code quality analysis, automated linting and type checking on every commit
+- **Software Bill of Materials (SBOM)** — generated automatically on every deploy using [Syft](https://github.com/anchore/syft) in CycloneDX JSON format; downloadable from the [Actions tab](https://github.com/excellaco/act-iac-ai-hackathon/actions/workflows/ci-cd.yml) under **Artifacts** on the latest CI/CD run
 
 ### Path from MVP to Production
 
