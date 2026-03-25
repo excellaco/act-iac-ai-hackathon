@@ -22,18 +22,22 @@ function deepFreeze<T extends object>(obj: T): T {
 const fairfaxFeasibility: FeasibilityOutputs = {
   maxUnitsPerAcre: 12,
   parkingFootprintPct: 18.2,
-  estimatedCostPerUnit: 251_600,
-  monthlyCarryingCost: 1048,
-  rentFeasibility: 'Feasible',
+  estimatedCostPerUnit: 326_448,
+  buildingType: 'garden',
+  monthlyDebtService: 1341,
+  requiredRent: 2579,
+  rentFeasibility: 'Marginal',
   fmr2br: 2280,
 }
 
 const arlingtonFeasibility: FeasibilityOutputs = {
   maxUnitsPerAcre: 72,
   parkingFootprintPct: 27.3,
-  estimatedCostPerUnit: 219_500,
-  monthlyCarryingCost: 915,
-  rentFeasibility: 'Feasible',
+  estimatedCostPerUnit: 555_155,
+  buildingType: 'highrise',
+  monthlyDebtService: 2281,
+  requiredRent: 4387,
+  rentFeasibility: 'Infeasible',
   fmr2br: 2280,
 }
 
@@ -41,7 +45,7 @@ export const FAIRFAX: JurisdictionData = deepFreeze({
   id: 'uuid-fairfax',
   name: 'Fairfax County',
   state: 'VA',
-  slug: 'fairfax',
+  slug: 'fairfax_va',
   ris: 73,
   subScores: {
     dci:  { score: 75, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },
@@ -72,7 +76,7 @@ export const ARLINGTON: JurisdictionData = deepFreeze({
   id: 'uuid-arlington',
   name: 'Arlington County',
   state: 'VA',
-  slug: 'arlington',
+  slug: 'arlington_va',
   ris: 43,
   subScores: {
     dci:  { score: 40, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },
@@ -108,7 +112,7 @@ export const ARLINGTON_ZONE_SCORES: ZoneScore[] = [
     dci: 40, dcoi: 50, pci: 35, crp: 45, risComposite: 43,
     fields: { densityLimitUpa: 72, heightLimitFt: 125, parkingMinSpacesPerUnit: 0.5 },
     citations: {},
-    feasibility: { maxUnitsPerAcre: 72, parkingFootprintPct: 27.3, estimatedCostPerUnit: 219_500, monthlyCarryingCost: 915, rentFeasibility: 'Feasible', fmr2br: 2280 },
+    feasibility: { maxUnitsPerAcre: 72, parkingFootprintPct: 27.3, estimatedCostPerUnit: 555_155, buildingType: 'highrise' as const, monthlyDebtService: 2281, requiredRent: 4387, rentFeasibility: 'Infeasible', fmr2br: 2280 },
   },
   {
     zoneCode: 'R-10',
@@ -131,7 +135,7 @@ export const LOUDOUN: JurisdictionData = deepFreeze({
   id: 'uuid-loudoun',
   name: 'Loudoun County',
   state: 'VA',
-  slug: 'loudoun',
+  slug: 'loudoun_va',
   ris: 65,
   subScores: {
     dci:  { score: 80, confidence: 'High',   source: 'Municode zoning code, extracted Mar 2025' },
@@ -156,9 +160,11 @@ export const LOUDOUN: JurisdictionData = deepFreeze({
   feasibility: {
     maxUnitsPerAcre: 6,
     parkingFootprintPct: 9.1,
-    estimatedCostPerUnit: 244_400,
-    monthlyCarryingCost: 1018,
-    rentFeasibility: 'Feasible',
+    estimatedCostPerUnit: 316_932,
+    buildingType: 'garden' as const,
+    monthlyDebtService: 1302,
+    requiredRent: 2504,
+    rentFeasibility: 'Marginal',
     fmr2br: 2280,
   },
   citations: {},

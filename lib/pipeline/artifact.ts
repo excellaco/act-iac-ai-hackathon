@@ -22,7 +22,15 @@ export interface ParsedPage {
   text: string
 }
 
-export type ParsedPagesArtifact = ParsedPage[]
+export interface ParsedPagesArtifact {
+  /** GCS URI or local path of the source document that was parsed. */
+  sourceDocument: string
+  /** ISO timestamp of when parsing ran. */
+  parsedAt: string
+  /** Whether the pages came from pdf-parse text extraction or Google Vision OCR. */
+  extractionMethod: 'text' | 'ocr'
+  pages: ParsedPage[]
+}
 
 /** Per-field extraction result — shared by both legacy and v2 artifacts. */
 export interface FieldArtifact {

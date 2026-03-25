@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "f1f341de-431f-4a3c-9afb-ce224d26ad85",
+  "slug": "fairfax_va",
+  "zoneCode": "R-16",
+  "zoneName": "Residential, Sixteen Du/Ac",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T14:20:44.485Z",
+  "approved": true,
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No requirement",
+      "unit": "sqft",
+      "confidence": "high",
+      "source_section": "Table 2102.17",
+      "district_context": "R-16 Residential District, Multifamily dwellings",
+      "reasoning": "The R-16 district, which permits multifamily dwellings, explicitly states 'No requirement' for minimum lot area for multifamily dwellings in Table 2102.17 and Table 2102.18.",
+      "source_page": 45
+    },
+    "height_limit_ft": {
+      "raw_value": 65,
+      "raw_unit": "feet",
+      "field_value": 65,
+      "field_value_text": "65 feet",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2102.17",
+      "district_context": "R-16 Residential District (Multifamily dwellings)",
+      "reasoning": "The maximum building height for multifamily dwellings in the R-16 Residential District is explicitly stated as 65 feet in Table 2102.17, which is the most permissive multifamily district detailed in the provided text.",
+      "source_page": 45
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "TABLE 4101.1",
+      "district_context": "R-30 Residential District",
+      "reasoning": "The use table indicates 'P' (permitted) for 'Dwelling, Multifamily' in the R-30 district, which means it is allowed by right without discretionary approval.",
+      "source_page": 141
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "16",
+      "raw_unit": "Dwelling Units/Acre",
+      "field_value": 16,
+      "field_value_text": "16 du/ac",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "Table 2100.1",
+      "district_context": "R-16 Residential District",
+      "reasoning": "The R-16 district is named 'Residential, Sixteen Du/Ac', explicitly stating a maximum density of 16 du/ac. Corrected from low-confidence extraction that erroneously captured an adjacent zone's density.",
+      "source_page": 7
+    },
+    "setback_rear_ft": {
+      "raw_value": 25,
+      "raw_unit": "feet",
+      "field_value": 25,
+      "field_value_text": "25",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2102.17a",
+      "district_context": "R-16 Multifamily",
+      "reasoning": "Identified the minimum rear setback for multifamily dwellings in the R-16 district from Table 2102.17a, selecting the lowest value across all height ranges.",
+      "source_page": 46
+    },
+    "setback_side_ft": {
+      "raw_value": 10,
+      "raw_unit": "feet",
+      "field_value": 10,
+      "field_value_text": "10",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2102.17a",
+      "district_context": "R-16 Multifamily",
+      "reasoning": "Identified the minimum side setback for multifamily dwellings in the R-16 district from Table 2102.17a, selecting the lowest value across all height ranges.",
+      "source_page": 46
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": 1.45,
+      "raw_unit": "spaces per unit",
+      "field_value": 1.45,
+      "field_value_text": "1.45 spaces per unit",
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": "Table 6100.2",
+      "district_context": "Multifamily dwellings (jurisdiction-wide standard)",
+      "reasoning": "Table 6100.2 specifies 1.45 minimum off-street parking spaces per unit for multifamily dwellings. This is a jurisdiction-wide standard in Article 6, Section 6100.4.A. Reduced rates apply in Suburban Centers (1.305), Revitalization Areas (1.16), Transit Station Areas (0.6/bedroom), and TOD areas (0.4/bedroom).",
+      "source_page": 344
+    },
+    "setback_front_ft": {
+      "raw_value": 20,
+      "raw_unit": "feet",
+      "field_value": 20,
+      "field_value_text": "Front setback, minimum (feet) 20",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2102.17a",
+      "district_context": "R-16 Residential District, Multifamily dwellings",
+      "reasoning": "Extracted from Table 2102.17a for R-16 Multifamily dwellings, taking the minimum setback value corresponding to the lowest building height.",
+      "source_page": 46
+    }
+  }
+}

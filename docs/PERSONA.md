@@ -20,7 +20,7 @@ Val operates in a multi-stakeholder environment. Zoning changes in jurisdictions
 
 Val's primary goal when using Parcella is to **build a defensible, data-backed case** that she can present to decision-makers without it being dismissed as opinion or advocacy.
 
-Critically, she is not always advocating for a single direction. Fairfax County has deliberately chosen a different approach to zoning reform than Arlington and Alexandria (which eliminated single-family-only zoning). Val may be making the case for reform, explaining why Fairfax's approach is appropriate given local conditions, or helping leadership understand what other jurisdictions have done. **Parcela must support any of these conversations — not steer them.**
+Critically, she is not always advocating for a single direction. Fairfax County has deliberately chosen a different approach to zoning reform than Arlington and Alexandria (which eliminated single-family-only zoning). Val may be making the case for reform, explaining why Fairfax's approach is appropriate given local conditions, or helping leadership understand what other jurisdictions have done. **Parcella must support any of these conversations — not steer them.**
 
 A secondary goal is **speed**. Zoning reform studies — like Fairfax's four-year zMOD process — are slow by design, involving public hearings, board deliberations, and iterative analysis. Val often needs to answer a policy question in hours, not months. Parcella compresses the analytical phase: instead of commissioning a months-long comparative study to answer "how does our parking minimum compare to peers?", she can have a defensible answer before her next meeting.
 
@@ -91,7 +91,7 @@ Val's direct audience is her colleagues and department leadership. But her outpu
 | Developers and housing advocates | Public comment periods, community meetings | Medium — familiar with cost concepts, not scoring methodology |
 | Other county planning staff | Internal review and grant writing | Low — planning-literate, can handle some technical detail |
 
-Parcela's output will be read by people who were not in the room when Val ran the simulation. The UI must make the "what does this mean?" question answerable without Val present to explain it.
+Parcella's output will be read by people who were not in the room when Val ran the simulation. The UI must make the "what does this mean?" question answerable without Val present to explain it.
 
 ---
 
@@ -102,6 +102,6 @@ Parcela's output will be read by people who were not in the room when Val ran th
 - **Descriptive, not prescriptive — and genuinely neutral across approaches:** The RIS must never appear to recommend a policy direction. This goes beyond a disclaimer: Fairfax has deliberately chosen a different path than Arlington and Alexandria on issues like single-family zoning. Both choices are legitimate responses to local conditions. A tool that appears to favor "more permissive = better" would be unusable for a Fairfax planner defending a conservative approach, and vice versa. The score measures regulatory constraint — it does not say what the right level of constraint is.
 - **What-if is the core value:** The comparison view gets her attention; the what-if simulation is what makes the tool useful in a meeting. This feature should be fast, intuitive, and produce outputs she can quote verbally.
 - **Plain language for a non-specialist audience:** Terms like DCI, DCOI, and CRP must be explained in plain language in the UI — not just defined, but explained in terms of what they mean for housing development. Val's supervisor and the Board member who sees her slide deck should be able to read the score panel and understand what they're looking at without a planning degree.
-- **Outputs that travel:** Screenshots, copy-paste to PowerPoint, and council memos are how Parcela's outputs reach decision-makers. Every number in the UI should be self-contained — source, confidence, and plain-language explanation visible in the same view, not buried in a modal.
+- **Outputs that travel:** Screenshots, copy-paste to PowerPoint, and council memos are how Parcella's outputs reach decision-makers. Every number in the UI should be self-contained — source, confidence, and plain-language explanation visible in the same view, not buried in a modal.
 - **Cause and effect must be visible:** The what-if simulation must make it obvious that changing the independent variable (e.g., parking minimum) changed the dependent variable (cost per unit, RIS score). The delta should be prominent and stated in plain terms.
 - **Speed is a feature:** Val's alternative to Parcella is a months-long comparative study or a multi-year process like zMOD. The tool's value is partly in compressing that timeline. Load times, interaction friction, and anything that slows the path from "search" to "defensible answer" directly undercuts the core use case.

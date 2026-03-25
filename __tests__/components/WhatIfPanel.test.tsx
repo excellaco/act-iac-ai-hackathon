@@ -41,9 +41,9 @@ describe('WhatIfPanel', () => {
     expect(screen.getByText('Rent feasibility')).toBeInTheDocument()
   })
 
-  it('shows default narrative prompting user to adjust sliders', () => {
+  it('hides narrative section when no sliders have been moved', () => {
     render(<WhatIfPanel {...baseProps} />)
-    expect(screen.getByText(/Adjust the sliders above/)).toBeInTheDocument()
+    expect(screen.queryByText(/Adjust the sliders/)).not.toBeInTheDocument()
   })
 
   it('updates simulated RIS when parking slider is changed', () => {

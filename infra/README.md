@@ -1,6 +1,6 @@
 # infra — Terraform Infrastructure
 
-Manages GCP infrastructure for Parcela that lives outside the CI/CD deploy pipeline.
+Manages GCP infrastructure for Parcella that lives outside the CI/CD deploy pipeline.
 
 **Currently provisions:**
 - GCS bucket `parcela-490518-raw-data` for raw zoning ordinance PDFs

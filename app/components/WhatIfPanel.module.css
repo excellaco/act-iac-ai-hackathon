@@ -4,6 +4,19 @@
   gap: 16px;
 }
 
+/* Issue #7: Simulation scope note */
+.scopeNote {
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.5;
+  font-style: italic;
+  padding: 8px 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin: 0;
+}
+
 /* Score comparison block (E8-3) */
 .scoreBlock {
   display: flex;

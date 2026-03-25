@@ -20,6 +20,8 @@ export interface ZoneScoreResponse {
   risComposite: string
   /** Partial extracted field values keyed by field name. */
   fields: Record<string, string | null>
+  /** Citation metadata keyed by field name. */
+  citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null }>
   feasibility: {
     maxUnitsPerAcre: string | null
     parkingFootprintPct: string | null

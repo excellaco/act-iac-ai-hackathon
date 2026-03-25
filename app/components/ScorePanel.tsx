@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
 import { risColor, risLabel, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import { PEER_COMPOSITES } from '../../lib/scoringEngine';
 import ZoneSelector from './ZoneSelector';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
@@ -12,6 +13,13 @@ import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
 import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
+
+/** Zoning Atlas jurisdiction IDs — only real jurisdictions with atlas pages */
+const ZONING_ATLAS_IDS: Record<string, number> = {
+  fairfax:   6593,
+  arlington: 6570,
+  loudoun:   6585,
+}
 
 /** Extracted fields that contribute to each sub-score */
 const SUB_SCORE_FIELDS: Record<SubScoreKey, string[]> = {
@@ -32,16 +40,42 @@ const FIELD_LABELS: Record<string, string> = {
   discretionary_review_required: 'Discretionary review',
 }
 
+/** Map extraction field names to RegulationFields keys for displaying actual values */
+const FIELD_TO_KEY: Record<string, string> = {
+  min_lot_size_sqft:             'minLotSizeSqft',
+  height_limit_ft:               'heightLimitFt',
+  density_limit_units_per_acre:  'densityLimitUpa',
+  setback_front_ft:              'setbackFrontFt',
+  setback_side_ft:               'setbackSideFt',
+  setback_rear_ft:               'setbackRearFt',
+  parking_min_spaces_per_unit:   'parkingMinSpacesPerUnit',
+  discretionary_review_required: 'discretionaryReviewType',
+}
+
+const FIELD_UNITS: Record<string, string> = {
+  min_lot_size_sqft:             'sqft',
+  height_limit_ft:               'ft',
+  density_limit_units_per_acre:  'units/acre',
+  setback_front_ft:              'ft',
+  setback_side_ft:               'ft',
+  setback_rear_ft:               'ft',
+  parking_min_spaces_per_unit:   'spaces/unit',
+  discretionary_review_required: '',
+}
+
+function formatFieldValue(value: unknown, unit: string): string {
+  if (value == null) return '—';
+  if (typeof value === 'string') return value.replace(/-/g, ' ');
+  if (typeof value === 'number') {
+    const formatted = value >= 1000 ? value.toLocaleString() : String(value);
+    return unit ? `${formatted} ${unit}` : formatted;
+  }
+  return String(value);
+}
+
 interface Props {
   jurisdiction: JurisdictionData;
   onCompare: (peer: { id: string; name: string; state: string; ris: number }) => void;
-}
-
-interface PdfModalState {
-  fieldName: string;
-  sourcePage: number | null;
-  sourceSection: string | null;
-  fieldValueText: string | null;
 }
 
 /** Find the most permissive zone to use as default (highest-density primary zone). */
@@ -53,10 +87,10 @@ function defaultZoneCode(zones: ZoneScore[]): string | '__avg__' {
 }
 
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
-  const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
+  const { name, state, ris, subScores, fields, feasibility, citations, zoneScores, dataVintage } = jurisdiction;
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
-  const [pdfModal, setPdfModal] = useState<PdfModalState | null>(null);
+  const [pdfModal, setPdfModal] = useState<{ sourcePage: number | null; sourceSection: string | null; fieldValueText: string | null } | null>(null);
   const [selectedZoneCode, setSelectedZoneCode] = useState<string | '__avg__'>(() => defaultZoneCode(zoneScores));
 
   // Derive active fields/scores/feasibility from selected zone or jurisdiction average
@@ -110,6 +144,20 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
           About this score
         </button>
       </p>
+
+      {/* Issue #6: Data vintage disclosure — only render items we have real data for */}
+      {dataVintage && (dataVintage.fmrVintage || dataVintage.permitsVintage || dataVintage.zoningExtractedAt) && (
+        <p className={styles.dataVintage}>
+          {'Data as of: '}
+          {[
+            dataVintage.fmrVintage      ? `HUD FMR ${dataVintage.fmrVintage}`  : null,
+            dataVintage.permitsVintage  ? `Census BPS ${dataVintage.permitsVintage}` : null,
+            dataVintage.zoningExtractedAt
+              ? `Zoning extracted ${new Date(dataVintage.zoningExtractedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+              : null,
+          ].filter(Boolean).join(' · ')}
+        </p>
+      )}
 
       {/* E8-1: What-If Simulation toggle */}
       <div className={styles.whatIfSection}>
@@ -170,22 +218,72 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                 <p className={styles.source}>
                   <span className={styles.sourceLabel}>Source:</span> {detail.source}
                 </p>
+                {/* CRP peer set disclosure (issues #1 and #5) */}
+                {key === 'crp' && (() => {
+                  // Exclude current jurisdiction from the displayed peer list
+                  const visiblePeers = PEER_COMPOSITES.filter((p) => p.slug !== jurisdiction.slug);
+                  const extractedCount = PEER_COMPOSITES.filter((p) => p.dataSource === 'extracted').length;
+                  const modeledCount   = PEER_COMPOSITES.filter((p) => p.dataSource === 'modeled').length;
+                  return (
+                    <div className={styles.crpPeerSet}>
+                      <p className={styles.crpPeerSetTitle}>
+                        Comparison set ({PEER_COMPOSITES.length} regional jurisdictions)
+                      </p>
+                      <p className={styles.crpPeerSetNote}>
+                        Compared against {PEER_COMPOSITES.length} regional jurisdictions:{' '}
+                        {extractedCount} with extracted zoning data, {modeledCount} with modeled estimates.
+                        The current jurisdiction is excluded from its own comparison.
+                      </p>
+                      <ul className={styles.crpPeerList}>
+                        {visiblePeers.map((peer) => (
+                          <li key={peer.slug} className={styles.crpPeerItem}>
+                            <span className={styles.crpPeerName}>{peer.displayName}</span>
+                            <span className={`${styles.crpPeerBadge} ${peer.dataSource === 'extracted' ? styles.crpPeerBadgeReal : styles.crpPeerBadgeModeled}`}>
+                              {peer.dataSource === 'extracted' ? 'Extracted' : 'Modeled'}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
                 {SUB_SCORE_FIELDS[key].length > 0 && (
                   <ul className={styles.citationList}>
                     {SUB_SCORE_FIELDS[key].map((fieldName) => {
                       const citation = activeCitations?.[fieldName];
                       const hasSource = citation?.sourcePage != null;
+                      // usingDefault is explicitly set by the data layer when no numeric value
+                      // was extracted — distinct from low confidence (which can still have a value)
+                      const isDefault = citation?.usingDefault ?? false;
                       return (
                         <li key={fieldName} className={styles.citationItem}>
-                          <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                          <div className={styles.citationFieldHeader}>
+                            <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                            {isDefault && (
+                              <span className={styles.defaultBadge} title="Value not found in ordinance; a regulatory default was used for scoring">
+                                default used
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.citationFieldValue}>
+                            {formatFieldValue(
+                              activeFields[FIELD_TO_KEY[fieldName] as keyof typeof activeFields],
+                              FIELD_UNITS[fieldName] ?? '',
+                            )}
+                          </span>
                           {citation?.fieldValueText && citation.fieldValueText !== 'Not found in document' && (
                             <span className={styles.citationQuote}>&ldquo;{citation.fieldValueText}&rdquo;</span>
                           )}
+                          {citation?.reasoning && citation.reasoning !== 'Field not found in any text chunk' && (
+                            <details className={styles.reasoningDetails}>
+                              <summary className={styles.reasoningSummary}>How was this extracted?</summary>
+                              <p className={styles.reasoningText}>{citation.reasoning}</p>
+                            </details>
+                          )}
                           {hasSource && (
                             <button
-                              className={styles.viewSourceBtn}
+                              className={styles.viewSourceLink}
                               onClick={() => setPdfModal({
-                                fieldName,
                                 sourcePage: citation.sourcePage ?? null,
                                 sourceSection: citation.sourceSection ?? null,
                                 fieldValueText: citation.fieldValueText ?? null,
@@ -208,18 +306,46 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
       {/* E4-1 / E4-2 / E4-3 / E4-4: Feasibility panel */}
       <FeasibilityPanel feasibility={activeFeasibility} />
 
-      {/* E6-7: Compare Peers */}
-      <ComparePeers current={jurisdiction} onCompare={onCompare} />
+      {/* Source links and AI stats — grouped together above chat */}
+      <div className={styles.sourceInfo}>
+        <p className={styles.atlasLink}>
+          <a
+            href={`/api/jurisdictions/${jurisdiction.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.atlasAnchor}
+          >
+            View {name} Zoning Ordinance
+          </a>
+        </p>
+        {zoneScores.length > 0 && (
+          <p className={styles.analysisStats}>
+            {zoneScores.length} zoning district{zoneScores.length !== 1 ? 's' : ''} analyzed by AI
+          </p>
+        )}
+        {ZONING_ATLAS_IDS[jurisdiction.slug] != null && (
+          <p className={styles.atlasLink}>
+            Learn more at the{' '}
+            <a
+              href={`https://www.zoningatlas.org/snapshots/?jurisdiction=${ZONING_ATLAS_IDS[jurisdiction.slug]}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.atlasAnchor}
+            >
+              Zoning Atlas
+            </a>
+          </p>
+        )}
+      </div>
 
-      {/* Chat panel — below Compare Peers */}
+      {/* Chat panel — above Compare Peers so users can ask questions before comparing */}
       <ChatPanel
         jurisdictionId={jurisdiction.id}
         jurisdictionName={`${name}, ${state}`}
       />
 
-      <p className={styles.disclaimer}>
-        This score measures regulatory constraint and does not recommend policy positions.
-      </p>
+      {/* E6-7: Compare Peers */}
+      <ComparePeers current={jurisdiction} onCompare={onCompare} />
 
       {showMethodology && (
         <MethodologyModal onClose={() => setShowMethodology(false)} />

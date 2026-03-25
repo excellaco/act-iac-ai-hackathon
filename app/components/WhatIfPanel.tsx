@@ -108,7 +108,7 @@ function generateNarrative(
   }
 
   if (changes.length === 0) {
-    return 'Adjust the sliders above to model the impact of regulatory changes.';
+    return '';
   }
 
   const changeSummary = changes.join('; ').replace(/;([^;]*)$/, ' and$1') + '.';
@@ -193,6 +193,7 @@ export default function WhatIfPanel({
       parkingMinSpacesPerUnit: simFields.parkingMinSpacesPerUnit,
       regionalMultiplier:      simFields.regionalMultiplier,
       fmr2br:                  simFields.fmr2br,
+      heightLimitFt:           simFields.heightLimitFt,
     });
 
     return { simulatedRis, simulatedFeasibility, risDelta };
@@ -201,7 +202,7 @@ export default function WhatIfPanel({
   // E8-6: Plain-language narrative
   const narrative = useMemo(() => {
     const base = generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility);
-    if (zoneLabel && base !== 'Adjust the sliders above to model the impact of regulatory changes.') {
+    if (zoneLabel && base) {
       return `[Simulating ${zoneLabel}] ${base}`;
     }
     return base;
@@ -226,6 +227,12 @@ export default function WhatIfPanel({
 
   return (
     <div className={styles.panel}>
+      {/* Issue #7: Scope note */}
+      <p className={styles.scopeNote}>
+        This simulation models regulatory constraint only. It does not predict housing production,
+        developer response, or approval outcomes.
+      </p>
+
       {/* E8-3: Score comparison */}
       <div className={styles.scoreBlock}>
         <div className={styles.scoreItem}>
@@ -243,7 +250,7 @@ export default function WhatIfPanel({
           className={styles.scoreDelta}
           style={{ color: risDeltaColor, background: risDeltaColor + '15' }}
         >
-          {risDelta === 0 ? 'No change' : risDelta > 0 ? `+${risDelta}` : risDelta}
+          {risDelta === 0 ? 'No change' : risDelta > 0 ? `+${risDelta} pts` : `${risDelta} pts`}
         </div>
       </div>
 
@@ -342,10 +349,12 @@ export default function WhatIfPanel({
         </div>
       </div>
 
-      {/* E8-6: Plain-language narrative */}
-      <div className={styles.narrative}>
-        <p className={styles.narrativeText}>{narrative}</p>
-      </div>
+      {/* E8-6: Plain-language narrative — hidden until sliders are moved */}
+      {narrative && (
+        <div className={styles.narrative}>
+          <p className={styles.narrativeText}>{narrative}</p>
+        </div>
+      )}
 
       {/* E8-5: Reset button */}
       {hasChanges && (

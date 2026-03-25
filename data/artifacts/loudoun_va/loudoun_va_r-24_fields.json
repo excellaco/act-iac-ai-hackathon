@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "R-24",
+  "zoneName": "Multifamily Residential - R-24 (Legacy District)",
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:40:28.155Z",
+  "approved": true,
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "No min",
+      "unit": "sqft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.05-1",
+      "district_context": "R-24 Multifamily Residential (Legacy District)",
+      "reasoning": "The R-24 Multifamily Residential district's dimensional standards table explicitly states 'No min' for the minimum lot size.",
+      "source_page": 14
+    },
+    "height_limit_ft": {
+      "raw_value": 60,
+      "raw_unit": "ft",
+      "field_value": 60,
+      "field_value_text": "45 ft Up to 60 ft if the structure is set back from streets or lot lines 1 ft for each 1 ft that exceeds 45 ft in addition to each required minimum yard",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.05-1",
+      "district_context": "Multifamily Residential - R-24 (Legacy District)",
+      "reasoning": "The maximum building height limit for the R-24 Multifamily Residential district is 60 ft, achievable under specific setback conditions, as stated in its dimensional standards table.",
+      "source_page": null
+    },
+    "setback_side_ft": {
+      "raw_value": 10,
+      "raw_unit": "ft",
+      "field_value": 10,
+      "field_value_text": "Side Yard (min) 10 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.05-1",
+      "district_context": "R-24 Legacy Zoning District",
+      "reasoning": "The side yard minimum setback is explicitly stated as 10 ft in the R-24 Multifamily Residential district's dimensional standards table, taking the minimum value from the options provided.",
+      "source_page": null
+    },
+    "setback_rear_ft": {
+      "raw_value": "25",
+      "raw_unit": "ft",
+      "field_value": "25",
+      "field_value_text": "Rear Yard (min) 25 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.05-1",
+      "district_context": "Multifamily Residential - R-24 (Legacy District)",
+      "reasoning": "The minimum rear yard setback for the R-24 Multifamily Residential district is explicitly stated as 25 ft in the provided table.",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": "28.8",
+      "raw_unit": "dwelling units per acre",
+      "field_value": "28.8",
+      "field_value_text": "28.8 dwelling units per acre if ADUs are provided\u00b9",
+      "unit": "units_per_acre",
+      "confidence": "high",
+      "source_section": "2.02.05.05",
+      "district_context": "Multifamily Residential - R-24 (Legacy District)",
+      "reasoning": "The R-24 Multifamily Residential district explicitly states a maximum density of 24 dwelling units per acre, with a more permissive limit of 28.8 dwelling units per acre if ADUs are provided, which is the highest density found for a multifamily district.",
+      "source_page": 57
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "spaces_per_unit",
+      "confidence": "high",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The text mentions multifamily districts (R-16, R-24, PD-H) and refers to 'Table 3.02.02' and 'Section 4.02.08' for use-specific standards, but these sections containing the parking requirements are not provided in the given text chunk.",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": 25,
+      "raw_unit": "ft",
+      "field_value": 25,
+      "field_value_text": "25 ft",
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 2.02.05.05-1",
+      "district_context": "R-24 Legacy Zoning District",
+      "reasoning": "The R-24 district is a multifamily residential district, and the table explicitly lists the minimum front yard setback.",
+      "source_page": 14
+    },
+    "discretionary_review_required": {
+      "raw_value": "P",
+      "raw_unit": null,
+      "field_value": "by_right",
+      "field_value_text": "by_right",
+      "unit": null,
+      "confidence": "high",
+      "source_section": "Table 3.02.02-1",
+      "district_context": "R-24 Multifamily Residential Legacy Zoning District",
+      "reasoning": "The Principal Use Table for Legacy Suburban Zoning Districts (Table 3.02.02-1) indicates 'P' (Permitted) for 'Dwelling, Multifamily' in the R-24 district, which means it is allowed by-right without discretionary approval.",
+      "source_page": null
+    }
+  }
+}

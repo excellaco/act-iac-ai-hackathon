@@ -125,3 +125,10 @@
   color: #4b5563;
   line-height: 1.5;
 }
+
+.equitycitation {
+  font-size: 11px !important;
+  color: #9ca3af !important;
+  font-style: italic;
+  margin-top: 4px !important;
+}

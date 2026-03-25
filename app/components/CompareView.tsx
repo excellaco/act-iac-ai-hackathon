@@ -4,19 +4,16 @@ import { useState, useEffect } from 'react';
 import { fetchScore, fetchJurisdictions } from '../../lib/apiClient';
 import { scoreResponseToJurisdictionData } from '../../lib/mockData';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
-import { risColor, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import { risColor, risLabelShort, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
 import dynamic from 'next/dynamic';
 import ZoneSelector from './ZoneSelector';
 import styles from './CompareView.module.css';
 
 const MiniMap = dynamic(() => import('./MiniMap'), { ssr: false });
 
-/** Find the default zone: most permissive primary zone by risComposite. */
-function defaultZone(zones: ZoneScore[]): string | '__avg__' {
-  const primary = zones.filter((z) => z.multifamilyClassification === 'primary');
-  const pool = primary.length > 0 ? primary : zones;
-  if (pool.length === 0) return '__avg__';
-  return pool.reduce((best, z) => (z.risComposite > best.risComposite ? z : best), pool[0]).zoneCode;
+/** Default to averaged view across all zones. */
+function defaultZone(): '__avg__' {
+  return '__avg__';
 }
 
 interface CompareCardProps {
@@ -26,7 +23,7 @@ interface CompareCardProps {
 
 function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
   const { name, state, ris, subScores, zoneScores } = jurisdiction;
-  const [selectedZone, setSelectedZone] = useState<string | '__avg__'>(() => defaultZone(zoneScores));
+  const [selectedZone, setSelectedZone] = useState<string | '__avg__'>(defaultZone);
 
   const activeZone = selectedZone !== '__avg__' ? zoneScores.find((z) => z.zoneCode === selectedZone) : null;
   const activeRis = activeZone?.risComposite ?? ris;
@@ -44,13 +41,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.cardHeaderLeft}>
-          <div className={styles.colorDot} style={{ background: color }} />
           <div>
-            <h3 className={styles.cardName}>{name}</h3>
-            <p className={styles.cardState}>
-              {state}
-              {selectedZone !== '__avg__' && <span className={styles.cardZoneSubtitle}> · {selectedZone}</span>}
-            </p>
+            <h3 className={styles.cardName}>{name}, {state}</h3>
+            <p className={styles.risLabelText} style={{ color }}>{risLabelShort(activeRis)} Restrictiveness</p>
           </div>
         </div>
         <div className={styles.cardHeaderRight}>
@@ -63,11 +56,17 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
         </div>
       </div>
 
+      <div className={styles.miniMapWrapper}>
+        <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
+      </div>
+
       {zoneScores.length > 0 && (
         <div className={styles.cardZoneSelector}>
           <ZoneSelector zones={zoneScores} selectedZoneCode={selectedZone} onChange={setSelectedZone} />
         </div>
       )}
+
+      <h4 className={styles.sectionTitle}>Regulatory Impact Score</h4>
 
       <div className={styles.subScores}>
         {(Object.entries(activeSubScores) as [string, number][]).map(([key, score]) => {
@@ -107,8 +106,12 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
             {jurisdiction.fields.discretionaryReviewType.replace(/-/g, ' ')}
           </span>
         </div>
-        {activeFeasibility && (
-          <>
+      </div>
+
+      {activeFeasibility && (
+        <>
+          <h4 className={styles.sectionTitle}>Development Feasibility</h4>
+          <div className={styles.cardFields}>
             <div className={styles.fieldRow}>
               <span className={styles.fieldLabel}>Cost per unit</span>
               <span className={styles.fieldValue}>
@@ -127,11 +130,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
                 {activeFeasibility.rentFeasibility}
               </span>
             </div>
-          </>
-        )}
-      </div>
-
-      <MiniMap key={`${name}-${activeRis}`} jurisdictionName={name} ris={activeRis} />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -180,11 +181,10 @@ function AddCard({ onAdd, excludeIds }: AddCardProps) {
     <div className={styles.addCard}>
       <div className={styles.addCardInner}>
         <span className={styles.addCardIcon}>+</span>
-        <span className={styles.addCardLabel}>Add a jurisdiction</span>
         <input
           type="text"
           className={styles.addCardInput}
-          placeholder="Search jurisdictions…"
+          placeholder="Add a jurisdiction"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}

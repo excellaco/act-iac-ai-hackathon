@@ -6,15 +6,44 @@
  * is embedded into the user message content so the agent sees prior turns
  * without needing to reconstruct ADK session events (which would require
  * replaying tool calls). This keeps the API fully stateless.
+ *
+ * If the first attempt returns an empty response (e.g., due to a transient
+ * rate limit from Gemini), a single retry is attempted before returning
+ * the fallback message. See #174 for details.
  */
 
 import { InMemoryRunner, isFinalResponse } from '@google/adk'
-import { createUserContent } from '@google/genai'
+import { createUserContent, type Content } from '@google/genai'
 import { zoningAgent } from './agent'
 
 export interface ChatMessage {
   role: 'user' | 'model'
   content: string
+}
+
+const MAX_ATTEMPTS = 2
+
+/** Run the ADK agent once and extract the final text reply (empty string if none). */
+async function executeAgent(userContent: Content): Promise<string> {
+  const runner = new InMemoryRunner({ agent: zoningAgent })
+
+  let reply = ''
+  for await (const event of runner.runEphemeral({
+    userId: 'anonymous',
+    newMessage: userContent,
+  })) {
+    if (isFinalResponse(event)) {
+      const parts = event.content?.parts
+      if (parts) {
+        reply = parts
+          .filter((p): p is { text: string } => 'text' in p && typeof p.text === 'string')
+          .map((p) => p.text)
+          .join('')
+      }
+    }
+  }
+
+  return reply
 }
 
 /**
@@ -29,8 +58,6 @@ export async function runChat(
   message: string,
   history: ChatMessage[],
 ): Promise<string> {
-  const runner = new InMemoryRunner({ agent: zoningAgent })
-
   // Build context message that includes jurisdiction ID and conversation history
   const contextParts: string[] = [
     `The user is asking about jurisdiction ID: ${jurisdictionId}`,
@@ -52,21 +79,16 @@ export async function runChat(
 
   const userContent = createUserContent(fullMessage)
 
-  let reply = ''
-  for await (const event of runner.runEphemeral({
-    userId: 'anonymous',
-    newMessage: userContent,
-  })) {
-    if (isFinalResponse(event)) {
-      const parts = event.content?.parts
-      if (parts) {
-        reply = parts
-          .filter((p): p is { text: string } => 'text' in p && typeof p.text === 'string')
-          .map((p) => p.text)
-          .join('')
-      }
+  // Retry once on empty response — transient rate limits from Gemini can
+  // cause ADK to end the event loop without producing a final text response.
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const reply = await executeAgent(userContent)
+    if (reply) return reply
+
+    if (attempt < MAX_ATTEMPTS) {
+      console.warn(`Chat agent returned empty response (attempt ${attempt}/${MAX_ATTEMPTS}), retrying...`)
     }
   }
 
-  return reply || 'I was unable to generate a response. Please try again.'
+  return 'I was unable to generate a response. Please try again.'
 }

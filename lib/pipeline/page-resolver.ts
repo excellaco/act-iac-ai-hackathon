@@ -48,7 +48,7 @@ export async function runPageResolveStage(
   logger.info('page-resolve stage started', { jurisdictionId, slug })
 
   // Load the parsed pages artifact
-  const pages = await store.readPages(slug)
+  const { pages } = await store.readPages(slug)
   logger.info('parsed pages loaded', { slug, pageCount: pages.length })
 
   // Load all extracted fields for this jurisdiction that have field_value_text
@@ -96,7 +96,7 @@ export async function runZonePageResolveStage(
 ): Promise<{ resolved: number; unresolved: number }> {
   logger.info('zone page-resolve stage started', { jurisdictionId, slug })
 
-  const pages = await store.readPages(slug)
+  const { pages } = await store.readPages(slug)
   logger.info('parsed pages loaded', { slug, pageCount: pages.length })
 
   const fields = await db

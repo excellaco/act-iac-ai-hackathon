@@ -15,7 +15,19 @@
 
 import { NormalizedExtractionResult } from './normalize'
 
-// ─── plausibility ranges (from LLM_PROMPT_TEMPLATES.md) ──────────────────────
+// ─── plausibility ranges ───────────────────────────────────────────────────────
+//
+// These ranges are intentionally aligned with the normalization ranges used in
+// lib/scoringEngine.ts so that values which would floor or ceiling during
+// scoring are flagged here as low-confidence rather than passing silently.
+//
+// Scoring normalization ranges (for reference):
+//   min_lot_size_sqft:            3,000 – 87,120 sqft
+//   height_limit_ft:              25    – 250 ft
+//   density_limit_units_per_acre: 1     – 150 upa
+//
+// Plausibility bounds are set slightly wider than normalization bounds to allow
+// for genuine outliers at the extremes while still catching implausible values.
 
 interface PlausibilityRange {
   min: number
@@ -23,13 +35,19 @@ interface PlausibilityRange {
 }
 
 const PLAUSIBILITY_RANGES: Record<string, PlausibilityRange> = {
-  min_lot_size_sqft:              { min: 500,  max: 200_000 },
-  height_limit_ft:                { min: 15,   max: 300 },
-  density_limit_units_per_acre:   { min: 1,    max: 500 },
-  parking_min_spaces_per_unit:    { min: 0,    max: 5 },
-  setback_front_ft:               { min: 0,    max: 100 },
-  setback_side_ft:                { min: 0,    max: 60 },
-  setback_rear_ft:                { min: 0,    max: 100 },
+  // Aligned with DCI_RANGES.lotSizeSqft (3,000–87,120). Values outside this
+  // range score at the floor/ceiling — flag them for curator review.
+  min_lot_size_sqft:              { min: 1_000,  max: 100_000 },
+  // Aligned with DCI_RANGES.heightFt (25–250). Values 15–24 ft would floor at
+  // 0 in scoring; flag as low-confidence for curator review.
+  height_limit_ft:                { min: 20,     max: 260 },
+  // Aligned with DCI_RANGES.densityUpa (1–150). Values >150 all score at 0
+  // (floor); flag as low-confidence.
+  density_limit_units_per_acre:   { min: 1,      max: 160 },
+  parking_min_spaces_per_unit:    { min: 0,      max: 5 },
+  setback_front_ft:               { min: 0,      max: 100 },
+  setback_side_ft:                { min: 0,      max: 60 },
+  setback_rear_ft:                { min: 0,      max: 100 },
 }
 
 const VALID_CONFIDENCE = new Set(['high', 'medium', 'low'])

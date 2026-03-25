@@ -49,9 +49,10 @@ describe('ScorePanel', () => {
     expect(screen.getByText(/Municode zoning code/)).toBeInTheDocument()
   })
 
-  it('renders the disclaimer', () => {
+  it('shows disclaimer in methodology modal', () => {
     render(<ScorePanel jurisdiction={FAIRFAX} onCompare={mockOnCompare} />)
-    expect(screen.getByText(/does not recommend policy positions/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText('About this score'))
+    expect(screen.getByText(/does not recommend any policy position/)).toBeInTheDocument()
   })
 
   it('What-If toggle is off by default', () => {
@@ -116,12 +117,18 @@ describe('ScorePanel — PDF citations', () => {
         sourceSection: '§ 4-102',
         sourcePage: 42,
         sourceDocument: 'gs://test/fairfax.pdf',
+        confidence: 'high',
+        reasoning: null,
+        usingDefault: false,
       },
       parking_min_spaces_per_unit: {
         fieldValueText: 'Two spaces per dwelling unit',
         sourceSection: '§ 8102.04',
         sourcePage: 87,
         sourceDocument: 'gs://test/fairfax.pdf',
+        confidence: 'high',
+        reasoning: null,
+        usingDefault: false,
       },
     },
   }

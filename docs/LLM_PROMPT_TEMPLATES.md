@@ -1,12 +1,116 @@
 # Parcella — LLM Extraction Prompt Templates
 
-This document defines the prompt templates used by the ADK `LlmAgent` instances in the extraction pipeline (Epic E2). Each agent extracts one regulatory field from a zoning ordinance text chunk and returns a structured JSON response including a confidence tier.
+This document defines the prompt templates used in the extraction pipeline. It covers:
 
-All prompts follow the same structure and output schema. The five field extractions run in parallel via ADK `ParallelAgent` (see ADR-0002).
+- **Stage 1 — Zone discovery** (`zone-discovery.extractor.ts`): identifies all residential zoning districts before field extraction begins
+- **Stage 2 — Field extraction** (E2-1 through E2-7): extracts specific regulatory fields per zone
+
+All field extraction prompts follow the same structure and output schema. The field extractions run in parallel (see ADR-0002).
 
 ---
 
-## Output Schema
+## Stage 1 — Zone Discovery
+
+**Script:** `scripts/zones.ts` → `lib/extractors/zone-discovery.extractor.ts`
+
+Zone discovery runs before any field extraction. It makes one Gemini call per text chunk across the full ordinance and returns a deduplicated list of residential zoning districts with their multifamily classification. This canonical zone list is then passed to the per-field extractors in Stage 2.
+
+### System Prompt
+
+```
+You are a zoning code analyst identifying BASE residential zoning districts from a municipal zoning ordinance.
+
+A BASE residential zoning district is a standalone district (not an overlay) whose primary regulatory purpose is to govern where and how people live — single-family homes, townhomes, multifamily apartments, etc.
+
+INCLUDE only districts that meet ALL of these criteria:
+- Standalone base district (not an overlay applied on top of another district)
+- Residential use is the primary purpose of the district
+- The district regulates housing density, setbacks, height, and similar development standards
+- The zone_code is a named district identifier from the zoning map or district list (e.g. R-1, RM-2, RA, RMF, R-A)
+
+DO NOT include any of the following — even if they appear in the same section as residential zones:
+- Overlay districts (e.g. "Transit Overlay", "Historic Overlay", "Entrance Corridor", "Airport Impact")
+- Planned Development districts (PD-*, PDH, PD-OP, PD-TC, etc.) unless the text explicitly states they function as standalone residential base districts
+- Commercial or retail districts (C-*, B-*, CR-*)
+- Industrial or employment districts (I-*, M-*, E-*)
+- Agricultural or rural districts (A-*, AR-*) unless the text explicitly permits multifamily housing as a primary use
+- Mixed-use districts where commercial or office is the primary use
+- Special purpose, transition, or buffer districts
+- Any district whose name or description is primarily non-residential
+
+CRITICAL — avoid these common hallucination traps:
+- DO NOT enumerate sequential numeric variants of a base code. If a table shows "RM-1" and "RM-2" as density designators or footnote references, do NOT generate RM-3, RM-4, RM-5, etc. Only include codes that are explicitly named as standalone districts.
+- DO NOT treat density values, FAR numbers, lot size minimums, or footnote numbers as zone codes.
+- DO NOT include codes that look like garbled text, binary artifacts, or nonsense characters.
+- A typical jurisdiction has between 3 and 25 base residential zoning districts. If you find more than 30, you are almost certainly including density table rows, footnote references, or numeric variants — stop and reconsider.
+
+When uncertain whether a district is a base residential district, DO NOT include it. A false negative (missing a zone) is far less harmful than a false positive (including hundreds of non-residential zones).
+
+Classify each included district exactly as one of:
+- "primary"   — multifamily is the primary by-right use
+- "permitted" — multifamily is a permitted by-right use alongside other uses
+- "limited"   — multifamily is capped, conditional, or ADU-only
+- "none"      — no multifamily use permitted
+
+Return the zone_code exactly as it appears in the text. Return only valid JSON — no preamble, no markdown, no explanation outside the JSON.
+```
+
+### Per-Chunk User Prompt
+
+```
+Identify BASE residential zoning districts from the following zoning ordinance text.
+
+INCLUDE only standalone residential base districts (e.g. R-1, R-2, RM-2, RA, RMF) whose primary purpose is housing and that appear as named districts in a district list, table of contents, or district description section.
+
+DO NOT include:
+- Overlay districts, planned development districts, commercial zones, industrial zones, agricultural zones
+- Mixed-use zones where commercial is primary, or any district where residential is a secondary or conditional use
+- Density values, FAR numbers, lot size minimums, or footnote numbers masquerading as zone codes
+- Sequential numeric variants you are inferring — only include codes explicitly stated as district names
+
+If this chunk is a use table, density table, footnote list, or index rather than a district description or district list, return [].
+
+Return at most 10 distinct zone codes from this chunk. If you think you see more than 10, re-read carefully — you are likely confusing table rows or numeric parameters with zone codes.
+
+Return a JSON array (or [] if no base residential districts appear in this chunk):
+[
+  {
+    "zone_code": "<exact code as written in the text>",
+    "zone_name": "<full district name or null if not stated>",
+    "multifamily_classification": "primary" | "permitted" | "limited" | "none"
+  }
+]
+
+Text chunk:
+{text_chunk}
+```
+
+### Output Schema
+
+```typescript
+interface DiscoveredZone {
+  zone_code: string                  // exact code as found in text
+  zone_name: string | null           // full district name, or null
+  multifamily_classification: 'primary' | 'permitted' | 'limited' | 'none'
+}
+```
+
+**Multifamily classification tiers:**
+
+| Value | Meaning |
+|-------|---------|
+| `primary` | Multifamily is the primary by-right use |
+| `permitted` | Multifamily is permitted by-right alongside other uses |
+| `limited` | Multifamily is capped, conditional, or ADU-only |
+| `none` | No multifamily use permitted |
+
+Results across all chunks are deduplicated by normalized zone code. Where the same zone code appears in multiple chunks with different classifications, the higher-permission classification wins (`primary > permitted > limited > none`).
+
+---
+
+## Stage 2 — Field Extraction
+
+### Output Schema
 
 Every extraction agent returns a JSON object (or array — see E2-5) conforming to this schema. The pipeline validates this output before writing to the database (E0-4).
 
@@ -241,6 +345,85 @@ Return a JSON array containing exactly 3 objects, one per setback direction, eac
     "source_section": "<section or article reference>",
     "district_context": "<zoning district this applies to>",
     "reasoning": "<one sentence explaining your extraction>"
+  }
+]
+
+Text chunk:
+{text_chunk}
+```
+
+---
+
+## E2-7 — Discretionary Review
+
+**Field:** `discretionary_review_required`
+**Source:** `lib/extractors/discretionary-review.extractor.ts` (extends `MultiZoneGeminiExtractor`)
+
+Unlike E2-1 through E2-5, this field is categorical — it returns a string value in `field_value_text` rather than a numeric value. `raw_value` is always `null`.
+
+### Single-chunk prompt
+
+```
+Extract the discretionary review requirement for residential multifamily housing from the following zoning ordinance text.
+
+Determine whether multifamily residential development is:
+- "by_right": permitted without discretionary approval (no hearing, no board vote required)
+- "conditional_use_permit": requires administrative approval (e.g. conditional use permit, special exception, board of zoning appeals approval)
+- "special_use_permit": requires quasi-judicial or legislative approval (e.g. special use permit, County Board approval, Planning Commission approval, public hearing required)
+
+Focus on multifamily residential uses (apartments, condominiums, multi-unit dwellings). If the text does not address multifamily review requirements, return raw_value null with confidence "low".
+
+Return a JSON object with this exact structure:
+{
+  "field_name": "discretionary_review_required",
+  "raw_value": null,
+  "raw_unit": "",
+  "field_value": null,
+  "field_value_text": "by_right" | "conditional_use_permit" | "special_use_permit",
+  "unit": "",
+  "confidence": "high" | "medium" | "low",
+  "source_section": "<section or article reference>",
+  "district_context": "<zoning district this applies to>",
+  "reasoning": "<one sentence explaining your classification>"
+}
+
+field_value_text must be exactly one of: "by_right", "conditional_use_permit", "special_use_permit".
+If the field is not found, set field_value_text to "" and confidence to "low".
+
+Text chunk:
+{text_chunk}
+```
+
+### Multi-zone prompt (E2-155)
+
+When processing multiple zones in a single call (`buildMultiZonePrompt`), the prompt is:
+
+```
+For each of the following residential zoning districts, determine the discretionary review type for multifamily development from the provided ordinance text.
+
+Canonical zone list (use EXACTLY these zone codes in your response):
+  - {zone_code} ({zone_name})
+  ...
+
+Classify each zone as exactly one of:
+- "by_right": permitted without discretionary approval
+- "conditional_use_permit": requires administrative approval (board of zoning appeals, etc.)
+- "special_use_permit": requires quasi-judicial or legislative approval (planning commission, public hearing, etc.)
+
+Return a JSON array — one object per zone:
+[
+  {
+    "zone_code": "<exact code from the list above>",
+    "field_name": "discretionary_review_required",
+    "raw_value": null,
+    "raw_unit": "",
+    "field_value": null,
+    "field_value_text": "by_right" | "conditional_use_permit" | "special_use_permit",
+    "unit": "",
+    "confidence": "high" | "medium" | "low",
+    "source_section": "<section reference or empty>",
+    "district_context": "<zone code>",
+    "reasoning": "<one sentence>"
   }
 ]
 

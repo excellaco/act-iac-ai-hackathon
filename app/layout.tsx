@@ -34,7 +34,7 @@ export default function RootLayout({
         <header className="app-header">
           <HeaderLogo />
           <nav className="app-nav">
-            <span className="app-tagline">Housing Regulatory Impact Simulator</span>
+            <span className="app-tagline">Assess and simulate zoning regulation changes for housing development</span>
           </nav>
         </header>
         <div className="app-body">

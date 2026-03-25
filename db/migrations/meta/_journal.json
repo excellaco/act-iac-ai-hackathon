@@ -57,6 +57,13 @@
       "when": 1774214077865,
       "tag": "0007_brave_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1774405320330,
+      "tag": "0008_swift_turbo",
+      "breakpoints": true
     }
   ]
 }

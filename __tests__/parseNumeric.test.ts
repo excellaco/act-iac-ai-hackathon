@@ -97,9 +97,9 @@ describe('scoreResponseToJurisdictionData', () => {
     }
     const result = scoreResponseToJurisdictionData(withBadFeasibility)
     expect(result).not.toBeNull()
-    // Should recompute from fields, not produce monthlyCarryingCost=0
+    // Should recompute from fields, not produce requiredRent=0
     expect(result!.feasibility.estimatedCostPerUnit).toBeGreaterThan(0)
-    expect(result!.feasibility.monthlyCarryingCost).toBeGreaterThan(0)
+    expect(result!.feasibility.requiredRent).toBeGreaterThan(0)
   })
 
   it('uses stored feasibility when values are valid', () => {
@@ -169,6 +169,7 @@ describe('scoreResponseToJurisdictionData', () => {
               fieldValueText: 'Minimum lot area: 3,630 sq ft',
               sourceSection: '§12.3.1',
               sourcePage: 42,
+              fieldValue: '3630',
             },
           },
           feasibility: null,
@@ -183,6 +184,9 @@ describe('scoreResponseToJurisdictionData', () => {
       sourceSection: '§12.3.1',
       sourcePage: 42,
       sourceDocument: null,
+      confidence: null,
+      reasoning: null,
+      usingDefault: false,
     })
   })
 
@@ -203,6 +207,60 @@ describe('scoreResponseToJurisdictionData', () => {
     const result = scoreResponseToJurisdictionData(withZoneNoCitations)
     expect(result).not.toBeNull()
     expect(result!.zoneScores[0].citations).toEqual({})
+  })
+
+  it('sets usingDefault=false for categorical fields that have fieldValueText but no numeric fieldValue', () => {
+    const withCategorical = {
+      ...validResponse,
+      extractedFields: [
+        {
+          fieldName: 'discretionary_review_required',
+          fieldValue: null,
+          fieldValueText: 'special use permit',
+          unit: null,
+          confidence: 'high',
+          sourceDocument: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withCategorical)
+    expect(result).not.toBeNull()
+    expect(result!.citations['discretionary_review_required'].usingDefault).toBe(false)
+  })
+
+  it('sets usingDefault=true only when both fieldValue and fieldValueText are absent', () => {
+    const withNoValue = {
+      ...validResponse,
+      extractedFields: [
+        {
+          fieldName: 'height_limit_ft',
+          fieldValue: null,
+          fieldValueText: null,
+          unit: null,
+          confidence: 'low',
+          sourceDocument: null,
+        },
+      ],
+    }
+    const result = scoreResponseToJurisdictionData(withNoValue)
+    expect(result).not.toBeNull()
+    expect(result!.citations['height_limit_ft'].usingDefault).toBe(true)
+  })
+
+  it('reads zoningExtractedAt from the top-level response field, not marketData', () => {
+    const ts = '2025-03-15T00:00:00.000Z'
+    const withVintage = {
+      ...validResponse,
+      zoningExtractedAt: ts,
+      marketData: {
+        fmr2br: '2280',
+        permits5plus: 1000,
+        totalPermits: 2000,
+      },
+    }
+    const result = scoreResponseToJurisdictionData(withVintage)
+    expect(result).not.toBeNull()
+    expect(result!.dataVintage?.zoningExtractedAt).toBe(ts)
   })
 
   it('falls back to null feasibility when zone cost is unparsable', () => {

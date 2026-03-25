@@ -54,12 +54,6 @@ See [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](adr/0002-google-a
 ### Scoring & feasibility engine (E3/E4/E9)
 Deterministic TypeScript calculations served via Next.js API routes, backed by Cloud SQL (PostgreSQL). Computes the composite Regulatory Impact Score (RIS) and feasibility outputs (unit yield, buildable area, cost per unit) from structured pipeline outputs.
 
-**Implementation status (as of March 2026):**
-- E3-5 composite formula (`RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`) and E3-6 DB storage: Done
-- E3-1 DCI, E3-2 DCOI, E3-3 PCI sub-score calculations: Done — `lib/scoringEngine.ts`
-- E3-4 CRP: Done — peer-set percentile in `lib/scoringEngine.ts`
-- E4 feasibility modeling: Done — `lib/feasibility.ts` computes unit yield, parking footprint, cost per unit, and rent feasibility; `FeasibilityPanel` renders in UI; `feasibility_outputs` table seeded via `db/seeds/feasibilityOutputs.ts`
-
 **RIS composite formula:** `RIS = 0.30×DCI + 0.25×DCOI + 0.20×PCI + 0.25×CRP`
 
 | Sub-score | Weight | Rationale |
@@ -87,6 +81,29 @@ Extracted fields in the score panel link directly to the source page in the zoni
 
 ### Dashboard UI (E5–E8)
 Next.js / React frontend deployed to Cloud Run. Five functional areas: search + map (with regional and national zoom levels), RIS score panel with inline AI disclosures, cross-jurisdiction comparison (with per-jurisdiction maps), what-if policy simulation, and a chat panel for policy questions.
+
+### Explainability and responsible AI
+
+The system surfaces several layers of transparency to support explainable, responsible AI:
+
+| Feature | Where | Details |
+|---------|-------|---------|
+| Confidence badges | Score panel sub-score headers | High / Medium / Low tier shown on every sub-score |
+| Verbatim citations | Score panel field list | Exact quote from the ordinance for each extracted field |
+| PDF deep links | Score panel | "View source" opens the ordinance PDF to the exact page |
+| AI extraction reasoning | Score panel field list | Collapsed "How was this extracted?" shows Gemini's plain-language reasoning |
+| Default-used indicator | Score panel field list | Fields using regulatory fallback defaults are labeled "default used" in amber |
+| Score-level warning | Score panel | When a field cannot be extracted (confidence: low), the default is disclosed |
+| Peer set disclosure | CRP accordion | Lists all 10 comparison jurisdictions and labels each as Extracted or Modeled |
+| Data vintage | Score panel | "Data as of" line shows HUD FMR vintage, Census BPS vintage, and zoning extraction date |
+| Equity framing | Methodology modal | Acknowledges documented disparate impacts of restrictive zoning on race and income |
+| What-If scope note | What-If panel | Notes that simulation models regulatory constraint only, not housing production or approval outcomes |
+| Chat scope disclosure | Chat panel | States answers are grounded in extracted data; directs users to verify against the official ordinance |
+| Pipeline approval gates | Pipeline scripts | Zone discovery and field extraction artifacts require manual review and approval before data is loaded into the database — see [`docs/data-pipeline.md`](data-pipeline.md) for the approval workflow |
+| Prohibit fabrication | Gemini system prompt | Extractors are instructed to return verbatim quotes; low-confidence fields are labeled, not hallucinated |
+| Disclaimer | Score panel | "This score measures regulatory constraint and does not recommend policy positions" |
+
+**Equity note:** The RIS measures regulatory constraint as written in zoning ordinances. Research has documented that restrictive zoning can have disparate impacts on communities of color and lower-income households (NLIHC, Brookings Institution, HUD Fair Housing guidance). Users should consider equity implications alongside regulatory scores.
 
 ## Key Decisions
 

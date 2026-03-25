@@ -15,7 +15,7 @@ const mockJurisdictions = [
 ]
 
 const mockScoreResponse = {
-  jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', displayName: 'Fairfax County, VA', dataType: 'real' },
+  jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax_va', displayName: 'Fairfax County, VA', dataType: 'real' },
   score: { risComposite: '73', dci: '75', dcoi: '70', pci: '65', crp: '80', scoredAt: new Date().toISOString() },
   extractedFields: [],
 }
@@ -145,7 +145,7 @@ describe('Home', () => {
   it('shows an error when the score response contains no score data', async () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     (fetchScore as jest.Mock).mockResolvedValueOnce({
-      jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax', dataType: 'real' },
+      jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax_va', dataType: 'real' },
       score: null,
       extractedFields: [],
     });
@@ -203,13 +203,15 @@ describe('Home', () => {
     expect(screen.getByText('Fairfax County, VA')).toBeInTheDocument();
   });
 
-  it('shows disclaimer in score panel', async () => {
+  it('shows disclaimer in methodology modal', async () => {
     render(<Home />);
     fireEvent.focus(screen.getByPlaceholderText('Find your county or municipality'));
     await waitFor(() => screen.getByText('Arlington County'));
     fireEvent.mouseDown(screen.getByText('Arlington County'));
+    await waitFor(() => screen.getByText('About this score'));
+    fireEvent.click(screen.getByText('About this score'));
     await waitFor(() =>
-      expect(screen.getByText(/does not recommend policy positions/i)).toBeInTheDocument()
+      expect(screen.getByText(/does not recommend any policy position/i)).toBeInTheDocument()
     );
   });
 });

@@ -22,6 +22,7 @@ on:
         type: choice
         options:
           - run
+          - parse
           - zones
           - extract
           - load

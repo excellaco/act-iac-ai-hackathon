@@ -1,0 +1,107 @@
+{
+  "jurisdictionId": "4f092b62-7ba0-480e-ad25-efc1db49f436",
+  "slug": "loudoun_va",
+  "zoneCode": "MR-HI",
+  "zoneName": null,
+  "multifamilyClassification": "primary",
+  "extractedAt": "2026-03-24T15:45:07.915Z",
+  "approved": false,
+  "fields": {
+    "min_lot_size_sqft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Dwelling, Multifamily is prohibited in the OP, IP, GI, and MR-HI districts.",
+      "unit": "sqft",
+      "confidence": "high",
+      "source_section": "Table 3.02.05-1",
+      "district_context": "Office and Industrial Zoning Districts (OP, IP, GI, MR-HI)",
+      "reasoning": "The provided text details Office and Industrial Zoning Districts (OP, IP, GI, MR-HI). Table 3.02.05-1 indicates that 'Dwelling, Multifamily' is prohibited in all these districts, meaning no minimum lot size is specified for this use within the scope of this text.",
+      "source_page": null
+    },
+    "parking_min_spaces_per_unit": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Dwelling, Multifamily 4.02.08",
+      "unit": "spaces_per_unit",
+      "confidence": "low",
+      "source_section": "Table 3.02.05-1",
+      "district_context": "Office and Industrial Zoning Districts (OP, IP, GI, MR-HI)",
+      "reasoning": "The text indicates that 'Dwelling, Multifamily' has a 'Use-Specific Standard' in Section 4.02.08, but this section is not provided in the given text chunk. Therefore, the specific parking requirement cannot be extracted.",
+      "source_page": null
+    },
+    "density_limit_units_per_acre": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "Refer to individual zoning district density requirements in Chapter 2: Zoning Districts.",
+      "unit": "units_per_acre",
+      "confidence": "low",
+      "source_section": "Table 7.02-1. Open Space Requirements by Zoning District, TABLE NOTES",
+      "district_context": "General (reference to Chapter 2)",
+      "reasoning": "The provided text explicitly states that density requirements are located in Chapter 2 and does not contain any density limits within this chunk.",
+      "source_page": 409
+    },
+    "setback_side_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text chunk details Office and Industrial Zoning Districts (OP, IP, GI, MR-HI) and explicitly states that 'Dwelling, Multifamily' is not permitted in these districts. No residential multifamily zoning districts or their specific setback requirements were found.",
+      "source_page": null
+    },
+    "setback_rear_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "low",
+      "source_section": null,
+      "district_context": null,
+      "reasoning": "The provided text chunk details Office and Industrial Zoning Districts (OP, IP, GI, MR-HI) and explicitly states that 'Dwelling, Multifamily' is not permitted in these districts. No residential multifamily zoning districts or their specific setback requirements were found.",
+      "source_page": null
+    },
+    "setback_front_ft": {
+      "raw_value": 100,
+      "raw_unit": "feet",
+      "field_value": 100,
+      "field_value_text": "With a minimum width of 100 feet;",
+      "unit": "ft",
+      "confidence": "medium",
+      "source_section": "7.01.07.B.3.a",
+      "district_context": "TCC (Transition Community Center)",
+      "reasoning": "The text specifies a 'Perimeter Setback' of 100 feet for residential-type districts like TCC, which applies to all development boundaries, implicitly covering the front setback.",
+      "source_page": 405
+    },
+    "height_limit_ft": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": null,
+      "unit": "ft",
+      "confidence": "high",
+      "source_section": "Table 3.02.05-1",
+      "district_context": "Office and Industrial Zoning Districts (OP, IP, GI, MR-HI)",
+      "reasoning": "The provided text covers Office and Industrial Zoning Districts (OP, IP, GI, MR-HI). Table 3.02.05-1 explicitly indicates that 'Dwelling, Multifamily' is prohibited in all these districts, therefore no height limit for multifamily development is present in this text.",
+      "source_page": null
+    },
+    "discretionary_review_required": {
+      "raw_value": null,
+      "raw_unit": null,
+      "field_value": null,
+      "field_value_text": "",
+      "unit": null,
+      "confidence": "low",
+      "source_section": "Table 3.02.05-1",
+      "district_context": "N/A (Not found in residential multifamily districts)",
+      "reasoning": "The provided text only covers Office and Industrial Zoning Districts (OP, IP, GI, MR-HI) where multifamily dwellings are indicated as prohibited, and does not contain information for residential multifamily zoning districts as requested.",
+      "source_page": null
+    }
+  }
+}

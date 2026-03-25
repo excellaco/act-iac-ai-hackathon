@@ -20,7 +20,7 @@ import { computeFeasibility } from '../lib/feasibility'
 import { computeRIS } from '../lib/scoring'
 import { buildLoadArtifactStore } from '../lib/pipeline/artifact-store'
 import { ScoresArtifact, ZoneScoreEntry } from '../lib/pipeline/artifact'
-import type { ReviewType } from '../lib/scoringEngine'
+import type { ReviewType, PeerComposite } from '../lib/scoringEngine'
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -45,6 +45,18 @@ function asReviewType(v: string | null | undefined): ReviewType {
   if (v === 'conditional_use_permit' || v === 'conditional-use-permit') return 'conditional-use-permit'
   if (v === 'special_use_permit' || v === 'special-use-permit') return 'special-use-permit'
   return 'conditional-use-permit'
+}
+
+/**
+ * Returns true when a field_value_text looks like a cross-reference to another
+ * code section rather than a genuine "not found" result.
+ * Example: "Refer to Section 7.06.02", "See Section 4.3", "Per Article 5".
+ * Parking deferred to another section should use 0 spaces, not the 1.5 default,
+ * to avoid overstating the parking burden in transit-oriented zones.
+ */
+function isParkingDeferredToSection(text: string | null | undefined): boolean {
+  if (!text) return false
+  return /\b(refer|see|per|pursuant to)\b.{0,30}\b(section|article|chapter|§)\b/i.test(text)
 }
 
 // ─── main ─────────────────────────────────────────────────────────────────────
@@ -117,6 +129,34 @@ async function main() {
     discretionaryReviewType: fallbacks.discretionaryReviewType,
   }
 
+  // 3a. Load live peer composites from ris_scores for accurate CRP calculation.
+  // Passing live composites ensures CRP is computed against the current scoring
+  // output rather than stale hardcoded fallback values.  computeCRP() will
+  // automatically fall back to FALLBACK_PEER_COMPOSITES if the live set is
+  // empty after self-exclusion (e.g. first jurisdiction scored on a fresh DB).
+  const peerRows = await db
+    .select({
+      slug: jurisdictions.slug,
+      dci:  risScores.dci,
+      dcoi: risScores.dcoi,
+      pci:  risScores.pci,
+    })
+    .from(risScores)
+    .innerJoin(jurisdictions, eq(risScores.jurisdictionId, jurisdictions.id))
+
+  const livePeerSet: PeerComposite[] = peerRows
+    .filter((r) => r.dci != null && r.dcoi != null && r.pci != null)
+    .map((r) => ({
+      slug:      r.slug,
+      composite: parseNum(r.dci, 50) + parseNum(r.dcoi, 50) + parseNum(r.pci, 50),
+    }))
+
+  if (livePeerSet.length > 0) {
+    logger.info(`Peer set: ${livePeerSet.length} jurisdiction(s) loaded from DB for CRP`)
+  } else {
+    logger.warn('No peer scores in DB — CRP will use fallback composites (run pipeline:score for all jurisdictions first)')
+  }
+
   // 4. Load zone extracted fields
   const zFields = await db.select().from(zoneExtractedFields).where(eq(zoneExtractedFields.jurisdictionId, jur.id))
 
@@ -141,8 +181,10 @@ async function main() {
   const zoneResults = []
   for (const [zoneCode, fields] of byZone) {
     const zoneFm: Record<string, number> = {}
+    const zoneFmText: Record<string, string> = {}
     for (const f of fields) {
       if (f.fieldValue != null) zoneFm[f.fieldName] = parseNum(f.fieldValue, 0)
+      if (f.fieldValueText != null) zoneFmText[f.fieldName] = f.fieldValueText
     }
 
     const classification = fields[0].multifamilyClassification
@@ -153,17 +195,33 @@ async function main() {
       continue
     }
 
+    // Determine parking value for this zone.
+    // If the numeric value is absent but the text looks like a cross-reference
+    // (e.g. "Refer to Section 7.06.02"), treat as 0 — the zone code explicitly
+    // defers parking, often to a transit-oriented or reduced-parking provision.
+    // Applying the 1.5-space default in that case would overstate the burden.
+    let zoneParkingSpaces: number | undefined = zoneFm['parking_min_spaces_per_unit']
+    if (zoneParkingSpaces === undefined && isParkingDeferredToSection(zoneFmText['parking_min_spaces_per_unit'])) {
+      zoneParkingSpaces = 0
+      logger.info(`Zone ${zoneCode}: parking deferred to code section — using 0 spaces (not 1.5 default)`)
+    }
+
     const zoneInputs = {
       minLotSizeSqft:          zoneFm['min_lot_size_sqft'],
       heightLimitFt:           zoneFm['height_limit_ft'],
       densityLimitUpa:         zoneFm['density_limit_units_per_acre'],
-      parkingMinSpacesPerUnit: zoneFm['parking_min_spaces_per_unit'],
+      parkingMinSpacesPerUnit: zoneParkingSpaces,
       setbackFrontFt:          zoneFm['setback_front_ft'],
       setbackSideFt:           zoneFm['setback_side_ft'],
       setbackRearFt:           zoneFm['setback_rear_ft'],
     }
 
-    const result = computeZoneRIS(zoneInputs, fallbacks, pciInputs, zoneCode, zoneName, classification)
+    // Use zone-level discretionary review type when available — it is 70% of PCI
+    // and may differ per zone (e.g. one zone by-right, another requiring a SUP).
+    const zoneReviewTypeRaw = zoneFmText['discretionary_review_required']
+    const zoneReviewType = zoneReviewTypeRaw ? asReviewType(zoneReviewTypeRaw) : undefined
+
+    const result = computeZoneRIS(zoneInputs, fallbacks, pciInputs, zoneCode, zoneName, classification, zoneReviewType)
     zoneResults.push(result)
     logger.info(`Zone ${zoneCode} (${classification}) — DCI ${result.dci} / DCOI ${result.dcoi} / PCI ${result.pci}`)
   }
@@ -173,8 +231,10 @@ async function main() {
     process.exit(0)
   }
 
-  // 6. Average zones → jurisdiction composite
-  const { zoneScores: filledZoneScores, averaged } = averageZoneRIS(zoneResults, jur.slug)
+  // 6. Average zones → jurisdiction composite.
+  // Pass live peer set so CRP reflects current DB scores, not stale hardcoded values.
+  const peerSetForCRP = livePeerSet.length > 0 ? livePeerSet : undefined
+  const { zoneScores: filledZoneScores, averaged } = averageZoneRIS(zoneResults, jur.slug, peerSetForCRP)
 
   // 7. Upsert zone_ris_scores
   for (const z of filledZoneScores) {
@@ -215,8 +275,9 @@ async function main() {
 
     const densityLimitUpa = zoneFm2['density_limit_units_per_acre'] ?? fallbacks.densityLimitUpa
     const parkingMin = zoneFm2['parking_min_spaces_per_unit'] ?? fallbacks.parkingMinSpacesPerUnit
+    const heightLimitFt = zoneFm2['height_limit_ft'] ?? fallbacks.heightLimitFt
 
-    const feas = computeFeasibility({ densityLimitUpa, parkingMinSpacesPerUnit: parkingMin, regionalMultiplier, fmr2br })
+    const feas = computeFeasibility({ densityLimitUpa, parkingMinSpacesPerUnit: parkingMin, regionalMultiplier, fmr2br, heightLimitFt })
 
     await db
       .insert(feasibilityOutputs)
@@ -228,7 +289,7 @@ async function main() {
         estimatedCostPerUnit:   feas.estimatedCostPerUnit.toString(),
         regionalCostMultiplier: regionalMultiplier.toString(),
         fmr2br:                 fmr2br.toString(),
-        rentFeasibilityRatio:   (feas.monthlyCarryingCost / fmr2br).toFixed(3),
+        rentFeasibilityRatio:   (feas.requiredRent / fmr2br).toFixed(3),
       })
       .onConflictDoUpdate({
         target: [feasibilityOutputs.jurisdictionId, feasibilityOutputs.zoneCode],

@@ -1,12 +1,103 @@
 # Parcella — AI-Powered Housing Regulatory Intelligence Platform
 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+An AI-powered housing regulatory and development feasibility intelligence platform built for the ACT-IAC AI Hackathon.
+
+Parcella transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
+
 > **Live demo:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
 >
 > **Team:** [TBD — Team Excella members and roles]
 
 ---
 
-## The Problem
+## Hackathon Submission
+
+### The Problem
+
+Housing affordability in the United States is heavily shaped by local zoning regulations — minimum lot sizes, height limits, parking requirements, density caps, and discretionary review processes that add cost, time, and uncertainty to every multifamily development project. These regulations exist across thousands of municipal zoning ordinances, each hundreds of pages long, each in a different format. There is no systematic way to compare them, model their impact, or understand how a policy change in one jurisdiction might affect housing supply.
+
+Federal housing agencies and state-level housing finance agencies lack the tools to quantify regulatory constraints at scale. Policy analysts spend weeks manually reading zoning ordinances. There is no feedback loop between regulatory choices and housing outcomes.
+
+### Our Solution
+
+Parcella is an AI-powered Regulatory Impact Scoring (RIS) platform that solves this problem end-to-end:
+
+1. **Ingest** — A five-stage AI pipeline fetches zoning ordinance PDFs from Google Cloud Storage, parses them (text or OCR), and sends structured text to Gemini for analysis.
+2. **Extract** — Gemini identifies all residential zoning districts and extracts key regulatory fields for each: minimum lot size, height limits, density caps, parking requirements, setbacks, and discretionary review type.
+3. **Score** — A deterministic TypeScript scoring engine computes a 0–100 Regulatory Impact Score (RIS) and four sub-scores for each jurisdiction, based on the extracted fields and market data from public APIs (HUD, Census, BLS).
+4. **Simulate** — A React dashboard lets policy analysts search jurisdictions, compare them side-by-side on a choropleth map, and run "What-If" simulations — adjusting sliders to see how changes to zoning rules would shift the RIS and development feasibility in real time.
+
+### What Makes It Innovative
+
+- **LLM + deterministic hybrid**: Gemini handles the hard part (reading unstructured PDFs and extracting structured data) while a transparent, deterministic TypeScript engine does the scoring. This means the RIS is reproducible and auditable, not a black box.
+- **Human-in-the-loop pipeline**: Every Gemini extraction is gated behind a human approval step before data enters the database. Reviewers see verbatim citations, confidence scores, and source page references.
+- **Responsible AI by design**: Confidence badges, verbatim citations, and a methodology disclosure modal are built into the UI. The RIS is explicitly framed as descriptive, not prescriptive.
+- **Real public data**: Market inputs (Fair Market Rents, building permits, ACS housing data) are pulled live from HUD, Census, and BLS APIs.
+
+### Real-World Impact
+
+Parcella is designed for HUD policy analysts and state housing finance agency staff who need to:
+
+- Identify which jurisdictions have the most restrictive zoning and quantify by how much
+- Model the impact of specific policy reforms (e.g., "what if Fairfax County eliminated parking minimums?")
+- Generate data-backed recommendations for zoning reform that could increase housing supply
+
+The platform could be extended to cover all Virginia jurisdictions, then all 50 states, providing a national-scale regulatory intelligence layer for federal housing programs.
+
+---
+
+### Team
+
+**Team name:** Excella
+
+**Designated team lead:** Jeff Gallimore
+
+| Name | Role |
+|------|------|
+| Jeff Gallimore | Team Lead / Engineering |
+| Jon Kerr | Engineering |
+| Geoff Huang | Engineering |
+| Adam Kaplan | Engineering |
+| Brenden Bow | Engineering |
+| Alex Weinstein | Product / UX |
+
+---
+
+### AI Tools Used
+
+**In development:**
+- Claude (Anthropic) — code generation, architecture design, documentation
+- GitHub Copilot — inline code completion
+
+**In the solution:**
+- Google Gemini (via Vertex AI) — zone discovery and regulatory field extraction from zoning ordinance PDFs
+- Google ADK for TypeScript — pipeline orchestration (SequentialAgent, ParallelAgent, LlmAgent)
+
+---
+
+### Open-Source Libraries
+
+| Library | Purpose |
+|---------|---------|
+| Next.js | Frontend framework and API routes |
+| React | UI component library |
+| Drizzle ORM | Database schema, migrations, and query builder |
+| pdf-parse | PDF text layer extraction |
+| Google Cloud Vision | OCR for scanned PDFs |
+| Google Cloud Storage | Raw PDF and artifact storage |
+| Mapbox GL JS | Interactive choropleth map |
+| Tailwind CSS | Utility-first styling |
+| Jest + React Testing Library | Unit and component tests |
+| ESLint | Code quality linting |
+| SonarCloud | Static analysis |
+| Snyk | Dependency vulnerability scanning |
+| Terraform | Infrastructure as Code (GCS bucket, IAM) |
+
+---
+
+## Quick Start
 
 Zoning regulations are the single largest determinant of what can be built where — and they're buried in hundreds of pages of unstructured legal text that varies across every municipality in the country. A housing policy analyst trying to understand why development is stalled in their jurisdiction faces a manual, weeks-long process: download ordinance PDFs, read them, extract the relevant numbers, and try to compare them to peer jurisdictions. There is no standardized way to quantify how restrictive a jurisdiction's zoning code is, how it compares to neighbors, or what the development economics look like under current rules.
 
@@ -239,12 +330,19 @@ Open [http://localhost:3000](http://localhost:3000). The map, scores, comparison
 
 | Document | Description |
 |----------|-------------|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture and layer descriptions |
-| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey |
-| [`docs/PERSONA.md`](docs/PERSONA.md) | Primary user persona — Valentina Reyes, Housing Policy Analyst |
-| [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog with epics and stories |
-| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources and field mappings |
-| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema |
-| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | Extraction prompt templates and validation rules |
-| [`docs/PIPELINE.md`](docs/PIPELINE.md) | Data pipeline stages, artifacts, and approval workflow (see #198) |
-| [`docs/adr/`](docs/adr/) | Architectural Decision Records (ADR-0001 through ADR-0006) |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture diagram and layer descriptions |
+| [`docs/PERSONA.md`](docs/PERSONA.md) | Primary user persona — Valentina Reyes (Val), Housing Policy Analyst |
+| [`docs/USER_JOURNEY.md`](docs/USER_JOURNEY.md) | End-to-end user journey for the policy maker persona |
+| [`docs/BACKLOG.md`](docs/BACKLOG.md) | Full product backlog — epics E0–E9, stories, acceptance criteria |
+| [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) | Public data sources, access URLs, formats, and field mappings |
+| [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) | Cloud SQL schema — all tables, columns, types, and relationships |
+| [`docs/LLM_PROMPT_TEMPLATES.md`](docs/LLM_PROMPT_TEMPLATES.md) | ADK LlmAgent prompt templates, output schema, and validation rules |
+| [`docs/adr/0001-platform-and-stack.md`](docs/adr/0001-platform-and-stack.md) | ADR: Google Cloud + Next.js/TypeScript |
+| [`docs/adr/0002-google-adk-for-pipeline-orchestration.md`](docs/adr/0002-google-adk-for-pipeline-orchestration.md) | ADR: Google ADK for pipeline and LLM extraction |
+| [`docs/adr/0003-database-access-and-migrations.md`](docs/adr/0003-database-access-and-migrations.md) | ADR: Drizzle ORM, Docker Compose local dev, auto-apply migrations |
+| [`docs/data-pipeline.md`](docs/data-pipeline.md) | End-to-end data pipeline — stages, commands, artifact approval workflow |
+| [`docs/cicd-infrastructure.md`](docs/cicd-infrastructure.md) | GitHub Actions CI/CD workflows and infrastructure pipeline |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Post-hackathon next steps and improvement opportunities |
+| [`docs/RETROSPECTIVE.md`](docs/RETROSPECTIVE.md) | Team learnings from the hackathon build |
+| [`docs/research/`](docs/research/) | User research — interviews and findings |
+| [`docs/notional/`](docs/notional/) | Pre-build vision artifacts — aspirational architecture and design materials (not current system docs) |

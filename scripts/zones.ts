@@ -22,9 +22,6 @@
 import { db } from '../db/client'
 import { jurisdictions } from '../db/schema'
 import { buildExtractArtifactStore } from '../lib/pipeline/artifact-store'
-import { GcsFetcher } from '../lib/pipeline/gcs-fetcher'
-import { LocalFetcher } from '../lib/pipeline/local-fetcher'
-import { PdfParserImpl } from '../lib/pipeline/pdf-parser'
 import { discoverZones } from '../lib/extractors/zone-discovery.extractor'
 import { createGeminiLimiter } from '../lib/pipeline/gemini-concurrency'
 import { chunkText } from '../lib/pipeline/chunk'
@@ -83,7 +80,7 @@ async function main() {
 
   console.log(`\nParcela — pipeline:zones`)
   console.log(`Slug:     ${slug}`)
-  console.log(`Fetcher:  ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/raw/)'}`)
+  console.log(`Store:    ${process.env.RAW_DATA_BUCKET ? `GCS (${process.env.RAW_DATA_BUCKET})` : 'local (data/artifacts/)'}`)
   console.log(`Model:    ${process.env.GEMINI_MODEL ?? 'gemini-2.5-flash'}\n`)
 
   // 1. Resolve jurisdiction from DB
@@ -127,26 +124,24 @@ async function main() {
     // No artifact exists — proceed normally
   }
 
-  // 3. Fetch PDF
-  logger.info('Fetching PDF...')
-  const fetcher = process.env.RAW_DATA_BUCKET ? new GcsFetcher() : new LocalFetcher()
-  const { bytes, sourceDocument } = await fetcher.fetch(jur.id, jur.slug)
-  logger.info(`PDF fetched: ${sourceDocument}`)
+  // 3. Read pages artifact (written by pipeline:parse)
+  logger.info('Reading pages artifact...')
+  let pagesArtifact: Awaited<ReturnType<typeof store.readPages>>
+  try {
+    pagesArtifact = await store.readPages(jur.slug)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`ERROR: ${msg}`)
+    console.error(`  Run \`npm run pipeline:parse ${slug}\` first.`)
+    process.exit(1)
+  }
+  const { pages, sourceDocument } = pagesArtifact
+  logger.info(`Pages artifact loaded`, { pageCount: pages.length, extractionMethod: pagesArtifact.extractionMethod })
 
-  // 4. Parse PDF
-  logger.info('Parsing PDF...')
-  const parser = new PdfParserImpl()
-  const { text, pages } = await parser.parse(bytes)
-  logger.info(`PDF parsed`, { pageCount: pages.length })
-
-  // 5. Write parsed pages artifact
-  logger.info('Writing parsed pages artifact...')
-  await store.writePages(jur.slug, pages)
-  logger.info(`Pages artifact written (${pages.length} pages)`)
-
-  // 6. Run zone discovery
+  // 4. Run zone discovery
   logger.info('Running zone discovery...')
-  const chunks = chunkText(text)
+  const fullText = pages.map((p) => p.text).join('\n\n')
+  const chunks = chunkText(fullText)
   const chunkTexts = chunks.map((c) => c.text)
   const limiter = createGeminiLimiter()
   const discoveredZones = await discoverZones(chunkTexts, limiter, logger)
@@ -156,7 +151,7 @@ async function main() {
     logger.warn('No residential zones discovered — check the PDF and zone discovery prompt.')
   }
 
-  // 7. Build ZoneEntry list with source_pages resolved inline
+  // 5. Build ZoneEntry list with source_pages resolved inline
   const zoneEntries: ZoneEntry[] = discoveredZones.map((dz) => ({
     zone_code: dz.zone_code,
     zone_name: dz.zone_name,
@@ -166,7 +161,7 @@ async function main() {
     include_in_load: true,
   }))
 
-  // 8. Build and write zones artifact
+  // 6. Build and write zones artifact
   const artifact: ZonesArtifact = {
     jurisdictionId: jur.id,
     slug: jur.slug,

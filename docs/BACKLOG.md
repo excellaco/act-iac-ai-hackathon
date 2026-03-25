@@ -1,5 +1,7 @@
 # Parcella — Product Backlog (MVP)
 
+> **Note:** This is the hackathon sprint backlog — a historical record of what was planned and built during the two-week ACT-IAC AI Hackathon. All stories are complete. For future work and improvement opportunities, see [`docs/ROADMAP.md`](ROADMAP.md).
+
 **Hackathon Timeline:** 2 weeks
 **Demo Scope:** 2–3 contrasting municipalities (e.g., Fairfax, Arlington, Loudoun counties, VA)
 **Primary Persona:** City/County Policy Maker
