@@ -62,16 +62,17 @@ Builds and deploys the application to Cloud Run after `quality` passes.
 
 ### `sbom` job
 
-Generates a Software Bill of Materials after a successful deploy.
+Generates a Software Bill of Materials for the deployed container image after a successful deploy.
 
 | Step | Action | Purpose |
 |------|--------|---------|
-| Checkout | `actions/checkout@v5` | Fetch source code |
-| Generate SBOM | `anchore/sbom-action@v0` | Run Syft against the repo; upload SBOM as a workflow artifact |
+| GCP Auth | `google-github-actions/auth@v2` | Authenticate to GCP to pull the image from Artifact Registry |
+| Configure Docker | `gcloud auth configure-docker` | Authenticate Docker to Artifact Registry |
+| Generate SBOM | `anchore/sbom-action@v0` | Run Syft against the deployed container image; upload SBOM as a workflow artifact |
 
-**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, downloadable from the [Actions tab](https://github.com/excellaco/act-iac-ai-hackathon/actions/workflows/ci-cd.yml) under **Artifacts** on the latest CI/CD run. Artifacts are retained for 90 days.
+**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, covering the full container image (base OS packages, npm dependencies, and any build-time additions). Downloadable from the [Actions tab](https://github.com/excellaco/act-iac-ai-hackathon/actions/workflows/ci-cd.yml) under **Artifacts** on the latest CI/CD run. Artifacts are retained for 90 days.
 
-**Permissions required:** `contents: write`
+**Permissions required:** `contents: read`, `id-token: write`
 
 **Cloud Run environment variables set at deploy time:** `DATABASE_URL`, `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `RAW_DATA_BUCKET`, `CHAT_MODEL`
 

@@ -113,12 +113,19 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
       - uses: anchore/sbom-action@v0
         with:
+          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }}
           format: cyclonedx-json
           artifact-name: sbom.cdx.json
