@@ -106,7 +106,7 @@ export default function Home() {
             <div className={styles.heroCopy}>
               <h1 className={styles.heading}>Parcella</h1>
               <p className={`${styles.subheading} ${styles.heroSubheading}`}>
-                Understand the regulatory barriers to housing in your jurisdiction.
+                Assess and simulate zoning regulation changes for housing development.
               </p>
             </div>
           )}
