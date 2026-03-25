@@ -101,6 +101,7 @@ Key dependencies and tools (full list in `package.json`):
 | PostgreSQL (pg) | Database driver |
 | Leaflet + React Leaflet | Interactive choropleth maps (no API key required) |
 | pdf-parse | PDF text layer extraction |
+| `@google/adk` | Agent Development Kit — chat agent orchestration and tool use |
 | `@google-cloud/storage` | GCS SDK for PDF and artifact storage |
 | `@google-cloud/vertexai` | Vertex AI SDK for Gemini extraction |
 | `@google-cloud/vision` | Cloud Vision SDK for OCR on scanned PDFs |
