@@ -97,9 +97,9 @@ describe('scoreResponseToJurisdictionData', () => {
     }
     const result = scoreResponseToJurisdictionData(withBadFeasibility)
     expect(result).not.toBeNull()
-    // Should recompute from fields, not produce monthlyCarryingCost=0
+    // Should recompute from fields, not produce requiredRent=0
     expect(result!.feasibility.estimatedCostPerUnit).toBeGreaterThan(0)
-    expect(result!.feasibility.monthlyCarryingCost).toBeGreaterThan(0)
+    expect(result!.feasibility.requiredRent).toBeGreaterThan(0)
   })
 
   it('uses stored feasibility when values are valid', () => {

@@ -577,6 +577,7 @@ async function main() {
       const feas = computeFeasibility({
         densityLimitUpa: zoneFm2['density_limit_units_per_acre'] ?? fallbacks.densityLimitUpa,
         parkingMinSpacesPerUnit: zoneFm2['parking_min_spaces_per_unit'] ?? fallbacks.parkingMinSpacesPerUnit,
+        heightLimitFt: zoneFm2['height_limit_ft'] ?? fallbacks.heightLimitFt,
         regionalMultiplier, fmr2br,
       })
       await db.insert(feasibilityOutputs).values({
@@ -586,7 +587,7 @@ async function main() {
         estimatedCostPerUnit: feas.estimatedCostPerUnit.toString(),
         regionalCostMultiplier: regionalMultiplier.toString(),
         fmr2br: fmr2br.toString(),
-        rentFeasibilityRatio: (feas.monthlyCarryingCost / fmr2br).toFixed(3),
+        rentFeasibilityRatio: (feas.requiredRent / fmr2br).toFixed(3),
       }).onConflictDoUpdate({
         target: [feasibilityOutputs.jurisdictionId, feasibilityOutputs.zoneCode],
         set: {

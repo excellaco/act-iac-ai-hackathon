@@ -2,11 +2,25 @@ import {
   computeMaxUnitsPerAcre,
   computeParkingFootprintPct,
   computeEstimatedCostPerUnit,
-  computeMonthlyCarryingCost,
+  computeMonthlyDebtService,
+  computeRequiredRent,
   computeRentFeasibility,
   computeFeasibility,
+  inferBuildingType,
+  buildingTypeCostPerUnit,
 } from '../lib/feasibility'
-import { BASE_COST_PER_UNIT, PARKING_STALL_COST } from '../lib/scoringEngine'
+import {
+  PARKING_STALL_COST,
+  GARDEN_COST_PER_UNIT,
+  MIDRISE_COST_PER_UNIT,
+  HIGHRISE_COST_PER_UNIT,
+  LTV_RATIO,
+  ANNUAL_INTEREST_RATE,
+  LOAN_TERM_MONTHS,
+  DSCR_MIN,
+  OPERATING_EXPENSE_RATIO,
+  SOFT_COST_PCT,
+} from '../lib/scoringEngine'
 
 // ── E4-1: computeMaxUnitsPerAcre ──────────────────────────────────────────
 
@@ -63,70 +77,139 @@ describe('computeParkingFootprintPct', () => {
   })
 })
 
-// ── E4-3: computeEstimatedCostPerUnit ─────────────────────────────────────
+// ── inferBuildingType ─────────────────────────────────────────────────────
 
-describe('computeEstimatedCostPerUnit', () => {
-  it('hand-computed: 0 parking, 1.0 multiplier = base cost', () => {
-    // Construction: 180,000 * 1.0 = 180,000
-    // Parking: 0
-    // Total: 180,000
-    expect(computeEstimatedCostPerUnit(0, 1.0)).toBe(180_000)
+describe('inferBuildingType', () => {
+  it('returns garden for heights up to 45 ft', () => {
+    expect(inferBuildingType(35)).toBe('garden')
+    expect(inferBuildingType(45)).toBe('garden')
   })
 
-  it('hand-computed: 2 spaces, 1.12 multiplier', () => {
-    // Construction: 180,000 * 1.12 = 201,600
-    // Parking: 2 * 25,000 = 50,000
-    // Total: 251,600
-    expect(computeEstimatedCostPerUnit(2, 1.12)).toBe(251_600)
+  it('returns midrise for heights 46–90 ft', () => {
+    expect(inferBuildingType(46)).toBe('midrise')
+    expect(inferBuildingType(70)).toBe('midrise')
+    expect(inferBuildingType(90)).toBe('midrise')
   })
 
-  it('parking adds $25K per space', () => {
-    const base = computeEstimatedCostPerUnit(0, 1.0)
-    const oneSpace = computeEstimatedCostPerUnit(1, 1.0)
-    expect(oneSpace - base).toBe(PARKING_STALL_COST)
+  it('returns highrise for heights above 90 ft', () => {
+    expect(inferBuildingType(91)).toBe('highrise')
+    expect(inferBuildingType(125)).toBe('highrise')
+    expect(inferBuildingType(250)).toBe('highrise')
   })
 
-  it('regional multiplier scales construction cost proportionally', () => {
-    const low = computeEstimatedCostPerUnit(0, 1.0)
-    const high = computeEstimatedCostPerUnit(0, 1.2)
-    // 180,000 * 1.2 = 216,000
-    expect(high).toBe(216_000)
-    expect(high - low).toBe(BASE_COST_PER_UNIT * 0.2)
+  it('crossing from 45 to 46 ft changes type from garden to midrise', () => {
+    expect(inferBuildingType(45)).toBe('garden')
+    expect(inferBuildingType(46)).toBe('midrise')
   })
 })
 
-// ── E4-4: computeMonthlyCarryingCost ──────────────────────────────────────
+// ── buildingTypeCostPerUnit ───────────────────────────────────────────────
 
-describe('computeMonthlyCarryingCost', () => {
-  it('divides cost by 240 months (20-year payback)', () => {
-    expect(computeMonthlyCarryingCost(240_000)).toBe(1_000)
-    expect(computeMonthlyCarryingCost(180_000)).toBe(750)
+describe('buildingTypeCostPerUnit', () => {
+  it('returns GARDEN_COST_PER_UNIT for garden', () => {
+    expect(buildingTypeCostPerUnit('garden')).toBe(GARDEN_COST_PER_UNIT)
   })
 
-  it('rounds to nearest integer', () => {
-    // 251,600 / 240 = 1,048.33
-    expect(computeMonthlyCarryingCost(251_600)).toBe(1048)
+  it('returns MIDRISE_COST_PER_UNIT for midrise', () => {
+    expect(buildingTypeCostPerUnit('midrise')).toBe(MIDRISE_COST_PER_UNIT)
   })
 
-  it('handles zero cost', () => {
-    expect(computeMonthlyCarryingCost(0)).toBe(0)
+  it('returns HIGHRISE_COST_PER_UNIT for highrise', () => {
+    expect(buildingTypeCostPerUnit('highrise')).toBe(HIGHRISE_COST_PER_UNIT)
+  })
+})
+
+// ── E4-3: computeEstimatedCostPerUnit ─────────────────────────────────────
+
+describe('computeEstimatedCostPerUnit', () => {
+  it('hand-computed: garden, 0 parking, 1.0 multiplier', () => {
+    // Hard+soft: 195,000 * 1.0 * 1.22 = 237,900
+    // Parking: 0
+    // Total: 237,900
+    expect(computeEstimatedCostPerUnit('garden', 0, 1.0)).toBe(237_900)
+  })
+
+  it('hand-computed: midrise, 2 spaces, 1.12 multiplier', () => {
+    // Hard+soft: 270,000 * 1.12 * 1.22 = 368,928
+    // Parking: 2 * 30,000 = 60,000
+    // Total: 428,928
+    expect(computeEstimatedCostPerUnit('midrise', 2, 1.12)).toBe(428_928)
+  })
+
+  it('parking adds PARKING_STALL_COST per space', () => {
+    const base = computeEstimatedCostPerUnit('garden', 0, 1.0)
+    const oneSpace = computeEstimatedCostPerUnit('garden', 1, 1.0)
+    expect(oneSpace - base).toBe(PARKING_STALL_COST)
+  })
+
+  it('highrise costs more than garden at same multiplier and parking', () => {
+    const garden = computeEstimatedCostPerUnit('garden', 0, 1.0)
+    const highrise = computeEstimatedCostPerUnit('highrise', 0, 1.0)
+    expect(highrise).toBeGreaterThan(garden)
+  })
+
+  it('regional multiplier scales construction cost proportionally', () => {
+    const low = computeEstimatedCostPerUnit('midrise', 0, 1.0)
+    const high = computeEstimatedCostPerUnit('midrise', 0, 1.2)
+    // 270,000 * 1.22 * (1.2 - 1.0) = 65,880 increase
+    expect(high - low).toBe(Math.round(MIDRISE_COST_PER_UNIT * (1 + SOFT_COST_PCT) * 0.2))
+  })
+})
+
+// ── computeMonthlyDebtService ─────────────────────────────────────────────
+
+describe('computeMonthlyDebtService', () => {
+  it('uses PMT formula: loan × r / (1 - (1+r)^-n)', () => {
+    const cost = 300_000
+    const loan = cost * LTV_RATIO
+    const r = ANNUAL_INTEREST_RATE / 12
+    const n = LOAN_TERM_MONTHS
+    const expected = Math.round(loan * r / (1 - Math.pow(1 + r, -n)))
+    expect(computeMonthlyDebtService(cost)).toBe(expected)
+  })
+
+  it('higher cost yields higher debt service', () => {
+    expect(computeMonthlyDebtService(400_000)).toBeGreaterThan(computeMonthlyDebtService(300_000))
+  })
+
+  it('zero cost yields zero debt service', () => {
+    expect(computeMonthlyDebtService(0)).toBe(0)
+  })
+})
+
+// ── computeRequiredRent ───────────────────────────────────────────────────
+
+describe('computeRequiredRent', () => {
+  it('applies DSCR_MIN / (1 - OPERATING_EXPENSE_RATIO)', () => {
+    const ds = 1000
+    const expected = Math.round((ds * DSCR_MIN) / (1 - OPERATING_EXPENSE_RATIO))
+    expect(computeRequiredRent(ds)).toBe(expected)
+  })
+
+  it('required rent is higher than monthly debt service', () => {
+    const ds = 1500
+    expect(computeRequiredRent(ds)).toBeGreaterThan(ds)
+  })
+
+  it('zero debt service yields zero required rent', () => {
+    expect(computeRequiredRent(0)).toBe(0)
   })
 })
 
 // ── E4-4: computeRentFeasibility ──────────────────────────────────────────
 
 describe('computeRentFeasibility', () => {
-  it('Feasible when carrying cost < 100% of FMR', () => {
+  it('Feasible when required rent < 100% of FMR', () => {
     expect(computeRentFeasibility(900, 1000)).toBe('Feasible')
     expect(computeRentFeasibility(999, 1000)).toBe('Feasible')
   })
 
-  it('Marginal when carrying cost is 100-130% of FMR', () => {
+  it('Marginal when required rent is 100-130% of FMR', () => {
     expect(computeRentFeasibility(1000, 1000)).toBe('Marginal')
     expect(computeRentFeasibility(1290, 1000)).toBe('Marginal')
   })
 
-  it('Infeasible when carrying cost > 130% of FMR', () => {
+  it('Infeasible when required rent > 130% of FMR', () => {
     expect(computeRentFeasibility(1300, 1000)).toBe('Infeasible')
     expect(computeRentFeasibility(2000, 1000)).toBe('Infeasible')
   })
@@ -138,11 +221,6 @@ describe('computeRentFeasibility', () => {
   it('returns Marginal when FMR is negative', () => {
     expect(computeRentFeasibility(1000, -100)).toBe('Marginal')
   })
-
-  it('DC metro area example: $1,048 carrying vs $2,280 FMR = Feasible', () => {
-    // Fairfax: cost ~$251,600 → $1,048/mo carrying vs $2,280 FMR
-    expect(computeRentFeasibility(1048, 2280)).toBe('Feasible')
-  })
 })
 
 // ── computeFeasibility (integration) ──────────────────────────────────────
@@ -152,13 +230,16 @@ describe('computeFeasibility', () => {
     const result = computeFeasibility({
       densityLimitUpa: 12,
       parkingMinSpacesPerUnit: 2,
+      heightLimitFt: 45,
       regionalMultiplier: 1.12,
       fmr2br: 2280,
     })
     expect(result).toHaveProperty('maxUnitsPerAcre')
     expect(result).toHaveProperty('parkingFootprintPct')
     expect(result).toHaveProperty('estimatedCostPerUnit')
-    expect(result).toHaveProperty('monthlyCarryingCost')
+    expect(result).toHaveProperty('buildingType')
+    expect(result).toHaveProperty('monthlyDebtService')
+    expect(result).toHaveProperty('requiredRent')
     expect(result).toHaveProperty('rentFeasibility')
     expect(result).toHaveProperty('fmr2br', 2280)
   })
@@ -167,11 +248,16 @@ describe('computeFeasibility', () => {
     const result = computeFeasibility({
       densityLimitUpa: 20,
       parkingMinSpacesPerUnit: 1.5,
+      heightLimitFt: 60,
       regionalMultiplier: 1.10,
       fmr2br: 2280,
     })
-    // Monthly carrying cost should equal cost per unit / 240
-    expect(result.monthlyCarryingCost).toBe(Math.round(result.estimatedCostPerUnit / 240))
+    // Building type should be midrise for 60ft
+    expect(result.buildingType).toBe('midrise')
+    // Required rent = DSCR-derived from monthly debt service
+    const expectedDebtService = computeMonthlyDebtService(result.estimatedCostPerUnit)
+    expect(result.monthlyDebtService).toBe(expectedDebtService)
+    expect(result.requiredRent).toBe(computeRequiredRent(expectedDebtService))
     // Max units should equal the density limit
     expect(result.maxUnitsPerAcre).toBe(20)
     // FMR passthrough
@@ -182,17 +268,52 @@ describe('computeFeasibility', () => {
     const withParking = computeFeasibility({
       densityLimitUpa: 20,
       parkingMinSpacesPerUnit: 2,
+      heightLimitFt: 60,
       regionalMultiplier: 1.10,
       fmr2br: 2280,
     })
     const noParking = computeFeasibility({
       densityLimitUpa: 20,
       parkingMinSpacesPerUnit: 0,
+      heightLimitFt: 60,
       regionalMultiplier: 1.10,
       fmr2br: 2280,
     })
     expect(noParking.estimatedCostPerUnit).toBeLessThan(withParking.estimatedCostPerUnit)
     expect(noParking.parkingFootprintPct).toBe(0)
-    expect(noParking.monthlyCarryingCost).toBeLessThan(withParking.monthlyCarryingCost)
+    expect(noParking.monthlyDebtService).toBeLessThan(withParking.monthlyDebtService)
+    expect(noParking.requiredRent).toBeLessThan(withParking.requiredRent)
+  })
+
+  it('raising height above 45ft threshold increases cost (garden → midrise)', () => {
+    const garden = computeFeasibility({
+      densityLimitUpa: 20,
+      parkingMinSpacesPerUnit: 1.5,
+      heightLimitFt: 45,
+      regionalMultiplier: 1.0,
+      fmr2br: 2500,
+    })
+    const midrise = computeFeasibility({
+      densityLimitUpa: 20,
+      parkingMinSpacesPerUnit: 1.5,
+      heightLimitFt: 46,
+      regionalMultiplier: 1.0,
+      fmr2br: 2500,
+    })
+    expect(garden.buildingType).toBe('garden')
+    expect(midrise.buildingType).toBe('midrise')
+    expect(midrise.estimatedCostPerUnit).toBeGreaterThan(garden.estimatedCostPerUnit)
+  })
+
+  it('Fairfax scenario: garden-style at 45ft is Marginal against 2280 FMR', () => {
+    const result = computeFeasibility({
+      densityLimitUpa: 12,
+      parkingMinSpacesPerUnit: 2.0,
+      heightLimitFt: 45,
+      regionalMultiplier: 1.12,
+      fmr2br: 2280,
+    })
+    expect(result.buildingType).toBe('garden')
+    expect(result.rentFeasibility).toBe('Marginal')
   })
 })

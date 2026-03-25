@@ -1,5 +1,5 @@
 import { computeRIS } from './scoring'
-import { computeFeasibility } from './feasibility'
+import { computeFeasibility, inferBuildingType, computeMonthlyDebtService, computeRequiredRent } from './feasibility'
 import { REGIONAL_MULTIPLIERS, DEFAULT_REGIONAL_MULTIPLIER } from './scoringEngine'
 import type { ReviewType } from './scoringEngine'
 import type { FeasibilityOutputs } from './feasibility'
@@ -208,6 +208,7 @@ function buildJurisdiction(
   const feasibility = computeFeasibility({
     densityLimitUpa:         fields.densityLimitUpa,
     parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+    heightLimitFt:           fields.heightLimitFt,
     regionalMultiplier:      fields.regionalMultiplier,
     fmr2br:                  fields.fmr2br,
   })
@@ -343,7 +344,7 @@ export function scoreResponseToJurisdictionData(
   // Use stored feasibility if the core value (estimatedCostPerUnit) is present
   // and parsable. If the stored value is present but unparsable (e.g., "N/A"),
   // fall through to recompute from valid field data rather than producing bogus
-  // results like monthlyCarryingCost=0 → "Feasible".
+  // results like requiredRent=0 → "Feasible".
   let feasibility: FeasibilityOutputs
   const storedCost = apiResponse.feasibility?.estimatedCostPerUnit != null
     ? Number(apiResponse.feasibility.estimatedCostPerUnit.trim())
@@ -351,20 +352,25 @@ export function scoreResponseToJurisdictionData(
   if (!Number.isNaN(storedCost)) {
     const f = apiResponse.feasibility!
     const estimatedCostPerUnit = storedCost
-    const monthlyCarryingCost = Math.round(estimatedCostPerUnit / 240)
+    const buildingType = inferBuildingType(fields.heightLimitFt)
+    const monthlyDebtService = computeMonthlyDebtService(estimatedCostPerUnit)
+    const requiredRent = computeRequiredRent(monthlyDebtService)
     const fmrVal = f.fmr2br != null ? parseNumeric(f.fmr2br, fmr2br) : fmr2br
     feasibility = {
       maxUnitsPerAcre:      parseNumeric(f.maxUnitsPerAcre, fields.densityLimitUpa),
       parkingFootprintPct:  parseNumeric(f.parkingFootprintPct, 0),
       estimatedCostPerUnit,
-      monthlyCarryingCost,
-      rentFeasibility:      monthlyCarryingCost < fmrVal ? 'Feasible' : monthlyCarryingCost < fmrVal * 1.3 ? 'Marginal' : 'Infeasible',
+      buildingType,
+      monthlyDebtService,
+      requiredRent,
+      rentFeasibility:      requiredRent < fmrVal ? 'Feasible' : requiredRent < fmrVal * 1.3 ? 'Marginal' : 'Infeasible',
       fmr2br:               fmrVal,
     }
   } else {
     feasibility = computeFeasibility({
       densityLimitUpa:         fields.densityLimitUpa,
       parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+      heightLimitFt:           fields.heightLimitFt,
       regionalMultiplier:      fields.regionalMultiplier,
       fmr2br:                  fields.fmr2br,
     })
@@ -382,13 +388,21 @@ export function scoreResponseToJurisdictionData(
       : NaN
     if (!Number.isNaN(storedZoneCost) && zs.feasibility) {
       const zf = zs.feasibility
-      const monthlyCarryingCost = Math.round(storedZoneCost / 240)
+      // Use zone height limit if available, otherwise fall back to jurisdiction height limit
+      const zoneHeightLimitFt = zs.fields?.['height_limit_ft'] != null
+        ? parseNumeric(zs.fields['height_limit_ft'], fields.heightLimitFt)
+        : fields.heightLimitFt
+      const zoneBuildingType = inferBuildingType(zoneHeightLimitFt)
+      const zoneMonthlyDebtService = computeMonthlyDebtService(storedZoneCost)
+      const zoneRequiredRent = computeRequiredRent(zoneMonthlyDebtService)
       zoneFeasibility = {
         maxUnitsPerAcre:     parseNumeric(zf.maxUnitsPerAcre, 0),
         parkingFootprintPct: parseNumeric(zf.parkingFootprintPct, 0),
         estimatedCostPerUnit: storedZoneCost,
-        monthlyCarryingCost,
-        rentFeasibility: monthlyCarryingCost < zfmr2br ? 'Feasible' : monthlyCarryingCost < zfmr2br * 1.3 ? 'Marginal' : 'Infeasible',
+        buildingType: zoneBuildingType,
+        monthlyDebtService: zoneMonthlyDebtService,
+        requiredRent: zoneRequiredRent,
+        rentFeasibility: zoneRequiredRent < zfmr2br ? 'Feasible' : zoneRequiredRent < zfmr2br * 1.3 ? 'Marginal' : 'Infeasible',
         fmr2br: zfmr2br,
       }
     }

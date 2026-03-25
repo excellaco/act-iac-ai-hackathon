@@ -1,6 +1,6 @@
 'use client';
 
-import type { FeasibilityOutputs, RentFeasibility } from '../../lib/feasibility';
+import type { FeasibilityOutputs, RentFeasibility, BuildingType } from '../../lib/feasibility';
 import styles from './FeasibilityPanel.module.css';
 
 interface Props {
@@ -19,12 +19,19 @@ function feasibilityBg(label: RentFeasibility): string {
   return '#fef2f2';
 }
 
+function buildingTypeLabel(type: BuildingType): string {
+  if (type === 'garden')   return 'Garden-style (wood-frame)';
+  if (type === 'midrise')  return 'Mid-rise (podium)';
+  return 'High-rise (concrete)';
+}
+
 export default function FeasibilityPanel({ feasibility }: Props) {
   const {
     maxUnitsPerAcre,
     parkingFootprintPct,
     estimatedCostPerUnit,
-    monthlyCarryingCost,
+    buildingType,
+    requiredRent,
     rentFeasibility,
     fmr2br,
   } = feasibility;
@@ -60,7 +67,9 @@ export default function FeasibilityPanel({ feasibility }: Props) {
           </span>
           <span className={styles.cardUnit}>per unit</span>
           <span className={styles.cardLabel}>Est. Construction Cost</span>
-          <span className={styles.cardNote}>Base cost × regional multiplier + parking</span>
+          <span className={styles.cardNote}>
+            Hard + soft costs, per unit · {buildingTypeLabel(buildingType)}
+          </span>
         </div>
 
         {/* E4-4: Rent feasibility */}
@@ -71,14 +80,14 @@ export default function FeasibilityPanel({ feasibility }: Props) {
           <span className={styles.cardUnit}>rent feasibility</span>
           <span className={styles.cardLabel}>Market Support</span>
           <span className={styles.cardNote}>
-            ${monthlyCarryingCost.toLocaleString()}/mo carrying vs. ${fmr2br.toLocaleString()} FMR 2BR
+            Required rent: ${requiredRent.toLocaleString()}/mo (DSCR-based) vs. ${fmr2br.toLocaleString()} FMR 2BR
           </span>
         </div>
       </div>
 
       <p className={styles.source}>
         <span className={styles.sourceLabel}>Sources:</span>{' '}
-        BLS OES 2024 (construction cost) · BEA Regional Price Parities 2022 · HUD FY2025 FMR
+        NAHB Construction Cost Survey 2024 · BEA Regional Price Parities 2022 · HUD FY2025 FMR · Fannie Mae DUS 2025
       </p>
     </div>
   );

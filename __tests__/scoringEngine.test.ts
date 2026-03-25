@@ -126,13 +126,13 @@ describe('computeDCOI', () => {
   })
 
   it('hand-computed example: Fairfax with 2 spaces, 1.12 multiplier', () => {
-    // Construction: 180,000 * 1.12 = 201,600
-    // Parking: 2 * 25,000 = 50,000
-    // Total: 251,600
-    // Range: min = 153,000, max = 309,000
-    // Normalized: (251,600 - 153,000) / (309,000 - 153,000) * 100 = 63.2
+    // Construction (midrise baseline): 270,000 * 1.12 = 302,400
+    // Parking: 2 * 30,000 = 60,000
+    // Total: 362,400
+    // Range: min = 278,000, max = 400,500
+    // Normalized: (362,400 - 278,000) / (400,500 - 278,000) * 100 = 68.9 → 69
     const score = computeDCOI({ parkingMinSpacesPerUnit: 2, regionalMultiplier: 1.12 })
-    expect(score).toBe(63)
+    expect(score).toBe(69)
   })
 })
 
