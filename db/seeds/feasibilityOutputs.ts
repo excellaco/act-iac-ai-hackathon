@@ -22,9 +22,9 @@ const FIELD_BASELINES: Record<string, {
   heightLimitFt: number
 }> = {
   // Real demo jurisdictions (slugs from db/seeds/jurisdictions.ts)
-  'fairfax':                   { densityLimitUpa: 12,  parkingMinSpacesPerUnit: 2.0,  heightLimitFt: 45  },
-  'arlington':                 { densityLimitUpa: 72,  parkingMinSpacesPerUnit: 0.5,  heightLimitFt: 125 },
-  'loudoun':                   { densityLimitUpa: 6,   parkingMinSpacesPerUnit: 2.0,  heightLimitFt: 35  },
+  'fairfax_va':                { densityLimitUpa: 12,  parkingMinSpacesPerUnit: 2.0,  heightLimitFt: 45  },
+  'arlington_va':              { densityLimitUpa: 72,  parkingMinSpacesPerUnit: 0.5,  heightLimitFt: 125 },
+  'loudoun_va':                { densityLimitUpa: 6,   parkingMinSpacesPerUnit: 2.0,  heightLimitFt: 35  },
   // Synthetic peer jurisdictions (slugs from db/seeds/syntheticJurisdictions.ts)
   'montgomery-county-md':      { densityLimitUpa: 40,  parkingMinSpacesPerUnit: 1.5,  heightLimitFt: 65  },
   "prince-george's-county-md": { densityLimitUpa: 25,  parkingMinSpacesPerUnit: 1.5,  heightLimitFt: 50  },
