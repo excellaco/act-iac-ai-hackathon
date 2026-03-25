@@ -8,7 +8,7 @@ This document describes the GitHub Actions workflows and Terraform infrastructur
 
 Parcella has two categories of automated workflows:
 
-1. **CI/CD** (`ci-cd.yml`) — triggered on every push to `main`; runs quality checks then deploys to Cloud Run
+1. **CI/CD** (`ci-cd.yml`) — triggered on every push to `main`; runs quality checks, deploys to Cloud Run, then generates an SBOM
 2. **Data pipeline** (`pipeline-*.yml`) — manually triggered; runs individual stages of the zoning data extraction pipeline
 3. **Infrastructure** (`infra.yml`) — triggered on PRs touching `infra/` or manually; plans/applies Terraform
 
@@ -18,7 +18,7 @@ Parcella has two categories of automated workflows:
 
 **Trigger:** Push to `main`, or manual dispatch (`workflow_dispatch`)
 
-**Jobs:** `quality` → `deploy` (sequential; deploy only runs if quality passes)
+**Jobs:** `quality` → `deploy` → `sbom` (sequential; each job only runs if the previous passes)
 
 ### `quality` job
 
@@ -59,6 +59,19 @@ Builds and deploys the application to Cloud Run after `quality` passes.
 | Deploy | `gcloud run deploy` | Deploy the new image to Cloud Run (us-central1, unauthenticated access) |
 
 **Secrets required:** `GCP_PROJECT_ID`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `DATABASE_URL`, `DATABASE_URL_MIGRATE`
+
+### `sbom` job
+
+Generates a Software Bill of Materials after a successful deploy.
+
+| Step | Action | Purpose |
+|------|--------|---------|
+| Checkout | `actions/checkout@v5` | Fetch source code |
+| Generate SBOM | `anchore/sbom-action@v0` | Run Syft against the repo; upload SBOM as a workflow artifact |
+
+**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, downloadable from the Actions run under **Artifacts**.
+
+**Permissions required:** `contents: write`
 
 **Cloud Run environment variables set at deploy time:** `DATABASE_URL`, `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `RAW_DATA_BUCKET`, `CHAT_MODEL`
 
