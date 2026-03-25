@@ -109,8 +109,13 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
                 weight: 1,
               };
             },
-          }).addTo(map);
+          });
           statesLayerRef.current = statesLayer;
+          // Only show states on the splash view — if a jurisdiction is already
+          // selected (e.g., returning from compare view), don't add states
+          if (!selected) {
+            statesLayer.addTo(map);
+          }
         })
         .catch((err) => console.error('Failed to load GeoJSON:', err));
 
@@ -153,9 +158,9 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
     }
 
     if (selected) {
-      // Hide state choropleth so only the selected county is visible
-      if (statesLayerRef.current) {
-        statesLayerRef.current.setStyle({ fillOpacity: 0, weight: 0 });
+      // Remove state choropleth entirely so only the selected county is visible
+      if (statesLayerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(statesLayerRef.current);
       }
 
       const fips = NAME_TO_FIPS[selected.name];
@@ -196,9 +201,10 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
         map.fitBounds(bounds, { paddingTopLeft: [40, 40], paddingBottomRight: [400, 40], animate: true, duration: 0.8 });
       }
     } else {
-      // Restore state choropleth to full opacity
+      // Restore state choropleth when returning to splash
       if (statesLayerRef.current) {
         statesLayerRef.current.setStyle({ fillOpacity: 0.75, weight: 1 });
+        try { statesLayerRef.current.addTo(map); } catch { /* already on map */ }
       }
       map.dragging.disable();
       map.setView([38, -97], 4, { animate: true, duration: 0.8 });
