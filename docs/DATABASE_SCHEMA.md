@@ -171,7 +171,7 @@ CREATE TABLE feasibility_outputs (
   estimated_cost_per_unit     NUMERIC(10,2),    -- USD: cost_per_sqft × unit_size_sqft + parking_cost_uplift
   regional_cost_multiplier    NUMERIC(4,3),     -- (0.55 × BLS OES labor index) + (0.45 × BEA RPP goods index)
   fmr_2br                     NUMERIC(8,2),     -- HUD 2BR FMR used in calculation (monthly, USD)
-  rent_feasibility_ratio      NUMERIC(6,3),     -- (fmr_2br × 12) / estimated_cost_per_unit; >1.0 = rents can support construction cost
+  rent_feasibility_ratio      NUMERIC(6,3),     -- required_rent / fmr_2br; <1.0 = market rents cover construction cost (Feasible)
   scored_at                   TIMESTAMPTZ NOT NULL DEFAULT now(),
   pipeline_run_id             UUID REFERENCES pipeline_runs(id)
 );
@@ -265,7 +265,7 @@ pipeline_runs
 - `peer_set` on `ris_scores` stores the array of jurisdiction IDs used for min-max normalization — important for reproducing scores and explaining the CRP sub-score to users.
 - `regional_cost_multiplier` on `feasibility_outputs` is derived from BLS OES (labor, 55% weight) and BEA RPP Goods component (materials, 45% weight) — not RSMeans. See `docs/DATA_SOURCES.md` sections 5 and 6 for the full formula.
 - `cost_per_sqft` is stored as an intermediate value (`national_baseline_cost × regional_cost_multiplier`) to support UI display and debugging independently of unit size assumptions.
-- `rent_feasibility_ratio` = `(fmr_2br × 12) / estimated_cost_per_unit` — the gross rent-to-cost ratio. A ratio above ~1.0 indicates annual rents can theoretically cover construction cost (ignoring financing, land, and operating costs). This is the primary output for E4-4 and gives Val a single number to cite when comparing jurisdictions on development viability.
+- `rent_feasibility_ratio` = `required_rent / fmr_2br` — where `required_rent` is the minimum monthly gross rent needed to cover debt service (computed as `monthlyDebtService × DSCR_MIN / (1 − OPERATING_EXPENSE_RATIO)`). A ratio **below 1.0** means market rents (FMR) exceed required rent → Feasible; 1.0–1.3 → Marginal; above 1.3 → Infeasible. This is the primary output for E4-4 and gives Val a single number to cite when comparing jurisdictions on development viability.
 - **Storage model: latest-state only.** `extracted_fields`, `ris_scores`, and `feasibility_outputs` store one current row per jurisdiction, upserted on each pipeline run. `zone_extracted_fields` and `zone_ris_scores` store one row per zone per jurisdiction. `pipeline_runs` provides the audit trail. Historical per-run snapshots are out of scope for MVP.
 - **`feasibility_outputs.zone_code`** uses the sentinel value `__avg__` for the jurisdiction-level averaged row. Per-zone rows use the actual zone code (e.g. `PDH-4`). The UI reads the `__avg__` row by default and switches to per-zone rows when a zone is selected.
 - No soft deletes — the MVP does not need audit history beyond what `pipeline_runs` provides.
