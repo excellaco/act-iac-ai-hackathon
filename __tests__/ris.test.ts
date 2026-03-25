@@ -21,12 +21,12 @@ describe('risColor', () => {
   })
 
   it('returns lightest usable BuPu for scores < 40', () => {
-    expect(risColor(0)).toBe('#74a9cf')
-    expect(risColor(39)).toBe('#74a9cf')
+    expect(risColor(0)).toBe('#4b5563')
+    expect(risColor(39)).toBe('#4b5563')
   })
 
   it('threshold boundaries are exact', () => {
-    expect(risColor(39)).toBe('#74a9cf')
+    expect(risColor(39)).toBe('#4b5563')
     expect(risColor(40)).toBe('#2b8cbe')
     expect(risColor(69)).toBe('#2b8cbe')
     expect(risColor(70)).toBe('#045a8d')

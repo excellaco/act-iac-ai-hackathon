@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 import type { JurisdictionData } from '../../lib/mockData';
-import { risFillColor, LEGEND_STOPS } from '../../lib/ris';
+import { risFillColor, risColor, LEGEND_STOPS } from '../../lib/ris';
 import { NAME_TO_FIPS } from '../../lib/fips';
 import ZoneOverlay from './ZoneOverlay';
 import styles from './ChoroplethMap.module.css';
@@ -183,10 +183,11 @@ export default function ChoroplethMap({ selected, onReset }: ChoroplethMapProps)
           },
         });
 
+        const textColor = risColor(selected.ris);
         layer.bindPopup(
           `<div style="text-align:center;font-family:sans-serif">
             <strong style="font-size:14px">${selected.name}, ${selected.state}</strong><br/>
-            <span style="font-size:20px;font-weight:800;color:${color}">${selected.ris}</span><br/>
+            <span style="font-size:20px;font-weight:800;color:${textColor}">${selected.ris}</span><br/>
             <span style="font-size:11px;color:#6b7280">Regulatory Impact Score</span>
           </div>`,
           { minWidth: 160 }
