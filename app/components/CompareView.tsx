@@ -139,10 +139,9 @@ function CompareCard({ jurisdiction, onRemove }: CompareCardProps) {
 
 interface AddCardProps {
   onAdd: (jd: JurisdictionData) => void;
-  excludeIds: string[];
 }
 
-function AddCard({ onAdd, excludeIds }: AddCardProps) {
+function AddCard({ onAdd }: AddCardProps) {
   const [search, setSearch] = useState('');
   const [options, setOptions] = useState<Array<{ id: string; name: string; state: string; risComposite: string | null }>>([]);
   const [loading, setLoading] = useState(false);
@@ -152,12 +151,12 @@ function AddCard({ onAdd, excludeIds }: AddCardProps) {
       .then((all) =>
         setOptions(
           all.filter(
-            (j) => !excludeIds.includes(j.id) && j.dataType === 'real' && j.risComposite != null,
+            (j) => j.dataType === 'real' && j.risComposite != null,
           ),
         )
       )
       .catch(() => {/* ignore */})
-  }, [excludeIds]);
+  }, []);
 
   const filtered = search
     ? options.filter((o) =>
@@ -181,30 +180,32 @@ function AddCard({ onAdd, excludeIds }: AddCardProps) {
     <div className={styles.addCard}>
       <div className={styles.addCardInner}>
         <span className={styles.addCardIcon}>+</span>
-        <input
-          type="text"
-          className={styles.addCardInput}
-          placeholder="Add a jurisdiction"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          disabled={loading}
-        />
-        {search && filtered.length > 0 && (
-          <div className={styles.addDropdown}>
-            {filtered.map((o) => (
-              <button
-                key={o.id}
-                className={styles.addDropdownItem}
-                onClick={() => handleSelect(o.id)}
-              >
-                <span>{o.name}, {o.state}</span>
-                <span style={{ color: risColor(Math.round(parseFloat(o.risComposite!))) }}>
-                  {Math.round(parseFloat(o.risComposite!))}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+        <div className={styles.addSearchWrapper}>
+          <input
+            type="text"
+            className={styles.addCardInput}
+            placeholder="Add a jurisdiction"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            disabled={loading}
+          />
+          {search && filtered.length > 0 && (
+            <div className={styles.addDropdown}>
+              {filtered.map((o) => (
+                <button
+                  key={o.id}
+                  className={styles.addDropdownItem}
+                  onClick={() => handleSelect(o.id)}
+                >
+                  <span>{o.name}, {o.state}</span>
+                  <span style={{ color: risColor(Math.round(parseFloat(o.risComposite!))) }}>
+                    {Math.round(parseFloat(o.risComposite!))}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {loading && <p className={styles.addLoading}>Loading…</p>}
       </div>
     </div>
@@ -256,7 +257,7 @@ export default function CompareView({ initial, initialPeer, onBack }: CompareVie
 
         {/* E7-2: Add third jurisdiction */}
         {showAddCard && (
-          <AddCard onAdd={handleAdd} excludeIds={jurisdictions.map((j) => j.id)} />
+          <AddCard onAdd={handleAdd} />
         )}
       </div>
     </div>
