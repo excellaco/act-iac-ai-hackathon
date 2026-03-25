@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db/client'
 import { jurisdictions, risScores, extractedFields, feasibilityOutputs, marketData, zoneExtractedFields, zoneRisScores } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, inArray, desc } from 'drizzle-orm'
 import type { InferSelectModel } from 'drizzle-orm'
 
 type ZoneScoreRow = InferSelectModel<typeof zoneRisScores>
 type FeasibilityRow = InferSelectModel<typeof feasibilityOutputs>
 
-type ZoneCitations = Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence: string | null; reasoning: string | null }>
+type ZoneCitations = Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence: string | null; reasoning: string | null; fieldValue: string | null }>
 
 function buildZoneScoreRow(
   zs: ZoneScoreRow,
@@ -69,6 +69,28 @@ export async function GET(
     where: eq(marketData.jurisdictionId, id),
   })
 
+  // Most recent zoning extraction date — used for data vintage disclosure.
+  // Prefer zone field extraction date; fall back to jurisdiction-level field date.
+  const latestZoneField = await db
+    .select({ extractedAt: zoneExtractedFields.extractedAt })
+    .from(zoneExtractedFields)
+    .where(eq(zoneExtractedFields.jurisdictionId, id))
+    .orderBy(desc(zoneExtractedFields.extractedAt))
+    .limit(1)
+    .then((rows) => rows[0] ?? null)
+
+  const latestField = !latestZoneField
+    ? await db
+        .select({ extractedAt: extractedFields.extractedAt })
+        .from(extractedFields)
+        .where(eq(extractedFields.jurisdictionId, id))
+        .orderBy(desc(extractedFields.extractedAt))
+        .limit(1)
+        .then((rows) => rows[0] ?? null)
+    : null
+
+  const zoningExtractedAt = latestZoneField?.extractedAt ?? latestField?.extractedAt ?? null
+
   // Zone scores (E2-155) — empty array for synthetic/pre-zone jurisdictions
   const zoneScoreRows = await db
     .select()
@@ -112,6 +134,7 @@ export async function GET(
           sourcePage: f.sourcePage ?? null,
           confidence: f.confidence ?? null,
           reasoning: f.reasoning ?? null,
+          fieldValue: f.fieldValue ?? null,
         }
       }
 
@@ -136,12 +159,13 @@ export async function GET(
       : null,
     marketData: market
       ? {
-          fmr2br:          market.fmr2br,
-          permits5plus:    market.permits5plus,
-          totalPermits:    market.totalPermits,
-          fmrVintage:      market.fmrVintage,
-          permitsVintage:  market.permitsVintage,
-          retrievedAt:     market.retrievedAt,
+          fmr2br:             market.fmr2br,
+          permits5plus:       market.permits5plus,
+          totalPermits:       market.totalPermits,
+          fmrVintage:         market.fmrVintage,
+          permitsVintage:     market.permitsVintage,
+          retrievedAt:        market.retrievedAt,
+          zoningExtractedAt:  zoningExtractedAt,
         }
       : null,
     zoneScores,

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { JurisdictionData, ZoneScore } from '../../lib/mockData';
 import { risColor, risLabel, SUB_SCORE_META, type SubScoreKey } from '../../lib/ris';
+import { PEER_COMPOSITES } from '../../lib/scoringEngine';
 import ZoneSelector from './ZoneSelector';
 import ConfidenceBadge from './ConfidenceBadge';
 import MethodologyModal from './MethodologyModal';
@@ -12,19 +13,6 @@ import ComparePeers from './ComparePeers';
 import ChatPanel from './ChatPanel';
 import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
-
-/** Peer jurisdictions used in CRP comparison set */
-const CRP_PEER_SET = [
-  { name: 'Arlington County, VA',     dataType: 'real'      },
-  { name: 'Loudoun County, VA',       dataType: 'real'      },
-  { name: 'Montgomery County, MD',    dataType: 'modeled'   },
-  { name: "Prince George's County, MD", dataType: 'modeled' },
-  { name: 'Alexandria City, VA',      dataType: 'modeled'   },
-  { name: 'Prince William County, VA', dataType: 'modeled'  },
-  { name: 'Stafford County, VA',      dataType: 'modeled'   },
-  { name: 'Frederick County, VA',     dataType: 'modeled'   },
-  { name: 'Howard County, MD',        dataType: 'modeled'   },
-]
 
 /** Zoning Atlas jurisdiction IDs — only real jurisdictions with atlas pages */
 const ZONING_ATLAS_IDS: Record<string, number> = {
@@ -157,15 +145,17 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
         </button>
       </p>
 
-      {/* Issue #6: Data vintage disclosure */}
-      {dataVintage && (dataVintage.fmrVintage || dataVintage.permitsVintage) && (
+      {/* Issue #6: Data vintage disclosure — only render items we have real data for */}
+      {dataVintage && (dataVintage.fmrVintage || dataVintage.permitsVintage || dataVintage.zoningExtractedAt) && (
         <p className={styles.dataVintage}>
-          Data as of:{' '}
-          {dataVintage.fmrVintage && <span>HUD FMR {dataVintage.fmrVintage}</span>}
-          {dataVintage.fmrVintage && dataVintage.permitsVintage && <span> · </span>}
-          {dataVintage.permitsVintage && <span>Census BPS {dataVintage.permitsVintage}</span>}
-          {' · '}
-          <span>Zoning data extracted Mar 2025</span>
+          {'Data as of: '}
+          {[
+            dataVintage.fmrVintage      ? `HUD FMR ${dataVintage.fmrVintage}`  : null,
+            dataVintage.permitsVintage  ? `Census BPS ${dataVintage.permitsVintage}` : null,
+            dataVintage.zoningExtractedAt
+              ? `Zoning extracted ${new Date(dataVintage.zoningExtractedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+              : null,
+          ].filter(Boolean).join(' · ')}
         </p>
       )}
 
@@ -229,32 +219,42 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                   <span className={styles.sourceLabel}>Source:</span> {detail.source}
                 </p>
                 {/* CRP peer set disclosure (issues #1 and #5) */}
-                {key === 'crp' && (
-                  <div className={styles.crpPeerSet}>
-                    <p className={styles.crpPeerSetTitle}>Comparison set (10 regional jurisdictions)</p>
-                    <p className={styles.crpPeerSetNote}>
-                      Compared against 10 regional jurisdictions: 3 with extracted zoning data, 7 with modeled estimates.
-                    </p>
-                    <ul className={styles.crpPeerList}>
-                      {CRP_PEER_SET.filter((p) => p.name !== `${name}, ${state}`).map((peer) => (
-                        <li key={peer.name} className={styles.crpPeerItem}>
-                          <span className={styles.crpPeerName}>{peer.name}</span>
-                          <span className={`${styles.crpPeerBadge} ${peer.dataType === 'real' ? styles.crpPeerBadgeReal : styles.crpPeerBadgeModeled}`}>
-                            {peer.dataType === 'real' ? 'Extracted' : 'Modeled'}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {key === 'crp' && (() => {
+                  // Exclude current jurisdiction from the displayed peer list
+                  const visiblePeers = PEER_COMPOSITES.filter((p) => p.slug !== jurisdiction.slug);
+                  const extractedCount = PEER_COMPOSITES.filter((p) => p.dataSource === 'extracted').length;
+                  const modeledCount   = PEER_COMPOSITES.filter((p) => p.dataSource === 'modeled').length;
+                  return (
+                    <div className={styles.crpPeerSet}>
+                      <p className={styles.crpPeerSetTitle}>
+                        Comparison set ({PEER_COMPOSITES.length} regional jurisdictions)
+                      </p>
+                      <p className={styles.crpPeerSetNote}>
+                        Compared against {PEER_COMPOSITES.length} regional jurisdictions:{' '}
+                        {extractedCount} with extracted zoning data, {modeledCount} with modeled estimates.
+                        The current jurisdiction is excluded from its own comparison.
+                      </p>
+                      <ul className={styles.crpPeerList}>
+                        {visiblePeers.map((peer) => (
+                          <li key={peer.slug} className={styles.crpPeerItem}>
+                            <span className={styles.crpPeerName}>{peer.displayName}</span>
+                            <span className={`${styles.crpPeerBadge} ${peer.dataSource === 'extracted' ? styles.crpPeerBadgeReal : styles.crpPeerBadgeModeled}`}>
+                              {peer.dataSource === 'extracted' ? 'Extracted' : 'Modeled'}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
                 {SUB_SCORE_FIELDS[key].length > 0 && (
                   <ul className={styles.citationList}>
                     {SUB_SCORE_FIELDS[key].map((fieldName) => {
                       const citation = activeCitations?.[fieldName];
                       const hasSource = citation?.sourcePage != null;
-                      const isDefault = citation?.confidence === 'low' ||
-                        !citation?.fieldValueText ||
-                        citation?.fieldValueText === 'Not found in document';
+                      // usingDefault is explicitly set by the data layer when no numeric value
+                      // was extracted — distinct from low confidence (which can still have a value)
+                      const isDefault = citation?.usingDefault ?? false;
                       return (
                         <li key={fieldName} className={styles.citationItem}>
                           <div className={styles.citationFieldHeader}>

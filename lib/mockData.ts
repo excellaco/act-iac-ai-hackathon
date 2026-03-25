@@ -49,6 +49,14 @@ export interface FieldCitation {
   sourceDocument: string | null
   confidence: string | null
   reasoning: string | null
+  /**
+   * True when no numeric value was extracted from the ordinance and the
+   * scoring engine is using a hardcoded regulatory default instead.
+   * Distinct from low confidence, which means a value was extracted but
+   * with uncertainty. A field can be low-confidence AND still not use a
+   * default (e.g. Gemini found a value but flagged it as uncertain).
+   */
+  usingDefault: boolean
 }
 
 /** Per-zone regulatory data and scores (E2-155). */
@@ -75,6 +83,8 @@ export interface DataVintage {
   permitsVintage: string | null;
   /** ISO date when market data was retrieved */
   retrievedAt: string | null;
+  /** ISO timestamp of the most recent zoning field extraction run */
+  zoningExtractedAt: string | null;
 }
 
 export interface JurisdictionData {
@@ -249,6 +259,7 @@ export function scoreResponseToJurisdictionData(
       fmrVintage?: string | null
       permitsVintage?: string | null
       retrievedAt?: string | Date | null
+      zoningExtractedAt?: string | Date | null
     } | null
     zoneScores?: Array<{
       zoneCode: string
@@ -260,7 +271,7 @@ export function scoreResponseToJurisdictionData(
       crp: string
       risComposite: string
       fields: Record<string, string | null>
-      citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence?: string | null; reasoning?: string | null }>
+      citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence?: string | null; reasoning?: string | null; fieldValue?: string | null }>
       feasibility: {
         maxUnitsPerAcre: string | null
         parkingFootprintPct: string | null
@@ -290,6 +301,8 @@ export function scoreResponseToJurisdictionData(
       const parsed = parseFloat(f.fieldValue)
       if (!isNaN(parsed)) fieldMap[f.fieldName] = parsed
     }
+    // usingDefault = true when no numeric value was extracted (field_value is null)
+    const hasExtractedValue = f.fieldValue != null && !isNaN(parseFloat(f.fieldValue))
     citations[f.fieldName] = {
       fieldValueText: (f as { fieldValueText?: string | null }).fieldValueText ?? null,
       sourceSection: (f as { sourceSection?: string | null }).sourceSection ?? null,
@@ -297,6 +310,7 @@ export function scoreResponseToJurisdictionData(
       sourceDocument: f.sourceDocument ?? null,
       confidence: f.confidence ?? null,
       reasoning: f.reasoning ?? null,
+      usingDefault: !hasExtractedValue,
     }
   }
 
@@ -388,6 +402,8 @@ export function scoreResponseToJurisdictionData(
     const zoneCitations: Record<string, FieldCitation> = {}
     if (zs.citations) {
       for (const [fieldName, c] of Object.entries(zs.citations)) {
+        // usingDefault = true when the zone field has no numeric value (fieldValue is null)
+        const zoneHasExtractedValue = c.fieldValue != null && !isNaN(parseFloat(c.fieldValue))
         zoneCitations[fieldName] = {
           fieldValueText: c.fieldValueText,
           sourceSection: c.sourceSection,
@@ -395,6 +411,7 @@ export function scoreResponseToJurisdictionData(
           sourceDocument: null,
           confidence: c.confidence ?? null,
           reasoning: c.reasoning ?? null,
+          usingDefault: !zoneHasExtractedValue,
         }
       }
     }
@@ -431,10 +448,13 @@ export function scoreResponseToJurisdictionData(
     citations,
     zoneScores,
     dataVintage: {
-      fmrVintage:     apiResponse.marketData?.fmrVintage ?? null,
-      permitsVintage: apiResponse.marketData?.permitsVintage ?? null,
-      retrievedAt:    apiResponse.marketData?.retrievedAt
+      fmrVintage:        apiResponse.marketData?.fmrVintage ?? null,
+      permitsVintage:    apiResponse.marketData?.permitsVintage ?? null,
+      retrievedAt:       apiResponse.marketData?.retrievedAt
         ? new Date(apiResponse.marketData.retrievedAt as string | Date).toISOString()
+        : null,
+      zoningExtractedAt: apiResponse.marketData?.zoningExtractedAt
+        ? new Date(apiResponse.marketData.zoningExtractedAt as string | Date).toISOString()
         : null,
     },
   }

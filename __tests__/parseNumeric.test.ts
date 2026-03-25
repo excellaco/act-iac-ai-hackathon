@@ -169,6 +169,7 @@ describe('scoreResponseToJurisdictionData', () => {
               fieldValueText: 'Minimum lot area: 3,630 sq ft',
               sourceSection: '§12.3.1',
               sourcePage: 42,
+              fieldValue: '3630',
             },
           },
           feasibility: null,
@@ -185,6 +186,7 @@ describe('scoreResponseToJurisdictionData', () => {
       sourceDocument: null,
       confidence: null,
       reasoning: null,
+      usingDefault: false,
     })
   })
 

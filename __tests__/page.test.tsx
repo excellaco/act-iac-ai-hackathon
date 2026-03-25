@@ -15,7 +15,7 @@ const mockJurisdictions = [
 ]
 
 const mockScoreResponse = {
-  jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', displayName: 'Fairfax County, VA', dataType: 'real' },
+  jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax_va', displayName: 'Fairfax County, VA', dataType: 'real' },
   score: { risComposite: '73', dci: '75', dcoi: '70', pci: '65', crp: '80', scoredAt: new Date().toISOString() },
   extractedFields: [],
 }
@@ -145,7 +145,7 @@ describe('Home', () => {
   it('shows an error when the score response contains no score data', async () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     (fetchScore as jest.Mock).mockResolvedValueOnce({
-      jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax', dataType: 'real' },
+      jurisdiction: { id: 'uuid-fairfax', name: 'Fairfax County', state: 'VA', slug: 'fairfax_va', dataType: 'real' },
       score: null,
       extractedFields: [],
     });

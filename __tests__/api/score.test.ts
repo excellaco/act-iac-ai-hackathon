@@ -43,10 +43,24 @@ function makeRequest(id: string) {
   }
 }
 
+/**
+ * Build a chainable Drizzle-like select mock that resolves `rows` and supports
+ * both simple `.where()` awaits and the full
+ * `.where().orderBy().limit().then()` chain used for date queries.
+ */
 function makeSelectMock(rows: unknown[] = []) {
+  // Terminal level: a resolved promise (supports await directly)
+  const limitResult = Promise.resolve(rows)
+  // orderBy → limit → <awaitable>
+  const orderByResult = { limit: jest.fn().mockReturnValue(limitResult) }
+  // where → awaitable AND where().orderBy()
+  const whereResult = Object.assign(Promise.resolve(rows), {
+    orderBy: jest.fn().mockReturnValue(orderByResult),
+  })
+
   return {
     from: jest.fn().mockReturnValue({
-      where: jest.fn().mockResolvedValue(rows),
+      where: jest.fn().mockReturnValue(whereResult),
     }),
   }
 }
@@ -109,11 +123,15 @@ describe('GET /api/jurisdictions/[id]/score', () => {
 
     // Sequence of db.select calls in the route:
     //   1st: extractedFields (jurisdiction-level) → []
-    //   2nd: zoneRisScores → [mockZoneRow]
-    //   3rd (batch): zoneExtractedFields → [{fieldName: 'density_limit_units_per_acre', fieldValue: '72'}]
-    //   4th (batch): feasibilityOutputs → [zone feasibility row]
+    //   2nd: latestZoneField (most recent extractedAt, uses orderBy chain) → [{extractedAt: date}]
+    //         (latestField query is skipped because latestZoneField is non-null)
+    //   3rd: zoneRisScores → [mockZoneRow]
+    //   4th (batch): zoneExtractedFields → [{fieldName: 'density_limit_units_per_acre', ...}]
+    //   5th (batch): feasibilityOutputs → [zone feasibility row]
+    const mockExtractedAt = new Date('2025-03-15T10:00:00Z')
     ;(db.select as jest.Mock)
       .mockReturnValueOnce(makeSelectMock([]))
+      .mockReturnValueOnce(makeSelectMock([{ extractedAt: mockExtractedAt }]))
       .mockReturnValueOnce(makeSelectMock([mockZoneRow]))
       .mockReturnValueOnce(makeSelectMock([{
         fieldName: 'density_limit_units_per_acre',
@@ -148,6 +166,7 @@ describe('GET /api/jurisdictions/[id]/score', () => {
         sourcePage: 87,
         confidence: null,
         reasoning: null,
+        fieldValue: '72',
       },
     })
     expect(zone.feasibility).toEqual(expect.objectContaining({ maxUnitsPerAcre: 72 }))
