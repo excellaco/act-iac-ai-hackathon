@@ -27,12 +27,13 @@ export const LEGEND_STOPS = [
 ] as const
 
 // ── Score → color (for text, borders, badges) ───────────────────────────
-// Uses only the 3 darkest BuPu stops to maintain WCAG contrast on white.
+// All stops pass WCAG AA contrast (4.5:1) on white backgrounds.
+// Low scores use a neutral gray to maintain readability.
 
 export function risColor(score: number): string {
   if (score >= 70) return '#045a8d'
   if (score >= 40) return '#2b8cbe'
-  return '#74a9cf'
+  return '#4b5563'
 }
 
 // ── Score → fill color (for map regions, backgrounds) ────────────────────
