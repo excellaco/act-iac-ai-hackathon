@@ -1,7 +1,5 @@
 # Parcella — Roadmap
 
-> **TODO:** This document needs to be filled in by the team. Suggested structure below. See [issue #244](https://github.com/excellaco/act-iac-ai-hackathon/issues/244) for context.
-
 This document captures post-hackathon next steps and improvement opportunities, organized by theme. For the historical record of what was built during the hackathon, see [`docs/BACKLOG.md`](BACKLOG.md).
 
 ---
@@ -12,24 +10,26 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 
 - [ ] PDF/CSV export of comparison report (S-1)
 - [ ] User authentication and saved scenarios (S-4)
-- [ ] Expand to 10+ jurisdictions (S-3)
+- [ ] Expand to 10+ real jurisdictions (S-3)
 - [ ] Natural language search — "most restrictive counties near DC" (S-5)
 - [ ] Automated zoning document update monitoring (S-2)
 - [ ] Developer persona — evaluating municipalities for private development projects
+- [ ] What-If simulation sliders in comparison view (#233)
 
 ---
 
 ## Platform Expansion
 
-- [ ] Expand beyond three Northern Virginia jurisdictions to all Virginia jurisdictions
+- [ ] Expand beyond Northern Virginia / Maryland jurisdictions to all Virginia jurisdictions
 - [ ] National coverage — all 50 states
 - [ ] Automated PDF ingestion (remove manual download step)
+- [ ] Add small municipalities (e.g., City of Falls Church — requested by Homestretch interview)
 
 ---
 
 ## Scoring Model Improvements
 
-- [ ] Replace synthetic peer jurisdiction data with real extracted data as more jurisdictions are added
+- [ ] Replace modeled peer jurisdiction data with real extracted data as more jurisdictions are added
 - [ ] Validate and improve feasibility model constants against real Northern Virginia / DC-metro development data (see [issue #203](https://github.com/excellaco/act-iac-ai-hackathon/issues/203))
 - [ ] Equity scoring layer — explicit measurement of disparate regulatory impact by race/income
 - [ ] Better CRP peer-set methodology as real jurisdiction count grows beyond 3
@@ -41,6 +41,15 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 - [ ] Automated zoning ordinance refresh monitoring
 - [ ] Better handling of jurisdictions with complex or multi-document ordinances
 - [ ] Improve OCR pipeline for low-resolution scanned PDFs
+
+---
+
+## Map & Visualization
+
+- [ ] Integrate zoning district boundary GIS data from county open data portals (#226 — data confirmed available for Fairfax, Arlington, Loudoun)
+- [ ] Color-code zoning districts on the map by RIS score or multifamily classification
+
+Per-zone scoring infrastructure is already in place to support these enhancements.
 
 ---
 
