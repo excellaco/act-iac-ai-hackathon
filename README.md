@@ -37,6 +37,7 @@ Parcella is an AI-powered Regulatory Impact Scoring (RIS) platform that solves t
 - **LLM + deterministic hybrid**: Gemini handles the hard part (reading unstructured PDFs and extracting structured data) while a transparent, deterministic TypeScript engine does the scoring. This means the RIS is reproducible and auditable, not a black box.
 - **Human-in-the-loop pipeline**: Every Gemini extraction is gated behind a human approval step before data enters the database. Reviewers see verbatim citations, confidence scores, and source page references.
 - **Responsible AI by design**: Confidence badges, verbatim citations, and a methodology disclosure modal are built into the UI. The RIS is explicitly framed as descriptive, not prescriptive.
+- **Per-zone scoring**: Rather than scoring at the jurisdiction level, Parcella discovers all residential zoning districts within each municipality and computes an independent RIS for each. This captures the regulatory variation that exists within a single jurisdiction — a transit-oriented zone and a single-family zone in the same county can have dramatically different scores.
 - **Real public data**: Market inputs (Fair Market Rents, building permits, ACS housing data) are sourced from HUD, Census, and BLS public datasets.
 
 ### Real-World Impact
@@ -153,6 +154,7 @@ Parcella is designed for a government audience that needs to **trust and defend*
 | **No policy recommendations** | The platform quantifies regulatory constraint — it does not recommend changes. The methodology modal states: *"The RIS is descriptive, not prescriptive — it does not recommend any policy position."* |
 | **Descriptive, not prescriptive** | The RIS is explicitly framed as a descriptive index, not a normative judgment |
 | **Public data sources** | All market data (HUD FMR, Census ACS, Census Building Permits) comes from publicly accessible federal datasets with documented vintage and methodology |
+| **Equity and bias awareness** | The methodology modal includes a dedicated section on how restrictive zoning regulations can have disparate impacts on communities of color and lower-income households, citing research from the National Low Income Housing Coalition, Brookings Institution, and HUD |
 | **Synthetic data clearly labeled** | Illustrative peer jurisdictions used for comparative scoring are flagged as "Illustrative data — not from official sources" in the UI |
 
 ---
