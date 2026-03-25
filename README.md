@@ -50,7 +50,7 @@ Parcella is designed for HUD policy analysts and state housing finance agency st
 
 The platform could be extended to cover all Virginia jurisdictions, then all 50 states, providing a national-scale regulatory intelligence layer for federal housing programs.
 
-The platform was validated with housing non-profit stakeholders through a [user research interview](docs/research/homestretch-interview.md) with Homestretch, a Falls Church, VA housing organization.
+The platform was validated with housing non-profit stakeholders through a [user research interview](docs/research/nonprofit-stakeholder-interview.md) with a Northern Virginia nonprofit providing transitional housing support to families experiencing homelessness.
 
 ---
 

@@ -20,7 +20,7 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 ## User Research
 
 - [ ] Validate user needs with actual domain experts (housing policy analysts, municipal planners, housing finance agency staff) to ensure the solution addresses real workflow pain points and priorities
-- [ ] Develop a second persona for a government employee in a smaller, less-resourced jurisdiction — these users may have different needs, fewer analytical tools, and no dedicated policy staff (informed by the Homestretch interview where Falls Church staff wear multiple hats)
+- [ ] Develop a second persona for a government employee in a smaller, less-resourced jurisdiction — these users may have different needs, fewer analytical tools, and no dedicated policy staff (informed by the nonprofit stakeholder interview where Falls Church staff wear multiple hats)
 - [ ] Developer persona — evaluating municipalities for private development projects (a distinct use case from the policy analyst persona, requiring different data emphasis and workflow)
 
 ---
@@ -30,7 +30,7 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 - [ ] Expand beyond Northern Virginia / Maryland jurisdictions to all Virginia jurisdictions
 - [ ] National coverage — all 50 states
 - [ ] Automated PDF ingestion (remove manual download step)
-- [ ] Add small municipalities (e.g., City of Falls Church — requested by Homestretch interview)
+- [ ] Add small municipalities (e.g., City of Falls Church — requested by nonprofit stakeholder interview)
 
 ---
 
