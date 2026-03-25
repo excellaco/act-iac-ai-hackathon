@@ -48,7 +48,8 @@ Items explicitly scoped out of the hackathon but ready to pick up:
 
 - [ ] Integrate zoning district boundary GIS data from county open data portals (#226 — data confirmed available for Fairfax, Arlington, Loudoun)
 - [ ] Color-code zoning districts on the map by RIS score or multifamily classification
-- [ ] Per-zone scoring infrastructure already in place to support this
+
+Per-zone scoring infrastructure is already in place to support these enhancements.
 
 ---
 
