@@ -38,7 +38,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 1,       // min density
       setbackFrontFt: 40,
       setbackSideFt: 40,
-      setbackRearFt: 40,        // total 120 = max setbacks
+      setbackRearFt: 40,        // effective total 160 ft (front + 2×side + rear) — clamped to max
     }
     expect(computeDCI(restrictive)).toBeGreaterThanOrEqual(95)
   })
@@ -50,7 +50,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 150,     // max density
       setbackFrontFt: 5,
       setbackSideFt: 5,
-      setbackRearFt: 5,         // total 15 = min setbacks
+      setbackRearFt: 5,         // effective total 15 ft (front + 2×side + rear) = min setbacks
     }
     expect(computeDCI(permissive)).toBeLessThanOrEqual(5)
   })
@@ -86,7 +86,7 @@ describe('computeDCI', () => {
       densityLimitUpa: 0.5,      // below 1 min
       setbackFrontFt: 50,
       setbackSideFt: 50,
-      setbackRearFt: 50,         // total 150, beyond 120 max
+      setbackRearFt: 50,         // effective total 200 ft (front + 2×side + rear), beyond 140 max — clamped
     }
     const score = computeDCI(beyondMax)
     expect(score).toBeLessThanOrEqual(100)
@@ -242,6 +242,29 @@ describe('computeCRP', () => {
     const low = computeCRP({ dci: 30, dcoi: 30, pci: 30 })   // composite 90
     const high = computeCRP({ dci: 80, dcoi: 70, pci: 60 })   // composite 210
     expect(high).toBeGreaterThan(low)
+  })
+
+  it('does not produce NaN when the live peer set contains only the scored jurisdiction', () => {
+    // Simulates scoring the first jurisdiction on a fresh DB: the live peerSet
+    // has one entry which is self-excluded, leaving peers.length === 0.
+    // The guard should fall back to FALLBACK_PEER_COMPOSITES and return a number.
+    const score = computeCRP({
+      dci: 50, dcoi: 50, pci: 50,
+      slug: 'fairfax_va',
+      peerSet: [{ slug: 'fairfax_va', composite: 150 }],
+    })
+    expect(typeof score).toBe('number')
+    expect(Number.isNaN(score)).toBe(false)
+    expect(score).toBeGreaterThanOrEqual(0)
+    expect(score).toBeLessThanOrEqual(100)
+  })
+
+  it('does not produce NaN when passed an empty live peer set', () => {
+    const score = computeCRP({ dci: 50, dcoi: 50, pci: 50, peerSet: [] })
+    expect(typeof score).toBe('number')
+    expect(Number.isNaN(score)).toBe(false)
+    expect(score).toBeGreaterThanOrEqual(0)
+    expect(score).toBeLessThanOrEqual(100)
   })
 })
 
