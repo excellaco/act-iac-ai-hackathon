@@ -47,6 +47,8 @@ export interface FieldCitation {
   sourceSection: string | null
   sourcePage: number | null
   sourceDocument: string | null
+  confidence: string | null
+  reasoning: string | null
 }
 
 /** Per-zone regulatory data and scores (E2-155). */
@@ -64,6 +66,15 @@ export interface ZoneScore {
   /** Citation metadata for zone-specific extracted fields. */
   citations: Record<string, FieldCitation>;
   feasibility: FeasibilityOutputs | null;
+}
+
+export interface DataVintage {
+  /** Year/label of HUD Fair Market Rent data (e.g. "FY2025") */
+  fmrVintage: string | null;
+  /** Year/label of Census Building Permits data (e.g. "2023") */
+  permitsVintage: string | null;
+  /** ISO date when market data was retrieved */
+  retrievedAt: string | null;
 }
 
 export interface JurisdictionData {
@@ -87,6 +98,8 @@ export interface JurisdictionData {
    * Empty for synthetic jurisdictions and pre-zone data.
    */
   zoneScores: ZoneScore[];
+  /** Data vintage info for responsible AI disclosure */
+  dataVintage?: DataVintage;
 }
 
 // ── Per-jurisdiction regulatory field baselines ───────────────────────────
@@ -222,7 +235,7 @@ export function scoreResponseToJurisdictionData(
   apiResponse: {
     jurisdiction: { id: string; name: string; state: string; slug: string; dataType: string }
     score: { risComposite: string; dci: string; dcoi: string; pci: string; crp: string } | null
-    extractedFields?: Array<{ fieldName: string; fieldValue: string | null; unit: string | null; confidence: string; sourceDocument: string | null }>
+    extractedFields?: Array<{ fieldName: string; fieldValue: string | null; unit: string | null; confidence: string; sourceDocument: string | null; reasoning?: string | null }>
     feasibility?: {
       maxUnitsPerAcre: string | null
       parkingFootprintPct: string | null
@@ -233,6 +246,9 @@ export function scoreResponseToJurisdictionData(
       fmr2br: string | null
       permits5plus: number | null
       totalPermits: number | null
+      fmrVintage?: string | null
+      permitsVintage?: string | null
+      retrievedAt?: string | Date | null
     } | null
     zoneScores?: Array<{
       zoneCode: string
@@ -244,7 +260,7 @@ export function scoreResponseToJurisdictionData(
       crp: string
       risComposite: string
       fields: Record<string, string | null>
-      citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null }>
+      citations?: Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence?: string | null; reasoning?: string | null }>
       feasibility: {
         maxUnitsPerAcre: string | null
         parkingFootprintPct: string | null
@@ -279,6 +295,8 @@ export function scoreResponseToJurisdictionData(
       sourceSection: (f as { sourceSection?: string | null }).sourceSection ?? null,
       sourcePage: (f as { sourcePage?: number | null }).sourcePage ?? null,
       sourceDocument: f.sourceDocument ?? null,
+      confidence: f.confidence ?? null,
+      reasoning: f.reasoning ?? null,
     }
   }
 
@@ -375,6 +393,8 @@ export function scoreResponseToJurisdictionData(
           sourceSection: c.sourceSection,
           sourcePage: c.sourcePage,
           sourceDocument: null,
+          confidence: c.confidence ?? null,
+          reasoning: c.reasoning ?? null,
         }
       }
     }
@@ -410,5 +430,12 @@ export function scoreResponseToJurisdictionData(
     feasibility,
     citations,
     zoneScores,
+    dataVintage: {
+      fmrVintage:     apiResponse.marketData?.fmrVintage ?? null,
+      permitsVintage: apiResponse.marketData?.permitsVintage ?? null,
+      retrievedAt:    apiResponse.marketData?.retrievedAt
+        ? new Date(apiResponse.marketData.retrievedAt as string | Date).toISOString()
+        : null,
+    },
   }
 }

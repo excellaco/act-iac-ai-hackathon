@@ -166,3 +166,15 @@
   background: #a5b4fc;
   cursor: not-allowed;
 }
+
+/* Issue #8: Chat agent scope disclosure */
+.chatDisclosure {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.4;
+  font-style: italic;
+  padding: 6px 16px 10px;
+  margin: 0;
+  border-top: 1px solid #f3f4f6;
+  background: #f9fafb;
+}

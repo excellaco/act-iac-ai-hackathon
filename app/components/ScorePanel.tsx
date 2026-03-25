@@ -13,6 +13,19 @@ import ChatPanel from './ChatPanel';
 import PdfModal from './PdfModal';
 import styles from './ScorePanel.module.css';
 
+/** Peer jurisdictions used in CRP comparison set */
+const CRP_PEER_SET = [
+  { name: 'Arlington County, VA',     dataType: 'real'      },
+  { name: 'Loudoun County, VA',       dataType: 'real'      },
+  { name: 'Montgomery County, MD',    dataType: 'modeled'   },
+  { name: "Prince George's County, MD", dataType: 'modeled' },
+  { name: 'Alexandria City, VA',      dataType: 'modeled'   },
+  { name: 'Prince William County, VA', dataType: 'modeled'  },
+  { name: 'Stafford County, VA',      dataType: 'modeled'   },
+  { name: 'Frederick County, VA',     dataType: 'modeled'   },
+  { name: 'Howard County, MD',        dataType: 'modeled'   },
+]
+
 /** Zoning Atlas jurisdiction IDs — only real jurisdictions with atlas pages */
 const ZONING_ATLAS_IDS: Record<string, number> = {
   fairfax:   6593,
@@ -86,7 +99,7 @@ function defaultZoneCode(zones: ZoneScore[]): string | '__avg__' {
 }
 
 export default function ScorePanel({ jurisdiction, onCompare }: Props) {
-  const { name, state, ris, subScores, fields, feasibility, citations, zoneScores } = jurisdiction;
+  const { name, state, ris, subScores, fields, feasibility, citations, zoneScores, dataVintage } = jurisdiction;
   const [showMethodology, setShowMethodology] = useState(false);
   const [whatIfEnabled, setWhatIfEnabled] = useState(false);
   const [pdfModal, setPdfModal] = useState<{ sourcePage: number | null; sourceSection: string | null; fieldValueText: string | null } | null>(null);
@@ -143,6 +156,18 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
           About this score
         </button>
       </p>
+
+      {/* Issue #6: Data vintage disclosure */}
+      {dataVintage && (dataVintage.fmrVintage || dataVintage.permitsVintage) && (
+        <p className={styles.dataVintage}>
+          Data as of:{' '}
+          {dataVintage.fmrVintage && <span>HUD FMR {dataVintage.fmrVintage}</span>}
+          {dataVintage.fmrVintage && dataVintage.permitsVintage && <span> · </span>}
+          {dataVintage.permitsVintage && <span>Census BPS {dataVintage.permitsVintage}</span>}
+          {' · '}
+          <span>Zoning data extracted Mar 2025</span>
+        </p>
+      )}
 
       {/* E8-1: What-If Simulation toggle */}
       <div className={styles.whatIfSection}>
@@ -203,14 +228,43 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                 <p className={styles.source}>
                   <span className={styles.sourceLabel}>Source:</span> {detail.source}
                 </p>
+                {/* CRP peer set disclosure (issues #1 and #5) */}
+                {key === 'crp' && (
+                  <div className={styles.crpPeerSet}>
+                    <p className={styles.crpPeerSetTitle}>Comparison set (10 regional jurisdictions)</p>
+                    <p className={styles.crpPeerSetNote}>
+                      Compared against 10 regional jurisdictions: 3 with extracted zoning data, 7 with modeled estimates.
+                    </p>
+                    <ul className={styles.crpPeerList}>
+                      {CRP_PEER_SET.filter((p) => p.name !== `${name}, ${state}`).map((peer) => (
+                        <li key={peer.name} className={styles.crpPeerItem}>
+                          <span className={styles.crpPeerName}>{peer.name}</span>
+                          <span className={`${styles.crpPeerBadge} ${peer.dataType === 'real' ? styles.crpPeerBadgeReal : styles.crpPeerBadgeModeled}`}>
+                            {peer.dataType === 'real' ? 'Extracted' : 'Modeled'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {SUB_SCORE_FIELDS[key].length > 0 && (
                   <ul className={styles.citationList}>
                     {SUB_SCORE_FIELDS[key].map((fieldName) => {
                       const citation = activeCitations?.[fieldName];
                       const hasSource = citation?.sourcePage != null;
+                      const isDefault = citation?.confidence === 'low' ||
+                        !citation?.fieldValueText ||
+                        citation?.fieldValueText === 'Not found in document';
                       return (
                         <li key={fieldName} className={styles.citationItem}>
-                          <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                          <div className={styles.citationFieldHeader}>
+                            <span className={styles.citationFieldLabel}>{FIELD_LABELS[fieldName] ?? fieldName}</span>
+                            {isDefault && (
+                              <span className={styles.defaultBadge} title="Value not found in ordinance; a regulatory default was used for scoring">
+                                default used
+                              </span>
+                            )}
+                          </div>
                           <span className={styles.citationFieldValue}>
                             {formatFieldValue(
                               activeFields[FIELD_TO_KEY[fieldName] as keyof typeof activeFields],
@@ -219,6 +273,12 @@ export default function ScorePanel({ jurisdiction, onCompare }: Props) {
                           </span>
                           {citation?.fieldValueText && citation.fieldValueText !== 'Not found in document' && (
                             <span className={styles.citationQuote}>&ldquo;{citation.fieldValueText}&rdquo;</span>
+                          )}
+                          {citation?.reasoning && citation.reasoning !== 'Field not found in any text chunk' && (
+                            <details className={styles.reasoningDetails}>
+                              <summary className={styles.reasoningSummary}>How was this extracted?</summary>
+                              <p className={styles.reasoningText}>{citation.reasoning}</p>
+                            </details>
                           )}
                           {hasSource && (
                             <button

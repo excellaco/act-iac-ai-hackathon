@@ -146,6 +146,8 @@ describe('GET /api/jurisdictions/[id]/score', () => {
         fieldValueText: 'Maximum density: 72 units per acre',
         sourceSection: '§14.2',
         sourcePage: 87,
+        confidence: null,
+        reasoning: null,
       },
     })
     expect(zone.feasibility).toEqual(expect.objectContaining({ maxUnitsPerAcre: 72 }))

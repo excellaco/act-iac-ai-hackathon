@@ -101,9 +101,31 @@ export default function MethodologyModal({ onClose }: Props) {
             <ul className={styles.list}>
               <li>Scores reflect zoning text as written and may not capture informal administrative practices.</li>
               <li>Extraction accuracy depends on the quality and structure of the source PDF.</li>
-              <li>The peer comparison set (CRP) is limited to the jurisdictions currently in the dataset.</li>
+              <li>The peer comparison set (CRP) includes 3 jurisdictions with extracted zoning data and 7 with modeled estimates; the composition affects percentile calculations.</li>
+              <li>Low-confidence fields fall back to regulatory defaults when values cannot be extracted from the ordinance — these are labeled &ldquo;default used&rdquo; in the score detail.</li>
               <li>The RIS is descriptive, not prescriptive — it does not recommend any policy position.</li>
             </ul>
+          </section>
+
+          <section className={styles.section}>
+            <h3 className={styles.sectionTitle}>Equity and bias considerations</h3>
+            <p>
+              Research has documented that restrictive zoning regulations can have disparate impacts on
+              communities of color and lower-income households. The National Low Income Housing Coalition,
+              The Brookings Institution, and HUD Fair Housing research consistently find that exclusionary
+              zoning — large minimum lot sizes, height limits, and parking mandates — correlates with
+              reduced housing affordability and can reinforce patterns of residential segregation.
+            </p>
+            <p>
+              The RIS measures regulatory constraint as written in zoning ordinances. Users should consider
+              equity implications alongside regulatory scores and consult local demographic and housing
+              affordability data when interpreting results. A high RIS score in a jurisdiction does not
+              constitute a finding of discriminatory intent.
+            </p>
+            <p className={styles.equitycitation}>
+              Sources: NLIHC <em>Out of Reach</em> reports; Brookings Institution housing research;
+              HUD Affirmatively Furthering Fair Housing guidance.
+            </p>
           </section>
         </div>
       </div>

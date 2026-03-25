@@ -153,6 +153,10 @@ export default function ChatPanel({ jurisdictionId, jurisdictionName }: ChatPane
               Send
             </button>
           </div>
+          {/* Issue #8: Scope disclosure */}
+          <p className={styles.chatDisclosure}>
+            Answers are based on extracted zoning data for this jurisdiction. Always verify against the official ordinance.
+          </p>
         </div>
       )}
     </div>

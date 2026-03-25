@@ -7,7 +7,7 @@ import type { InferSelectModel } from 'drizzle-orm'
 type ZoneScoreRow = InferSelectModel<typeof zoneRisScores>
 type FeasibilityRow = InferSelectModel<typeof feasibilityOutputs>
 
-type ZoneCitations = Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null }>
+type ZoneCitations = Record<string, { fieldValueText: string | null; sourceSection: string | null; sourcePage: number | null; confidence: string | null; reasoning: string | null }>
 
 function buildZoneScoreRow(
   zs: ZoneScoreRow,
@@ -110,6 +110,8 @@ export async function GET(
           fieldValueText: f.fieldValueText ?? null,
           sourceSection: f.sourceSection ?? null,
           sourcePage: f.sourcePage ?? null,
+          confidence: f.confidence ?? null,
+          reasoning: f.reasoning ?? null,
         }
       }
 
@@ -120,7 +122,10 @@ export async function GET(
   return NextResponse.json({
     jurisdiction,
     score,
-    extractedFields: fields,
+    extractedFields: fields.map((f) => ({
+      ...f,
+      reasoning: f.reasoning ?? null,
+    })),
     feasibility: feasibility
       ? {
           maxUnitsPerAcre:     feasibility.maxUnitsPerAcre,
@@ -131,9 +136,12 @@ export async function GET(
       : null,
     marketData: market
       ? {
-          fmr2br:       market.fmr2br,
-          permits5plus: market.permits5plus,
-          totalPermits: market.totalPermits,
+          fmr2br:          market.fmr2br,
+          permits5plus:    market.permits5plus,
+          totalPermits:    market.totalPermits,
+          fmrVintage:      market.fmrVintage,
+          permitsVintage:  market.permitsVintage,
+          retrievedAt:     market.retrievedAt,
         }
       : null,
     zoneScores,

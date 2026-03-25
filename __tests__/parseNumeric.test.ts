@@ -183,6 +183,8 @@ describe('scoreResponseToJurisdictionData', () => {
       sourceSection: '§12.3.1',
       sourcePage: 42,
       sourceDocument: null,
+      confidence: null,
+      reasoning: null,
     })
   })
 
