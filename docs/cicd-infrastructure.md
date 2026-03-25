@@ -8,7 +8,7 @@ This document describes the GitHub Actions workflows and Terraform infrastructur
 
 Parcella has two categories of automated workflows:
 
-1. **CI/CD** (`ci-cd.yml`) — triggered on every push to `main`; runs quality checks then deploys to Cloud Run
+1. **CI/CD** (`ci-cd.yml`) — triggered on every push to `main`; runs quality checks, deploys to Cloud Run, then generates an SBOM
 2. **Data pipeline** (`pipeline-*.yml`) — manually triggered; runs individual stages of the zoning data extraction pipeline
 3. **Infrastructure** (`infra.yml`) — triggered on PRs touching `infra/` or manually; plans/applies Terraform
 
@@ -18,7 +18,7 @@ Parcella has two categories of automated workflows:
 
 **Trigger:** Push to `main`, or manual dispatch (`workflow_dispatch`)
 
-**Jobs:** `quality` → `deploy` (sequential; deploy only runs if quality passes)
+**Jobs:** `quality` → `deploy` → `sbom` (sequential; each job only runs if the previous passes)
 
 ### `quality` job
 
@@ -59,6 +59,20 @@ Builds and deploys the application to Cloud Run after `quality` passes.
 | Deploy | `gcloud run deploy` | Deploy the new image to Cloud Run (us-central1, unauthenticated access) |
 
 **Secrets required:** `GCP_PROJECT_ID`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `DATABASE_URL`, `DATABASE_URL_MIGRATE`
+
+### `sbom` job
+
+Generates a Software Bill of Materials for the deployed container image after a successful deploy.
+
+| Step | Action | Purpose |
+|------|--------|---------|
+| GCP Auth | `google-github-actions/auth@v2` | Authenticate to GCP to pull the image from Artifact Registry |
+| Configure Docker | `gcloud auth configure-docker` | Authenticate Docker to Artifact Registry |
+| Generate SBOM | `anchore/sbom-action@v0` | Run Syft against the deployed container image; upload SBOM as a workflow artifact |
+
+**Output:** CycloneDX JSON artifact named `sbom.cdx.json`, covering the full container image (base OS packages, npm dependencies, and any build-time additions). Downloadable from the [Actions tab](https://github.com/excellaco/act-iac-ai-hackathon/actions/workflows/ci-cd.yml) under **Artifacts** on the latest CI/CD run. Artifacts are retained for 90 days.
+
+**Permissions required:** `contents: read`, `id-token: write`
 
 **Cloud Run environment variables set at deploy time:** `DATABASE_URL`, `GOOGLE_GENAI_USE_VERTEXAI`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `RAW_DATA_BUCKET`, `CHAT_MODEL`
 

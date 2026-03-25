@@ -108,3 +108,24 @@ jobs:
             --allow-unauthenticated \
             --add-cloudsql-instances ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela \
             --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=us-central1,RAW_DATA_BUCKET=parcela-490518-raw-data,CHAT_MODEL=gemini-2.5-flash
+
+  sbom:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: github-actions@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - uses: anchore/sbom-action@v0
+        with:
+          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/excella-ai-hackathon/excella-ai-hackathon:${{ github.sha }}
+          format: cyclonedx-json
+          artifact-name: sbom.cdx.json
