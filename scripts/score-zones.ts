@@ -298,6 +298,63 @@ async function scoreJurisdiction(jurisdictionId: string, slug: string): Promise<
     })
 
   console.log(`   ✓ jurisdiction avg — RIS ${risComposite} (DCI ${averaged.dci} / DCOI ${averaged.dcoi} / PCI ${averaged.pci} / CRP ${averaged.crp})`)
+
+  // 9. Compute and upsert __avg__ feasibility from averaged zone inputs.
+  // Keeps the What-If simulation baseline consistent with the scored zone data
+  // so that sliders start with zero delta before any changes are made.
+  const scoredZoneCodes = filledZoneScores.map((z) => z.zoneCode)
+  let sumDensity = 0, sumParking = 0, sumHeight = 0
+
+  for (const zc of scoredZoneCodes) {
+    const zFields = byZone.get(zc) ?? []
+    const fm: Record<string, number> = {}
+    const fmt: Record<string, string> = {}
+    for (const f of zFields) {
+      if (f.fieldValue != null) fm[f.fieldName] = parseNum(f.fieldValue, 0)
+      if (f.fieldValueText != null) fmt[f.fieldName] = f.fieldValueText
+    }
+    sumDensity += fm['density_limit_units_per_acre'] ?? fallbacks.densityLimitUpa
+    let zoneParking = fm['parking_min_spaces_per_unit']
+    if (zoneParking === undefined && isParkingDeferredToSection(fmt['parking_min_spaces_per_unit'])) zoneParking = 0
+    sumParking += zoneParking ?? fallbacks.parkingMinSpacesPerUnit
+    sumHeight  += fm['height_limit_ft'] ?? fallbacks.heightLimitFt
+  }
+
+  const n = scoredZoneCodes.length
+  const avgFeas = computeFeasibility({
+    densityLimitUpa:         sumDensity / n,
+    parkingMinSpacesPerUnit: sumParking / n,
+    heightLimitFt:           sumHeight  / n,
+    regionalMultiplier,
+    fmr2br,
+  })
+
+  await db
+    .insert(feasibilityOutputs)
+    .values({
+      jurisdictionId:         jurisdictionId,
+      zoneCode:               '__avg__',
+      maxUnitsPerAcre:        avgFeas.maxUnitsPerAcre.toString(),
+      parkingFootprintPct:    avgFeas.parkingFootprintPct.toString(),
+      estimatedCostPerUnit:   avgFeas.estimatedCostPerUnit.toString(),
+      regionalCostMultiplier: regionalMultiplier.toString(),
+      fmr2br:                 fmr2br.toString(),
+      rentFeasibilityRatio:   (avgFeas.requiredRent / fmr2br).toFixed(3),
+    })
+    .onConflictDoUpdate({
+      target: [feasibilityOutputs.jurisdictionId, feasibilityOutputs.zoneCode],
+      set: {
+        maxUnitsPerAcre:        sql`excluded.max_units_per_acre`,
+        parkingFootprintPct:    sql`excluded.parking_footprint_pct`,
+        estimatedCostPerUnit:   sql`excluded.estimated_cost_per_unit`,
+        regionalCostMultiplier: sql`excluded.regional_cost_multiplier`,
+        fmr2br:                 sql`excluded.fmr_2br`,
+        rentFeasibilityRatio:   sql`excluded.rent_feasibility_ratio`,
+        scoredAt:               sql`now()`,
+      },
+    })
+
+  console.log(`   ✓ __avg__ feasibility — $${avgFeas.estimatedCostPerUnit.toLocaleString()}/unit (density ${(sumDensity/n).toFixed(1)} upa, parking ${(sumParking/n).toFixed(2)} spu, height ${(sumHeight/n).toFixed(0)} ft)`)
 }
 
 async function main() {
