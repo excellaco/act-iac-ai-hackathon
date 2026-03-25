@@ -151,6 +151,7 @@ Parcella is designed for a government audience that needs to **trust and defend*
 | **No policy recommendations** | The platform quantifies regulatory constraint — it does not recommend changes. A persistent disclaimer states: *"This score measures regulatory constraint and does not recommend policy positions."* |
 | **Descriptive, not prescriptive** | The RIS is explicitly framed as a descriptive index, not a normative judgment |
 | **Public data sources** | All market data (HUD FMR, Census ACS, Census Building Permits) comes from publicly accessible federal datasets with documented vintage and methodology |
+| **Synthetic data clearly labeled** | Illustrative peer jurisdictions used for comparative scoring are flagged as "Illustrative data — not from official sources" in the UI |
 
 ---
 
