@@ -166,7 +166,7 @@ export default function WhatIfPanel({
   }, [fields]);
 
   // E8-3 / E8-4: Compute simulated scores and feasibility from slider values
-  const { simulatedRis, simulatedFeasibility, risDelta } = useMemo(() => {
+  const { simulatedRis, simulatedFeasibility, formulaBaseline, risDelta } = useMemo(() => {
     const simFields: RegulationFields = { ...fields, ...sliderValues };
 
     // Compute delta approach: simulated = stored + delta from formula
@@ -188,6 +188,18 @@ export default function WhatIfPanel({
     const simulatedRis = computeRIS(simSubScores);
     const risDelta = simulatedRis - baselineRis;
 
+    // Compute formula baseline from current fields — used as delta reference so
+    // simulated deltas are always on the same track as the simulated value.
+    // The DB-stored baselineFeasibility may be stale; using the formula ensures
+    // that reducing a parameter (e.g. parking) always moves cost in the correct direction.
+    const formulaBaseline = computeFeasibility({
+      densityLimitUpa:         fields.densityLimitUpa,
+      parkingMinSpacesPerUnit: fields.parkingMinSpacesPerUnit,
+      regionalMultiplier:      fields.regionalMultiplier,
+      fmr2br:                  fields.fmr2br,
+      heightLimitFt:           fields.heightLimitFt,
+    });
+
     const simulatedFeasibility = computeFeasibility({
       densityLimitUpa:         simFields.densityLimitUpa,
       parkingMinSpacesPerUnit: simFields.parkingMinSpacesPerUnit,
@@ -196,17 +208,17 @@ export default function WhatIfPanel({
       heightLimitFt:           simFields.heightLimitFt,
     });
 
-    return { simulatedRis, simulatedFeasibility, risDelta };
+    return { simulatedRis, simulatedFeasibility, formulaBaseline, risDelta };
   }, [sliderValues, fields, baselineSubScores, baselineRis]);
 
   // E8-6: Plain-language narrative
   const narrative = useMemo(() => {
-    const base = generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility);
+    const base = generateNarrative(sliderValues, fields, risDelta, simulatedFeasibility, formulaBaseline);
     if (zoneLabel && base) {
       return `[Simulating ${zoneLabel}] ${base}`;
     }
     return base;
-  }, [sliderValues, fields, risDelta, simulatedFeasibility, baselineFeasibility, zoneLabel]);
+  }, [sliderValues, fields, risDelta, simulatedFeasibility, formulaBaseline, zoneLabel]);
 
   // E8-5: Reset sliders to baseline
   function handleReset() {
@@ -313,30 +325,30 @@ export default function WhatIfPanel({
         <div className={styles.feasCard}>
           <span className={styles.feasValue}>{simulatedFeasibility.maxUnitsPerAcre}</span>
           <span className={styles.feasLabel}>Max units/acre</span>
-          {simulatedFeasibility.maxUnitsPerAcre !== baselineFeasibility.maxUnitsPerAcre && (
+          {simulatedFeasibility.maxUnitsPerAcre !== formulaBaseline.maxUnitsPerAcre && (
             <span className={styles.feasDelta}
-              style={{ color: deltaColor(simulatedFeasibility.maxUnitsPerAcre - baselineFeasibility.maxUnitsPerAcre, false) }}>
-              {deltaLabel(Math.round(simulatedFeasibility.maxUnitsPerAcre - baselineFeasibility.maxUnitsPerAcre))}
+              style={{ color: deltaColor(simulatedFeasibility.maxUnitsPerAcre - formulaBaseline.maxUnitsPerAcre, false) }}>
+              {deltaLabel(Math.round(simulatedFeasibility.maxUnitsPerAcre - formulaBaseline.maxUnitsPerAcre))}
             </span>
           )}
         </div>
         <div className={styles.feasCard}>
           <span className={styles.feasValue}>{simulatedFeasibility.parkingFootprintPct}%</span>
           <span className={styles.feasLabel}>Parking footprint</span>
-          {simulatedFeasibility.parkingFootprintPct !== baselineFeasibility.parkingFootprintPct && (
+          {simulatedFeasibility.parkingFootprintPct !== formulaBaseline.parkingFootprintPct && (
             <span className={styles.feasDelta}
-              style={{ color: deltaColor(simulatedFeasibility.parkingFootprintPct - baselineFeasibility.parkingFootprintPct, true) }}>
-              {deltaLabel(Math.round(simulatedFeasibility.parkingFootprintPct - baselineFeasibility.parkingFootprintPct))}%
+              style={{ color: deltaColor(simulatedFeasibility.parkingFootprintPct - formulaBaseline.parkingFootprintPct, true) }}>
+              {deltaLabel(Math.round(simulatedFeasibility.parkingFootprintPct - formulaBaseline.parkingFootprintPct))}%
             </span>
           )}
         </div>
         <div className={styles.feasCard}>
           <span className={styles.feasValue}>${(simulatedFeasibility.estimatedCostPerUnit / 1000).toFixed(0)}K</span>
           <span className={styles.feasLabel}>Cost per unit</span>
-          {simulatedFeasibility.estimatedCostPerUnit !== baselineFeasibility.estimatedCostPerUnit && (
+          {simulatedFeasibility.estimatedCostPerUnit !== formulaBaseline.estimatedCostPerUnit && (
             <span className={styles.feasDelta}
-              style={{ color: deltaColor(simulatedFeasibility.estimatedCostPerUnit - baselineFeasibility.estimatedCostPerUnit, true) }}>
-              {deltaLabel(Math.round((simulatedFeasibility.estimatedCostPerUnit - baselineFeasibility.estimatedCostPerUnit) / 1000))}K
+              style={{ color: deltaColor(simulatedFeasibility.estimatedCostPerUnit - formulaBaseline.estimatedCostPerUnit, true) }}>
+              {deltaLabel(Math.round((simulatedFeasibility.estimatedCostPerUnit - formulaBaseline.estimatedCostPerUnit) / 1000))}K
             </span>
           )}
         </div>
