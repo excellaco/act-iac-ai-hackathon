@@ -4,7 +4,7 @@
 
 An AI-powered housing regulatory and development feasibility intelligence platform built for the ACT-IAC AI Hackathon.
 
-Parcela transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
+Parcella transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
 
 > **Live demo:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
 
@@ -148,7 +148,7 @@ act-iac-ai-hackathon/
 
 ## Architecture Overview
 
-Parcela is a five-layer system:
+Parcella is a five-layer system:
 
 ```
 Zoning PDFs + Public Datasets
@@ -224,7 +224,7 @@ npm test
 
 ## Database
 
-Parcela uses PostgreSQL (Cloud SQL in production) managed via [Drizzle ORM](https://orm.drizzle.team/).
+Parcella uses PostgreSQL (Cloud SQL in production) managed via [Drizzle ORM](https://orm.drizzle.team/).
 
 ### Local development
 

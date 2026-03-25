@@ -257,6 +257,7 @@ describe('compute_feasibility tool', () => {
     const result = computeFeasibilityTool({
       densityLimitUpa: 20,
       parkingMinSpacesPerUnit: 1.5,
+      heightLimitFt: 60,
       regionalMultiplier: 1.10,
       fmr2br: 2280,
     })
@@ -265,7 +266,9 @@ describe('compute_feasibility tool', () => {
       maxUnitsPerAcre: 20,
       parkingFootprintPct: expect.any(Number),
       estimatedCostPerUnit: expect.any(Number),
-      monthlyCarryingCost: expect.any(Number),
+      buildingType: expect.stringMatching(/^(garden|midrise|highrise)$/),
+      monthlyDebtService: expect.any(Number),
+      requiredRent: expect.any(Number),
       rentFeasibility: expect.stringMatching(/^(Feasible|Marginal|Infeasible)$/),
       fmr2br: 2280,
     }))
@@ -275,10 +278,14 @@ describe('compute_feasibility tool', () => {
     const result = computeFeasibilityTool({
       densityLimitUpa: 12,
       parkingMinSpacesPerUnit: 2.0,
+      heightLimitFt: 45,
       regionalMultiplier: 1.12,
       fmr2br: 2280,
     })
 
-    expect(result.monthlyCarryingCost).toBe(Math.round(result.estimatedCostPerUnit / 240))
+    // Required rent should be derived from monthly debt service
+    expect(result.requiredRent).toBeGreaterThan(result.monthlyDebtService)
+    // Building type should be garden for 45ft height
+    expect(result.buildingType).toBe('garden')
   })
 })

@@ -193,6 +193,7 @@ export default function WhatIfPanel({
       parkingMinSpacesPerUnit: simFields.parkingMinSpacesPerUnit,
       regionalMultiplier:      simFields.regionalMultiplier,
       fmr2br:                  simFields.fmr2br,
+      heightLimitFt:           simFields.heightLimitFt,
     });
 
     return { simulatedRis, simulatedFeasibility, risDelta };

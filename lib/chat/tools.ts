@@ -268,6 +268,7 @@ export const getPdfTextTool = new FunctionTool({
 export function computeFeasibilityTool(inputs: {
   densityLimitUpa: number
   parkingMinSpacesPerUnit: number
+  heightLimitFt: number
   regionalMultiplier: number
   fmr2br: number
 }) {
@@ -277,12 +278,15 @@ export function computeFeasibilityTool(inputs: {
 export const computeFeasibilityToolDef = new FunctionTool({
   name: 'compute_feasibility',
   description:
-    'Computes development feasibility metrics (max units/acre, parking footprint, estimated cost per unit, rent feasibility) from regulatory parameters. Use this for what-if questions about how changing zoning rules would affect development economics.',
+    'Computes development feasibility metrics (max units/acre, parking footprint, estimated cost per unit, building type, DSCR-based required rent, rent feasibility) from regulatory parameters. Use this for what-if questions about how changing zoning rules would affect development economics.',
   parameters: z.object({
     densityLimitUpa: z.number().describe('Maximum dwelling units per acre'),
     parkingMinSpacesPerUnit: z
       .number()
       .describe('Required parking spaces per unit'),
+    heightLimitFt: z
+      .number()
+      .describe('Height limit from zoning ordinance in feet — used to infer building type (≤45ft garden, 46-90ft midrise, >90ft highrise)'),
     regionalMultiplier: z
       .number()
       .describe('Regional construction cost multiplier (BEA RPP)'),

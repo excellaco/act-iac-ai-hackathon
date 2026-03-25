@@ -95,16 +95,54 @@ export const REGIONAL_MULTIPLIERS: Record<string, number> = {
 
 export const DEFAULT_REGIONAL_MULTIPLIER = 1.00
 
-/**
- * National baseline multifamily construction cost per unit (2024 estimate).
- * Source: NAHB construction cost surveys and Census Bureau Construction Put in
- * Place (CPP) data. BLS OES measures occupational wages, not construction costs
- * — see issue #203 for a proposed update to a rigorously sourced figure.
- */
-export const BASE_COST_PER_UNIT = 180_000
+// ── Building-type hard costs per unit — 2024–2025 Northern Virginia ──────────
+// Sources: NAHB Construction Cost Survey 2024, RSMeans Multifamily Cost Data 2024
 
-/** Surface parking stall cost including land opportunity cost ($/stall). */
-export const PARKING_STALL_COST = 25_000
+/** Type V wood-frame, up to 45 ft (up to 4 stories). */
+export const GARDEN_COST_PER_UNIT   = 195_000
+
+/** Type III/V podium, 46–90 ft (5–7 stories). */
+export const MIDRISE_COST_PER_UNIT  = 270_000
+
+/** Type I/II concrete, over 90 ft (8+ stories). */
+export const HIGHRISE_COST_PER_UNIT = 385_000
+
+/**
+ * Soft costs as a percentage of hard costs (architecture, permits, financing,
+ * developer fee). Source: NAHB "What it Costs to Build an Apartment" 2024
+ * — typically 20–24% of hard costs.
+ */
+export const SOFT_COST_PCT = 0.22
+
+// ── DSCR financing constants — permanent multifamily debt, 2025 ───────────────
+
+/** Fannie Mae DUS market rate, 2025. */
+export const ANNUAL_INTEREST_RATE    = 0.065
+
+/** 30-year amortization. */
+export const LOAN_TERM_MONTHS        = 360
+
+/** Fannie Mae/Freddie Mac standard LTV ratio. */
+export const LTV_RATIO               = 0.65
+
+/** Standard lender minimum debt service coverage ratio. */
+export const DSCR_MIN                = 1.25
+
+/** NMHC/NAHB multifamily operating expense ratio. */
+export const OPERATING_EXPENSE_RATIO = 0.35
+
+/**
+ * @deprecated Use MIDRISE_COST_PER_UNIT for feasibility calculations.
+ * Kept equal to MIDRISE_COST_PER_UNIT for backward compatibility with
+ * computeDCOI(), which uses it for DCOI normalization. Do not remove until
+ * DCOI is updated to use building-type-specific costs (deferred, see issue #203).
+ */
+export const BASE_COST_PER_UNIT = MIDRISE_COST_PER_UNIT
+
+/** Surface parking stall cost including land opportunity cost ($/stall).
+ * Source: NAHB 2024 surface stall with land opportunity cost.
+ */
+export const PARKING_STALL_COST = 30_000
 
 /** Unit size assumption for construction cost calculation (sq ft). */
 export const UNIT_SIZE_SQFT = 900
@@ -113,13 +151,15 @@ export const UNIT_SIZE_SQFT = 900
  * Peer-set cost range for DCOI normalization.
  * Defined as absolute dollar values so that changes to BASE_COST_PER_UNIT
  * do not silently shift the normalization bounds and break score comparability.
- * Derived from the peer-set extremes: ~$153K (low-cost region, zero parking)
- * to ~$309K (most-expensive peer region, 3 stalls at $25K/stall).
+ * Derived from the peer-set extremes using MIDRISE_COST_PER_UNIT ($270K) and
+ * PARKING_STALL_COST ($30K):
+ *   min: ~$278K (1.03× baseline, Frederick County, zero parking)
+ *   max: ~$400K (1.15× baseline, Arlington, + 3 stalls × $30K)
  * Update these if the peer set or parking cost assumptions change materially.
  */
 const DCOI_COST_RANGE = {
-  min: 153_000, // low-cost peer region, zero parking requirement
-  max: 309_000, // high-cost peer region (1.15× baseline) + 3 stalls × $25K
+  min: 278_000, // low-cost peer region (1.03× midrise baseline), zero parking
+  max: 400_500, // high-cost peer region (1.15× midrise baseline) + 3 stalls × $30K
 }
 
 export interface DcoiInputs {

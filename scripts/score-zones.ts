@@ -242,8 +242,9 @@ async function scoreJurisdiction(jurisdictionId: string, slug: string): Promise<
 
     const densityLimitUpa = zoneFm['density_limit_units_per_acre'] ?? fallbacks.densityLimitUpa
     const parkingMin = zoneFm['parking_min_spaces_per_unit'] ?? fallbacks.parkingMinSpacesPerUnit
+    const heightLimitFt = zoneFm['height_limit_ft'] ?? fallbacks.heightLimitFt
 
-    const feas = computeFeasibility({ densityLimitUpa, parkingMinSpacesPerUnit: parkingMin, regionalMultiplier, fmr2br })
+    const feas = computeFeasibility({ densityLimitUpa, parkingMinSpacesPerUnit: parkingMin, regionalMultiplier, fmr2br, heightLimitFt })
 
     await db
       .insert(feasibilityOutputs)
@@ -255,7 +256,7 @@ async function scoreJurisdiction(jurisdictionId: string, slug: string): Promise<
         estimatedCostPerUnit:  feas.estimatedCostPerUnit.toString(),
         regionalCostMultiplier: regionalMultiplier.toString(),
         fmr2br:                fmr2br.toString(),
-        rentFeasibilityRatio:  (feas.monthlyCarryingCost / fmr2br).toFixed(3),
+        rentFeasibilityRatio:  (feas.requiredRent / fmr2br).toFixed(3),
       })
       .onConflictDoUpdate({
         target: [feasibilityOutputs.jurisdictionId, feasibilityOutputs.zoneCode],
