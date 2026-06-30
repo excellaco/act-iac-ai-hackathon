@@ -92,7 +92,7 @@ jobs:
       - name: Check GCS raw data bucket is accessible
         run: bash scripts/check-gcs-bucket.sh
         env:
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data
 
       - run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
@@ -107,7 +107,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --add-cloudsql-instances ${{ secrets.GCP_PROJECT_ID }}:us-central1:parcela \
-            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=us-central1,RAW_DATA_BUCKET=parcela-490518-raw-data,CHAT_MODEL=gemini-2.5-flash
+            --set-env-vars DATABASE_URL=${{ secrets.DATABASE_URL }},GOOGLE_GENAI_USE_VERTEXAI=TRUE,GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=us-central1,RAW_DATA_BUCKET=parcella-501012-raw-data,CHAT_MODEL=gemini-2.5-flash
 
   sbom:
     needs: deploy

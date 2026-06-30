@@ -8,7 +8,7 @@
 #   ./scripts/check-gcs-bucket.sh
 #
 # Environment variables:
-#   RAW_DATA_BUCKET — GCS bucket name (default: parcela-490518-raw-data)
+#   RAW_DATA_BUCKET — GCS bucket name (default: parcella-501012-raw-data)
 #                     Set to empty string to skip check (local dev without GCS)
 
 set -euo pipefail
@@ -19,7 +19,7 @@ if [[ "${RAW_DATA_BUCKET+x}" == "x" && -z "${RAW_DATA_BUCKET}" ]]; then
   exit 0
 fi
 
-BUCKET="${RAW_DATA_BUCKET:-parcela-490518-raw-data}"
+BUCKET="${RAW_DATA_BUCKET:-parcella-501012-raw-data}"
 
 echo "Checking GCS bucket: gs://${BUCKET}"
 

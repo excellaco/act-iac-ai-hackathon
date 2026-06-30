@@ -53,16 +53,16 @@ Each jurisdiction has a configuration file at `data/config/<slug>.json` that con
 ```json
 // fairfax_va.json — scanned PDF, uses Cloud Vision OCR
 {
-  "pdf_source": "gs://parcela-490518-raw-data/zoning/fairfax_va/fairfax_zoning_ordinance_2023_downloaded_20260316.pdf",
+  "pdf_source": "gs://parcella-501012-raw-data/zoning/fairfax_va/fairfax_zoning_ordinance_2023_downloaded_20260316.pdf",
   "pdf_extraction": "ocr",
-  "ocr_source": "gs://parcela-490518-raw-data/zoning/fairfax_va/ocr/"
+  "ocr_source": "gs://parcella-501012-raw-data/zoning/fairfax_va/ocr/"
 }
 ```
 
 ```json
 // arlington_va.json — searchable PDF, uses pdf-parse text extraction
 {
-  "pdf_source": "gs://parcela-490518-raw-data/zoning/arlington_va/arlington_zoning_ordinance.pdf",
+  "pdf_source": "gs://parcella-501012-raw-data/zoning/arlington_va/arlington_zoning_ordinance.pdf",
   "pdf_extraction": "text"
 }
 ```
@@ -75,7 +75,7 @@ Each jurisdiction has a configuration file at `data/config/<slug>.json` that con
 |----------|----------|-------------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string. Use the Cloud SQL Auth Proxy URL in CI (`DATABASE_URL_MIGRATE`). |
 | `GOOGLE_CLOUD_PROJECT` | Yes | GCP project ID. Required for Gemini/Vertex AI calls and GCS access. |
-| `RAW_DATA_BUCKET` | No | GCS bucket name (e.g., `parcela-490518-raw-data`). If omitted, stages fall back to local `data/raw/` and `data/artifacts/`. |
+| `RAW_DATA_BUCKET` | No | GCS bucket name (e.g., `parcella-501012-raw-data`). If omitted, stages fall back to local `data/raw/` and `data/artifacts/`. |
 | `GEMINI_MODEL` | No | Gemini model to use for extraction. Defaults to `gemini-2.0-flash-001`. Set to `gemini-2.5-flash` in CI for higher quality. |
 
 ---
@@ -435,8 +435,8 @@ gcloud auth application-default login
 
 # Set required environment variables
 export DATABASE_URL="postgresql://postgres:postgres@localhost:5433/parcela"
-export GOOGLE_CLOUD_PROJECT="parcela-490518"
-export RAW_DATA_BUCKET="parcela-490518-raw-data"   # omit to use local data/raw/
+export GOOGLE_CLOUD_PROJECT="parcella-501012"
+export RAW_DATA_BUCKET="parcella-501012-raw-data"   # omit to use local data/raw/
 
 # Start local database
 docker compose up -d

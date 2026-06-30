@@ -48,14 +48,14 @@ jobs:
         run: npm run pipeline:extract "${{ inputs.jurisdiction }}" "${{ inputs.zone }}"
         env:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data
           GEMINI_MODEL: gemini-2.5-flash
 
       - name: Sync artifacts from GCS
         run: npm run artifacts:sync ${{ inputs.jurisdiction }}
         env:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data
 
       - name: Create PR with field extraction results
         env:

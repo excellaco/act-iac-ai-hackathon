@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-  GCS["GCS · parcela-490518-raw-data\nZoning PDFs"]
+  GCS["GCS · parcella-501012-raw-data\nZoning PDFs"]
   F["HUD FMR"]
   A["ACS"]
   B["Bldg permits"]
@@ -33,7 +33,7 @@ flowchart LR
 ## Layer Descriptions
 
 ### Data sources
-Zoning ordinance PDFs are stored in GCS (`gs://parcela-490518-raw-data`) and fetched by the pipeline at runtime. Other public datasets (FMR, ACS, permits) are small CSVs downloaded via API. Infrastructure is managed with Terraform in `infra/`. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
+Zoning ordinance PDFs are stored in GCS (`gs://parcella-501012-raw-data`) and fetched by the pipeline at runtime. Other public datasets (FMR, ACS, permits) are small CSVs downloaded via API. Infrastructure is managed with Terraform in `infra/`. See [`docs/DATA_SOURCES.md`](DATA_SOURCES.md) for download URLs, formats, and field mappings.
 
 ### Ingestion & extraction pipeline (E0/E1/E2)
 A batch pre-processing pipeline in TypeScript deployed to Cloud Run. Runs once per jurisdiction before the demo via `npm run pipeline:run`. Implements the sequence: fetch PDF → parse text → chunk → extract fields via Gemini → normalize → validate → store.
@@ -114,7 +114,7 @@ The system surfaces several layers of transparency to support explainable, respo
 | Pipeline orchestration | Direct TypeScript (ADK evaluated, deferred) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | LLM | Gemini via Vertex AI | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
 | Pipeline execution | Batch pre-processing (not real-time) | [ADR-0002](adr/0002-google-adk-for-pipeline-orchestration.md) |
-| Raw PDF storage | GCS (`parcela-490518-raw-data`) — files are ~90MB, too large for Git | `infra/` |
+| Raw PDF storage | GCS (`parcella-501012-raw-data`) — files are ~90MB, too large for Git | `infra/` |
 | Infrastructure as code | Terraform (`infra/`) — GCS bucket and IAM; Cloud Run deployed via CI/CD | `infra/` |
 | Schema management | Drizzle ORM — `db/schema.ts` + `drizzle-kit` migrations | [ADR-0003](adr/0003-database-access-and-migrations.md) |
 | Local dev database | Docker Compose (`postgres:16`) — no GCP credentials required | [ADR-0003](adr/0003-database-access-and-migrations.md) |

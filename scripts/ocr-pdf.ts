@@ -23,7 +23,7 @@ if (!jurisdictionSlug) {
 }
 
 const PROJECT = process.env.GOOGLE_CLOUD_PROJECT ?? process.env.GCLOUD_PROJECT
-const RAW_DATA_BUCKET = process.env.RAW_DATA_BUCKET ?? 'parcela-490518-raw-data'
+const RAW_DATA_BUCKET = process.env.RAW_DATA_BUCKET ?? 'parcella-501012-raw-data'
 
 if (!PROJECT) {
   console.error('GOOGLE_CLOUD_PROJECT environment variable is required')

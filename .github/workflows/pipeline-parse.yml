@@ -50,4 +50,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data

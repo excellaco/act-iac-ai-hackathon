@@ -22,10 +22,10 @@ data/raw/
 
 Zoning ordinance PDFs are stored in GCS — **not committed to Git** — because files are ~90MB. The pipeline fetches them from GCS at runtime.
 
-**Bucket:** `gs://parcela-490518-raw-data`
+**Bucket:** `gs://parcella-501012-raw-data`
 
 ```
-gs://parcela-490518-raw-data/
+gs://parcella-501012-raw-data/
 └── zoning/
     ├── fairfax/
     ├── arlington/
