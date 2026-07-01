@@ -84,10 +84,11 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
 
-      - name: Seed database
-        run: npm run db:seed:all
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
+      # NOTE: db:seed:all is intentionally NOT run on deploy. The production
+      # database holds curated/managed data (a record-for-record copy of the
+      # prior deployment); re-seeding on every push would overwrite it and break
+      # data parity with the app. Seeding is a one-time provisioning step run
+      # manually when standing up a fresh database.
 
       - name: Check GCS raw data bucket is accessible
         run: bash scripts/check-gcs-bucket.sh
