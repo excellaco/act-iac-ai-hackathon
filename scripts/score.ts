@@ -70,6 +70,19 @@ async function main() {
     process.exit(1)
   }
 
+  // Guard: the production database is an exact copy of the public app's data.
+  // Re-scoring with the current engine produces different numbers and breaks
+  // parity with the live app, so this command is disabled unless ALLOW_RESCORE
+  // is explicitly set.
+  if (process.env.ALLOW_RESCORE !== 'true') {
+    console.error('\n⚠  pipeline:score is disabled to protect data parity.')
+    console.error('   The database is an exact copy of the public app; re-scoring with the')
+    console.error('   current code produces different numbers and breaks parity with the live app.')
+    console.error('   If you REALLY intend to re-score, set ALLOW_RESCORE=true and re-run:')
+    console.error(`     ALLOW_RESCORE=true npm run pipeline:score ${slugArg}\n`)
+    process.exit(1)
+  }
+
   const logger = {
     info:  (msg: string, ctx?: object) => console.log(`   ${msg}`, ctx ?? ''),
     warn:  (msg: string, ctx?: object) => console.warn(`   WARN ${msg}`, ctx ?? ''),
