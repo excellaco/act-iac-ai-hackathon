@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file
+# Documented, time-boxed ignore for a single un-fixable transitive vuln.
+version: v1.25.0
+ignore:
+  SNYK-JS-BRACEEXPANSION-17706650:
+    - '*':
+        reason: >-
+          "Inefficient Algorithmic Complexity" in brace-expansion. Snyk lists the
+          only fix as 5.0.7, which is ESM-first; force-resolving it into the CJS
+          minimatch@9 consumer risks breaking @google-cloud/vision's internal
+          glob/rimraf cleanup at runtime. The 2.x line has no Snyk-recognized fix
+          (npm audit considers 2.1.1 clean, which we do use). This code path is
+          reached only via google-gax's library-internal glob patterns, never with
+          untrusted input, so the ReDoS-style issue is not exploitable here.
+          Remove this ignore once google-gax/@google-cloud/vision ship a minimatch
+          that pulls brace-expansion >= 5.0.7.
+        expires: 2026-12-31T00:00:00.000Z
