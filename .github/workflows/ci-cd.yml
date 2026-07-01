@@ -37,7 +37,11 @@ jobs:
         with:
           command: monitor
 
+      # Non-blocking: SonarCloud runs for visibility but does not fail the build
+      # (the SONAR_TOKEN is currently invalid; make this required again once a
+      # valid token is restored in the SONAR_TOKEN secret).
       - uses: SonarSource/sonarqube-scan-action@v6
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
