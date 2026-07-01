@@ -3,7 +3,7 @@
 Manages GCP infrastructure for Parcella that lives outside the CI/CD deploy pipeline.
 
 **Currently provisions:**
-- GCS bucket `parcela-490518-raw-data` for raw zoning ordinance PDFs
+- GCS bucket `parcella-501012-raw-data` for raw zoning ordinance PDFs
 - IAM binding granting the `github-actions` service account `objectViewer` on the bucket
 
 Cloud Run and Cloud SQL are **not** managed here — Cloud Run is deployed by the CI/CD pipeline; Cloud SQL is provisioned manually.
@@ -14,7 +14,7 @@ Cloud Run and Cloud SQL are **not** managed here — Cloud Run is deployed by th
 
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5
 - `gcloud` CLI installed and authenticated
-- Editor or Owner role on `parcela-490518`
+- Editor or Owner role on `parcella-501012`
 
 Authenticate:
 ```bash
@@ -48,19 +48,19 @@ Review the plan before confirming. On a clean project this creates two resources
 Once the bucket exists, upload zoning PDFs:
 
 ```bash
-gcloud storage cp <file> gs://parcela-490518-raw-data/zoning/<jurisdiction>/
+gcloud storage cp <file> gs://parcella-501012-raw-data/zoning/<jurisdiction>/
 ```
 
 Follow the naming convention in `data/raw/README.md`. Example:
 
 ```bash
 gcloud storage cp loudoun_zoning_ordinance_2023_downloaded_20260316.pdf \
-  gs://parcela-490518-raw-data/zoning/loudoun/
+  gs://parcella-501012-raw-data/zoning/loudoun/
 ```
 
 Verify:
 ```bash
-gcloud storage ls gs://parcela-490518-raw-data/zoning/
+gcloud storage ls gs://parcella-501012-raw-data/zoning/
 ```
 
 ---

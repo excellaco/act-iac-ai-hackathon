@@ -49,8 +49,8 @@ jobs:
       - name: Check pages artifact exists
         run: |
           PAGES_PATH="zoning/${{ inputs.jurisdiction }}/artifacts/${{ inputs.jurisdiction }}_pages.json"
-          if ! gcloud storage ls "gs://parcela-490518-raw-data/${PAGES_PATH}" > /dev/null 2>&1; then
-            echo "ERROR: Pages artifact not found at gs://parcela-490518-raw-data/${PAGES_PATH}"
+          if ! gcloud storage ls "gs://parcella-501012-raw-data/${PAGES_PATH}" > /dev/null 2>&1; then
+            echo "ERROR: Pages artifact not found at gs://parcella-501012-raw-data/${PAGES_PATH}"
             echo ""
             echo "Run the Pipeline — Document Pre-processing workflow first:"
             echo "  https://github.com/${{ github.repository }}/actions/workflows/pipeline-parse.yml"
@@ -65,14 +65,14 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data
           GEMINI_MODEL: gemini-2.5-flash
 
       - name: Sync artifacts from GCS
         run: npm run artifacts:sync ${{ inputs.jurisdiction }}
         env:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
-          RAW_DATA_BUCKET: parcela-490518-raw-data
+          RAW_DATA_BUCKET: parcella-501012-raw-data
 
       - name: Create PR with zone discovery results
         env:

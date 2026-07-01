@@ -47,15 +47,15 @@ All data must be publicly accessible. No proprietary MLS or private transaction 
 
 For the MVP demo, zoning ordinance documents are **manually downloaded and uploaded to GCS** rather than fetched programmatically. This avoids pipeline complexity and web scraping brittleness within the two-week timeline.
 
-PDFs are stored in `gs://parcela-490518-raw-data/zoning/` — see [`data/raw/README.md`](../data/raw/README.md) for the folder structure, file naming convention, and upload instructions. The local `data/raw/zoning/` folder is retained as a dev fallback only (gitignored).
+PDFs are stored in `gs://parcella-501012-raw-data/zoning/` — see [`data/raw/README.md`](../data/raw/README.md) for the folder structure, file naming convention, and upload instructions. The local `data/raw/zoning/` folder is retained as a dev fallback only (gitignored).
 
 Each jurisdiction has a different source and access pattern:
 
 | Jurisdiction | Platform | Access pattern | GCS path |
 |---|---|---|---|
-| Fairfax County, VA | Municode (county-hosted) | Chapter-by-chapter HTML/PDF export | `gs://parcela-490518-raw-data/zoning/fairfax/` |
-| Arlington County, VA | Arlington County website (direct PDF) | Single full ordinance PDF download | `gs://parcela-490518-raw-data/zoning/arlington/` |
-| Loudoun County, VA | enCodePlus (JS-rendered) | Manual PDF download — cannot be crawled programmatically | `gs://parcela-490518-raw-data/zoning/loudoun/` |
+| Fairfax County, VA | Municode (county-hosted) | Chapter-by-chapter HTML/PDF export | `gs://parcella-501012-raw-data/zoning/fairfax/` |
+| Arlington County, VA | Arlington County website (direct PDF) | Single full ordinance PDF download | `gs://parcella-501012-raw-data/zoning/arlington/` |
+| Loudoun County, VA | enCodePlus (JS-rendered) | Manual PDF download — cannot be crawled programmatically | `gs://parcella-501012-raw-data/zoning/loudoun/` |
 
 ### Source URLs
 
@@ -67,7 +67,7 @@ Each jurisdiction has a different source and access pattern:
 **Arlington County**
 - Zoning Ordinance (direct PDF — full document): https://www.arlingtonva.us/files/sharedassets/public/v/1/building/documents/codes-and-ordinances/aczo_effective_1.24.2026.pdf
 - This is the cleanest acquisition: one PDF download covers the full ordinance
-- Upload as: `gs://parcela-490518-raw-data/zoning/arlington/arlington_aczo_2026_downloaded_{YYYYMMDD}.pdf`
+- Upload as: `gs://parcella-501012-raw-data/zoning/arlington/arlington_aczo_2026_downloaded_{YYYYMMDD}.pdf`
 
 **Loudoun County**
 - Zoning Ordinance (enCodePlus platform): https://online.encodeplus.com/regs/loudouncounty-va-crosswalk/doc-viewer.aspx#secid-1770
@@ -91,7 +91,7 @@ All downloaded documents should be saved as PDF. The pipeline (E1-1) extracts ra
 **Notes:**
 - Zoning codes are organized by district (R-1, R-2, MF, etc.). Focus extraction on residential multifamily districts for MVP — these are most relevant to housing development feasibility.
 - Confidence tier assignment: if the LLM extracts a value directly from explicit regulatory text, assign High. If it must infer from context or examples, assign Medium. If no relevant text is found, assign Low.
-- PDFs are stored in GCS (`gs://parcela-490518-raw-data/zoning/`), not committed to Git — files are ~90MB. See `infra/README.md` for bucket setup and `data/raw/README.md` for upload instructions.
+- PDFs are stored in GCS (`gs://parcella-501012-raw-data/zoning/`), not committed to Git — files are ~90MB. See `infra/README.md` for bucket setup and `data/raw/README.md` for upload instructions.
 
 ---
 

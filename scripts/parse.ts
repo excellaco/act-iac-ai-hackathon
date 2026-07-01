@@ -141,7 +141,7 @@ async function main() {
  * is not set in config. Matches the GcsFetcher convention but without downloading.
  */
 function resolveGcsSourceDocument(slug: string): string {
-  const bucket = process.env.RAW_DATA_BUCKET ?? 'parcela-490518-raw-data'
+  const bucket = process.env.RAW_DATA_BUCKET ?? 'parcella-501012-raw-data'
   return `gs://${bucket}/zoning/${slug}/<source-pdf>`
 }
 

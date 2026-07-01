@@ -40,7 +40,7 @@ async function main() {
   if (!bucket) {
     console.error(
       'Error: RAW_DATA_BUCKET environment variable is not set.\n' +
-        'Set it to the GCS bucket name used for extraction runs (e.g. parcela-490518-raw-data).',
+        'Set it to the GCS bucket name used for extraction runs (e.g. parcella-501012-raw-data).',
     )
     process.exit(1)
   }

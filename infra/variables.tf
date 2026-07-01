@@ -12,17 +12,17 @@ variable "region" {
 variable "raw_data_bucket" {
   description = "GCS bucket name for raw zoning PDFs"
   type        = string
-  default     = "parcela-490518-raw-data"
+  default     = "parcella-501012-raw-data"
 }
 
 variable "pipeline_service_account" {
   description = "Service account email that the pipeline runs as (granted objectViewer on the raw data bucket)"
   type        = string
-  default     = "github-actions@parcela-490518.iam.gserviceaccount.com"
+  default     = "github-actions@parcella-501012.iam.gserviceaccount.com"
 }
 
 variable "app_service_account" {
   description = "Service account email that the Cloud Run app runs as (granted objectViewer on the raw data bucket for the PDF proxy). Defaults to the project's default Compute Engine SA."
   type        = string
-  default     = "1035403781322-compute@developer.gserviceaccount.com"
+  default     = "59092929765-compute@developer.gserviceaccount.com"
 }

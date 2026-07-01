@@ -97,7 +97,7 @@ All pipeline workflows are triggered manually via **Actions → [workflow name] 
 | Start Cloud SQL Auth Proxy | Open tunnel to Cloud SQL |
 | Run `pipeline:parse <jurisdiction>` | Fetch PDF (or read OCR output) and write pages artifact to GCS |
 
-**Outputs:** `gs://parcela-490518-raw-data/zoning/<slug>/artifacts/<slug>_pages.json`
+**Outputs:** `gs://parcella-501012-raw-data/zoning/<slug>/artifacts/<slug>_pages.json`
 
 **Next step:** Run `pipeline-zones.yml` for the same jurisdiction.
 
@@ -238,7 +238,7 @@ This workflow is superseded by the four stage-specific workflows above. It remai
 
 | Secret | Used by | Description |
 |--------|---------|-------------|
-| `GCP_PROJECT_ID` | All GCP workflows | GCP project ID (`parcela-490518`) |
+| `GCP_PROJECT_ID` | All GCP workflows | GCP project ID (`parcella-501012`) |
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | All GCP workflows | Workload Identity Federation provider URI |
 | `DATABASE_URL` | `ci-cd.yml` (deploy) | Cloud SQL Unix socket URL for Cloud Run runtime |
 | `DATABASE_URL_MIGRATE` | `ci-cd.yml` (deploy), pipeline workflows | Cloud SQL TCP URL for CI migrations and pipeline runs (via Cloud SQL Auth Proxy) |

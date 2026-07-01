@@ -94,6 +94,6 @@ Cache extraction results in memory and re-use them if the DB write fails within 
 - `scripts/run-pipeline.ts` is updated to chain both scripts.
 - `lib/pipeline/runner.ts` is refactored — `runPipeline` is split into `extractFields` and `loadArtifact`.
 - `data/extractions/` is added to the repo with synthetic artifact files for the 7 demo jurisdictions.
-- The GCS bucket (`parcela-490518-raw-data`) stores artifacts under `zoning/{slug}/extractions/latest.json`.
+- The GCS bucket (`parcella-501012-raw-data`) stores artifacts under `zoning/{slug}/extractions/latest.json`.
 - CI pipeline (`pipeline.yml`) behavior is unchanged — it continues to run both stages end-to-end.
 - Extraction artifacts are not secrets but should not be committed to Git for real jurisdictions (added to `.gitignore`); synthetic artifacts are committed as demo fixtures.

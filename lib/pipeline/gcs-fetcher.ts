@@ -28,7 +28,7 @@ export class GcsFetcher implements PdfFetcher {
     if (!b) {
       throw new Error(
         'GcsFetcher: RAW_DATA_BUCKET environment variable is not set. ' +
-        'Set it to the GCS bucket name (e.g. parcela-490518-raw-data) or ' +
+        'Set it to the GCS bucket name (e.g. parcella-501012-raw-data) or ' +
         'use LocalFetcher for local development.',
       )
     }
