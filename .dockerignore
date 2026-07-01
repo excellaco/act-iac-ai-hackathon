@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.github
+coverage
+__tests__
+__mocks__
+*.log
+.env
+.env.local
+.DS_Store
+terraform.tfstate*
+infra/.terraform
+.claude
+data/ocr
+tsconfig.tsbuildinfo
