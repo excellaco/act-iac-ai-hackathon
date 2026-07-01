@@ -6,7 +6,7 @@ An AI-powered housing regulatory and development feasibility intelligence platfo
 
 Parcella transforms unstructured municipal zoning documents into structured, comparable data — enabling policymakers and housing agency staff to quantify regulatory constraints, compare jurisdictions, and model the impact of potential policy changes.
 
-> **Live demo:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
+> **Live demo:** https://excella-ai-hackathon-59092929765.us-central1.run.app
 
 ---
 
@@ -256,7 +256,7 @@ See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) for download URLs, formats, a
 
 ## Live Demo
 
-**URL:** https://excella-ai-hackathon-w53o5h2jra-uc.a.run.app
+**URL:** https://excella-ai-hackathon-59092929765.us-central1.run.app
 
 **Try it:**
 1. Search for "Fairfax County" and select it
